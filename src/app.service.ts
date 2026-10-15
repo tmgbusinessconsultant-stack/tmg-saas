@@ -1,5 +1,12 @@
 import { Injectable } from '@nestjs/common';
+
 @Injectable()
 export class AppService {
-  getHello(): string { return 'TMG API Running!'; }
+  getHello() {
+    return {
+      status: 'ok',
+      message: 'TMG SAAS Backend is LIVE on Vercel!',
+      timestamp: new Date().toISOString(),
+    };
+  }
 }
