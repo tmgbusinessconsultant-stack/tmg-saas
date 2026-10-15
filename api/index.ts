@@ -1,8 +1,6 @@
 ﻿import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../src/app.module';
-
 let cachedServer: any;
-
 async function bootstrap() {
   if (!cachedServer) {
     const app = await NestFactory.create(AppModule);
@@ -13,7 +11,6 @@ async function bootstrap() {
   }
   return cachedServer;
 }
-
 export default async (req: any, res: any) => {
   const server = await bootstrap();
   server(req, res);
