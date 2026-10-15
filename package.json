@@ -4,7 +4,7 @@
     "private":  true,
     "scripts":  {
                     "build":  "prisma generate \u0026\u0026 nest build",
-                    "vercel-build":  "npx prisma generate \u0026\u0026 npx nest build",
+                    "vercel-build":  "chmod +x ./node_modules/.bin/prisma \u0026\u0026 npx prisma generate \u0026\u0026 npx nest build",
                     "start":  "node dist/main.js",
                     "start:dev":  "nest start --watch"
                 },
