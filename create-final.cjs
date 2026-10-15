@@ -13,7 +13,7 @@ export async function GET() {
 export async function POST(req: Request) {
   const body = await req.json()
   const plan = await prisma.membershipPlan.findUnique({ where: { id: body.planId } })
-  if(!plan) return NextResponse.json({ error: 'Plan not found' }, { status: 404 })
+  if (!plan) return NextResponse.json({ error: 'Plan not found' }, { status: 404 })
   const start = new Date(body.startDate || new Date())
   const end = new Date(start)
   end.setDate(end.getDate() + plan.duration)
@@ -43,7 +43,7 @@ import { NextResponse } from 'next/server'
 const prisma = new PrismaClient()
 export async function GET() {
   const gym = await prisma.gym.findFirst()
-  if(!gym) return NextResponse.json({ members: 0, active: 0, revenue: 0, plans: 0 })
+  if (!gym) return NextResponse.json({ members: 0, active: 0, revenue: 0, plans: 0 })
   const members = await prisma.member.count({ where: { gymId: gym.id } })
   const active = await prisma.subscription.count({ where: { status: 'ACTIVE' } })
   const plans = await prisma.membershipPlan.count({ where: { gymId: gym.id } })
@@ -55,12 +55,12 @@ export async function GET() {
 // SUBSCRIPTIONS UI PAGE
 fs.mkdirSync('app/subscriptions', { recursive: true });
 fs.writeFileSync('app/subscriptions/page.tsx', \
-'use client';
+  'use client';
 import { useEffect, useState } from 'react';
 export default function SubsPage() {
-  const [subs, setSubs] = useState<any[]>([]);
-  const [members, setMembers] = useState<any[]>([]);
-  const [plans, setPlans] = useState<any[]>([]);
+  const [subs, setSubs] = useState < any[] > ([]);
+  const [members, setMembers] = useState < any[] > ([]);
+  const [plans, setPlans] = useState < any[] > ([]);
   const [form, setForm] = useState({ memberId: '', planId: '', paymentMethod: 'CASH' });
   const load = async () => {
     setSubs(await fetch('/api/subscriptions').then(r => r.json()));
@@ -78,29 +78,29 @@ export default function SubsPage() {
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Subscriptions - Assign Plan to Member</h1>
       <form onSubmit={submit} className="flex flex-wrap gap-3 bg-gray-50 p-4 rounded mb-6">
-        <select className="border p-2 rounded" value={form.memberId} onChange={e => setForm({...form, memberId: e.target.value})} required>
+        <select className="border p-2 rounded" value={form.memberId} onChange={e => setForm({ ...form, memberId: e.target.value })} required>
           <option value="">Select Member</option>
           {members.map((m: any) => <option key={m.id} value={m.id}>{m.name} - {m.phone}</option>)}
         </select>
-        <select className="border p-2 rounded" value={form.planId} onChange={e => setForm({...form, planId: e.target.value})} required>
+        <select className="border p-2 rounded" value={form.planId} onChange={e => setForm({ ...form, planId: e.target.value })} required>
           <option value="">Select Plan/Service</option>
           {plans.map((p: any) => <option key={p.id} value={p.id}>{p.name} - {p.price} QAR ({p.type})</option>)}
         </select>
-        <select className="border p-2 rounded" value={form.paymentMethod} onChange={e => setForm({...form, paymentMethod: e.target.value})}>
+        <select className="border p-2 rounded" value={form.paymentMethod} onChange={e => setForm({ ...form, paymentMethod: e.target.value })}>
           <option>CASH</option><option>CARD</option><option>TRANSFER</option>
         </select>
         <button className="bg-black text-white px-4 rounded">Activate Subscription</button>
       </form>
       <table className="w-full border text-sm"><thead><tr className="bg-gray-100"><th className="p-2 text-left">Member</th><th>Plan</th><th>QAR</th><th>Start</th><th>End</th><th>Status</th></tr></thead>
-      <tbody>{subs.map((s: any) => <tr key={s.id} className="border-t"><td className="p-2">{s.member?.name}</td><td>{s.plan?.name}</td><td>{s.amountPaid} QAR</td><td>{new Date(s.startDate).toLocaleDateString()}</td><td>{new Date(s.endDate).toLocaleDateString()}</td><td><span className={\px-2 py-1 rounded text-xs \\}>{s.status}</span></td></tr>)}</tbody></table>
-    </div>
+        <tbody>{subs.map((s: any) => <tr key={s.id} className="border-t"><td className="p-2">{s.member?.name}</td><td>{s.plan?.name}</td><td>{s.amountPaid} QAR</td><td>{new Date(s.startDate).toLocaleDateString()}</td><td>{new Date(s.endDate).toLocaleDateString()}</td><td><span className={\px-2 py-1 rounded text-xs \\}>{s.status}</span></td></tr>)}</tbody></table>
+    </div >
   );
 }
 \);
 
 // DASHBOARD PAGE UPGRADE
 fs.writeFileSync('app/page.tsx', \
-'use client';
+  'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 export default function Dashboard() {
