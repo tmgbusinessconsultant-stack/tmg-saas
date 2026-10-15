@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+model Gym {
+  id String @id @default(cuid())
+  name String @default("TMG Business Consulting")
+  phone String?
+  email String?
+  address String?
+  currency String @default("USD")
+  members Member[]
+  plans MembershipPlan[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MembershipPlan {
+  id String @id @default(cuid())
+  gymId String
+  gym Gym @relation(fields: [gymId], references: [id])
+  name String
+  type String
+  price Float
+  duration Int
+  sessions Int?
+  description String?
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Member {
+  id String @id @default(cuid())
+  gymId String
+  gym Gym @relation(fields: [gymId], references: [id])
+  name String
+  phone String
+  email String?
+  qatarId String?
+  status String @default("ACTIVE")
+  joinDate DateTime @default(now())
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id String @id @default(cuid())
+  memberId String
+  member Member @relation(fields: [memberId], references: [id])
+  planId String
+  startDate DateTime @default(now())
+  endDate DateTime
+  status String @default("ACTIVE")
+  paymentStatus String @default("PAID")
+  paymentMethod String @default("CASH")
+  amountPaid Float
+  remainingSessions Int?
+  createdAt DateTime @default(now())
+}
