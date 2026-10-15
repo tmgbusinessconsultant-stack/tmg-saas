@@ -1,5 +1,5 @@
-{
+﻿{
   "buildCommand": "npm run vercel-build",
-  "rewrites": [{ "source": "/(.*)", "destination": "/api" }],
-  "framework": "nestjs"
+  "outputDirectory": "dist",
+  "rewrites": [{ "source": "/(.*)", "destination": "/api" }]
 }

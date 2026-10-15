@@ -2,7 +2,7 @@
     "name":  "tmg-saas-backend",
     "version":  "1.0.0",
     "private":  true,
-    "engines": { "node": "20.x" }, "scripts":  {
+    "scripts":  {
                     "build":  "prisma generate \u0026\u0026 nest build",
                     "vercel-build":  "npx prisma generate \u0026\u0026 npx nest build",
                     "start":  "node dist/main.js",
@@ -31,4 +31,5 @@
                             "typescript":  "^5.3.0"
                         }
 }
+
 
