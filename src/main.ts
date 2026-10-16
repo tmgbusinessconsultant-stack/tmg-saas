@@ -1,26 +1,21 @@
 ﻿import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-let cachedServer: any;
+import { ValidationPipe } from '@nestjs/common';
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.enableCors({ origin: '*', methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', credentials: true });
-  app.setGlobalPrefix('api');
-  await app.init();
-  return app.getHttpAdapter().getInstance();
-}
-async function startLocal() {
-  const app = await NestFactory.create(AppModule);
+
+  app.useGlobalPipes(new ValidationPipe());
   app.enableCors();
-  app.setGlobalPrefix('api');
-  await app.listen(4000);
-  console.log('TMG Running on http://localhost:4000/api');
+
+  await app.init(); // Core change: initialize instead of app.listen()
+
+  const expressApp = app.getHttpAdapter().getInstance();
+  return expressApp;
 }
-if (!process.env.VERCEL) {
-  startLocal();
-}
+
+// Export a handler for Vercel to look for
 export default async (req: any, res: any) => {
-  if (!cachedServer) {
-    cachedServer = await bootstrap();
-  }
-  cachedServer(req, res);
+  const server = await bootstrap();
+  return server(req, res);
 };
