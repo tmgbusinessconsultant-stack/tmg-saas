@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Productivity habits for busy teams</title>
+  <desc id="desc">Navy and gold illustration of a team task board, focused work blocks, and clear priorities.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0F172A"/><stop offset="1" stop-color="#233552"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#F5D76E"/><stop offset="1" stop-color="#D4AF37"/></linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="955" cy="285" r="210" fill="#D4AF37" opacity=".07"/>
+  <rect x="160" y="120" width="610" height="390" rx="26" fill="#17263F" stroke="#64748B" stroke-width="3"/>
+  <text x="205" y="174" fill="#F8FAFC" font-family="Arial,sans-serif" font-size="24" font-weight="700">TEAM WEEK</text>
+  <g fill="#233552">
+    <rect x="200" y="205" width="160" height="255" rx="14"/><rect x="380" y="205" width="160" height="255" rx="14"/><rect x="560" y="205" width="170" height="255" rx="14"/>
+  </g>
+  <g fill="#D4AF37" font-family="Arial,sans-serif" font-size="16" font-weight="700">
+    <text x="220" y="238">TO DO</text><text x="400" y="238">IN PROGRESS</text><text x="582" y="238">DONE</text>
+  </g>
+  <g fill="#F8FAFC">
+    <rect x="218" y="260" width="124" height="50" rx="8" opacity=".12"/><rect x="218" y="325" width="124" height="50" rx="8" opacity=".12"/>
+    <rect x="398" y="260" width="124" height="50" rx="8" opacity=".12"/><rect x="398" y="325" width="124" height="50" rx="8" opacity=".12"/>
+    <rect x="578" y="260" width="134" height="50" rx="8" opacity=".12"/><rect x="578" y="325" width="134" height="50" rx="8" opacity=".12"/>
+  </g>
+  <g fill="none" stroke="url(#gold)" stroke-width="6" stroke-linecap="round">
+    <path d="M235 285L247 297L270 270M415 285L427 297L450 270M595 285L607 297L630 270"/>
+    <circle cx="960" cy="315" r="120"/><path d="M960 240V320L1014 352"/>
+  </g>
+  <circle cx="960" cy="315" r="13" fill="#F5D76E"/>
+  <text x="870" y="490" fill="#F8FAFC" font-family="Arial,sans-serif" font-size="22" font-weight="700">FOCUS · ALIGN · DELIVER</text>
+  <text x="112" y="75" fill="#D4AF37" font-family="Arial,sans-serif" font-size="21" font-weight="700" letter-spacing="5">TMG BUSINESS INSIGHTS</text>
+</svg>

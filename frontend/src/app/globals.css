@@ -1,11 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  --background: #F8FAFC;
+  --foreground: #0F172A;
 
-@theme inline {
+  /* TMG BRAND COLORS */
+  --primary: #0F172A;
+  --gold: #D4AF37;
+  --blue: #2563EB;
+  --light-bg: #F8FAFC;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
@@ -14,8 +18,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0F172A;
+    --foreground: #F8FAFC;
   }
 }
 
@@ -23,4 +27,104 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* TMG Utility Classes - use anywhere */
+.bg-primary {
+  background-color: var(--primary);
+}
+
+.text-gold {
+  color: var(--gold);
+}
+
+.bg-gold {
+  background-color: var(--gold);
+}
+
+.text-primary {
+  color: var(--primary);
+}
+
+.bg-blue {
+  background-color: var(--blue);
+}
+
+.cms-rich-content {
+  color: #334155;
+  font-size: 1.0625rem;
+  line-height: 1.9;
+  overflow-wrap: anywhere;
+}
+
+.cms-rich-content h1,
+.cms-rich-content h2,
+.cms-rich-content h3,
+.cms-rich-content h4 {
+  color: #0f172a;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 2rem 0 0.75rem;
+}
+
+.cms-rich-content h1 { font-size: 2.25rem; }
+.cms-rich-content h2 { font-size: 1.875rem; }
+.cms-rich-content h3 { font-size: 1.5rem; }
+.cms-rich-content h4 { font-size: 1.25rem; }
+.cms-rich-content p,
+.cms-rich-content ul,
+.cms-rich-content ol,
+.cms-rich-content blockquote,
+.cms-rich-content pre,
+.cms-rich-content table {
+  margin: 1rem 0;
+}
+
+.cms-rich-content ul,
+.cms-rich-content ol {
+  padding-left: 1.5rem;
+}
+
+.cms-rich-content ul { list-style: disc; }
+.cms-rich-content ol { list-style: decimal; }
+
+.cms-rich-content a {
+  color: #8a6a00;
+  text-decoration: underline;
+}
+
+.cms-rich-content blockquote {
+  border-left: 4px solid #d4af37;
+  padding-left: 1rem;
+}
+
+.cms-rich-content pre {
+  overflow-x: auto;
+  border-radius: 0.5rem;
+  background: #0f172a;
+  color: white;
+  padding: 1rem;
+}
+
+.cms-rich-content table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cms-rich-content th,
+.cms-rich-content td {
+  border: 1px solid #cbd5e1;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.cms-rich-content img,
+.cms-rich-content iframe {
+  max-width: 100%;
+}
+
+.cms-rich-content iframe {
+  aspect-ratio: 16 / 9;
+  height: auto;
+  width: 100%;
 }

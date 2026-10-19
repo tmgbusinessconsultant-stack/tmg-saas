@@ -7,6 +7,393 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  CUSTOMER
+  ADMIN
+  SUPER_ADMIN
+  ADMIN_MANAGER
+  CONTENT_MANAGER
+  FINANCE_MANAGER
+  PROJECT_MANAGER
+  STAFF
+  CLIENT
+}
+
+enum QuoteStatus {
+  PENDING
+  REVIEWING
+  QUOTED
+  ACCEPTED
+  DECLINED
+  CLOSED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum ProjectStatus {
+  PENDING
+  ASSIGNED
+  IN_PROGRESS
+  REVIEW
+  CLIENT_FEEDBACK
+  COMPLETED
+  DELIVERED
+  ARCHIVED
+}
+
+enum ProjectFileKind {
+  CLIENT_UPLOAD
+  DELIVERABLE
+}
+
+enum ProjectFileStatus {
+  UPLOADING
+  SCANNING
+  AVAILABLE
+  REJECTED
+  FAILED
+}
+
+model User {
+  id                String            @id @default(cuid())
+  email             String            @unique
+  name              String
+  passwordHash      String
+  role              UserRole          @default(CLIENT)
+  permissions       String[]          @default([])
+  isActive          Boolean           @default(true)
+  tokenVersion      Int               @default(0)
+  passwordChangedAt DateTime          @default(now())
+  quoteRequests     QuoteRequest[]
+  payments          Payment[]
+  aiUsage           AiUsage[]
+  aiConversations   AiConversation[]
+  aiFileAuthorizations AiFileAnalysis[] @relation("AiFileAnalysisAuthorizedBy")
+  aiKnowledgeDocuments AiKnowledgeDocument[] @relation("AiKnowledgeUploadedBy")
+  ownedProjects     Project[]         @relation("ProjectOwner")
+  assignedProjects  Project[]         @relation("ProjectAssignee")
+  projectMessages   ProjectMessage[]
+  projectActivities ProjectActivity[]
+  projectFiles      ProjectFile[]
+  uploadedMedia     ContentMedia[]
+  contentAuditLogs  ContentAuditLog[]
+  activityLogs      ActivityLog[]
+  cvDocuments       CvDocument[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([role, isActive])
+  @@index([createdAt])
+}
+
+model Project {
+  id          String            @id @default(cuid())
+  ownerId     String
+  owner       User              @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  assigneeId  String?
+  assignee    User?             @relation("ProjectAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  serviceType String
+  title       String
+  description String            @db.Text
+  status      ProjectStatus     @default(PENDING)
+  dueDate     DateTime?
+  files       ProjectFile[]
+  messages    ProjectMessage[]
+  activities  ProjectActivity[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([ownerId, updatedAt])
+  @@index([assigneeId, status])
+  @@index([status, updatedAt])
+}
+
+model ProjectFile {
+  id           String            @id @default(cuid())
+  projectId    String
+  project      Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploadedById String
+  uploadedBy   User              @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+  name         String
+  originalName String
+  contentType  String
+  size         BigInt
+  storageKey   String            @unique
+  multipartId  String?
+  kind         ProjectFileKind
+  status       ProjectFileStatus @default(UPLOADING)
+  familyKey    String
+  version      Int               @default(1)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  aiAnalyses  AiFileAnalysis[]
+
+  @@unique([projectId, familyKey, version])
+  @@index([projectId, kind, status])
+  @@index([uploadedById, createdAt])
+}
+
+model ProjectMessage {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([projectId, createdAt])
+}
+
+model ProjectActivity {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  actorId   String?
+  actor     User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action    String
+  detail    String?  @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([projectId, createdAt])
+}
+
+model ContentMedia {
+  id                String   @id @default(cuid())
+  uploadedById      String
+  uploadedBy        User     @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+  storageKey        String   @unique
+  originalName      String
+  contentType       String
+  size              BigInt
+  status            String   @default("SCANNING")
+  publishedLocations String[] @default([])
+  galleryItems      GalleryItem[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([contentType, createdAt])
+}
+
+model BlogCategory {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  slug      String     @unique
+  posts     BlogPost[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model BlogPost {
+  id             String       @id @default(cuid())
+  title          String
+  slug           String       @unique
+  excerpt        String       @db.Text
+  content        String       @db.Text
+  featuredImage  String?
+  galleryImages  String[]     @default([])
+  author         String
+  categoryId     String
+  category       BlogCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  tags           String[]     @default([])
+  status         String       @default("DRAFT")
+  publishDate    DateTime?
+  seoTitle       String?
+  seoDescription String?
+  seoKeywords    String[]     @default([])
+  openGraphImage String?
+  canonicalUrl   String?
+  schemaMarkup   Json?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([status, publishDate])
+  @@index([categoryId, status])
+}
+
+model GalleryItem {
+  id          String   @id @default(cuid())
+  mediaId     String
+  media       ContentMedia @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  title       String
+  description String   @db.Text
+  category    String
+  displayOrder Int     @default(0)
+  isVisible   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isVisible, displayOrder])
+  @@index([category, isVisible])
+}
+
+model CmsSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model ContentAuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  actor      User     @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  action     String
+  entityType String
+  entityId   String
+  detail     Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId, createdAt])
+  @@index([actorId, createdAt])
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  actorId   String
+  actor     User     @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  action    String
+  targetId  String?
+  detail    Json?
+  createdAt DateTime @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
+}
+
+model CvDocument {
+  id        String   @id @default(cuid())
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  title     String
+  content   String   @db.Text
+  storageKey String  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId, createdAt])
+}
+
+model QuoteRequest {
+  id        String      @id @default(cuid())
+  userId    String?
+  user      User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  fullName  String
+  email     String
+  phone     String?
+  company   String?
+  service   String
+  details   String      @db.Text
+  source    String      @default("website")
+  status    QuoteStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([status, createdAt])
+  @@index([userId, createdAt])
+  @@index([email, createdAt])
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  userId          String?
+  user            User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  provider        String        @default("PAYPAL")
+  providerOrderId String        @unique
+  captureId       String?       @unique
+  planId          String
+  amount          Decimal       @db.Decimal(10, 2)
+  currency        String        @db.VarChar(3)
+  status          PaymentStatus @default(PENDING)
+  completedAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+}
+
+model AiUsage {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  tool      String
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([tool, createdAt])
+}
+
+model AiConversation {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  sessionId String
+  message   String   @db.Text
+  response  String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@index([sessionId, createdAt])
+}
+
+model AiRateLimit {
+  key              String   @id
+  windowStartedAt  DateTime
+  requestCount     Int      @default(1)
+  updatedAt        DateTime @updatedAt
+
+  @@index([updatedAt])
+}
+
+model AiKnowledgeDocument {
+  id          String   @id @default(cuid())
+  fileName    String
+  contentType String
+  storageKey  String   @unique
+  status      String   @default("SCANNING")
+  indexedText String?  @db.Text
+  uploadedById String
+  uploadedBy   User     @relation("AiKnowledgeUploadedBy", fields: [uploadedById], references: [id], onDelete: Restrict)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status, createdAt])
+}
+
+model SearchQuery {
+  id           String   @id @default(cuid())
+  query        String
+  resultCount  Int
+  sessionHash  String?
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([query, createdAt])
+}
+
+model AiFileAnalysis {
+  id            String      @id @default(cuid())
+  projectFileId String
+  projectFile   ProjectFile @relation(fields: [projectFileId], references: [id], onDelete: Cascade)
+  authorizedById String
+  authorizedBy  User        @relation("AiFileAnalysisAuthorizedBy", fields: [authorizedById], references: [id], onDelete: Restrict)
+  authorizationConfirmedAt DateTime
+  summary       String      @db.Text
+  keyInsights   String[]    @default([])
+  recommendations String[]  @default([])
+  createdAt     DateTime    @default(now())
+
+  @@index([projectFileId, createdAt])
+  @@index([authorizedById, createdAt])
+}
+
 model Gym {
   id        String           @id @default(cuid())
   name      String           @default("TMG Business Consulting")

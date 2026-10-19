@@ -1,18 +1,22 @@
 import { Controller, Get, Post, Delete, Body, Param } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import { UserRole } from '@prisma/client';
+import { Roles } from '../auth/roles.decorator';
+import { PrismaService } from '../prisma/prisma.service';
 
+@Roles(UserRole.ADMIN)
 @Controller('plans')
 export class PlansController {
+  constructor(private readonly prisma: PrismaService) {}
+
   @Get() async findAll() {
-    return prisma.membershipPlan.findMany();
+    return this.prisma.membershipPlan.findMany();
   }
 
   @Post() async create(@Body() body: any) {
-    let gym = await prisma.gym.findFirst();
-    if (!gym) gym = await prisma.gym.create({ data: { name: 'TMG Business Consulting', currency: 'USD' } });
+    let gym = await this.prisma.gym.findFirst();
+    if (!gym) gym = await this.prisma.gym.create({ data: { name: 'TMG Business Consulting', currency: 'USD' } });
 
-    return prisma.membershipPlan.create({
+    return this.prisma.membershipPlan.create({
       data: {
         name: body.name,
         price: Number(body.price),
@@ -25,6 +29,6 @@ export class PlansController {
   }
 
   @Delete(':id') async delete(@Param('id') id: string) {
-    return prisma.membershipPlan.delete({ where: { id } });
+    return this.prisma.membershipPlan.delete({ where: { id } });
   }
 }

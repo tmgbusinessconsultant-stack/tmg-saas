@@ -10,7 +10,20 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^4.0.96",
+    "@marsidev/react-turnstile": "^1.6.2",
+    "@tiptap/extension-image": "^3.0.0",
+    "@tiptap/extension-link": "^3.0.0",
+    "@tiptap/extension-table": "^3.0.0",
+    "@tiptap/extension-table-cell": "^3.0.0",
+    "@tiptap/extension-table-header": "^3.0.0",
+    "@tiptap/extension-table-row": "^3.0.0",
+    "@tiptap/extension-youtube": "^3.0.0",
+    "@tiptap/react": "^3.0.0",
+    "@tiptap/starter-kit": "^3.0.0",
+    "ai": "^7.0.143",
     "next": "16.4.0",
+    "openai": "^7.36.0",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },

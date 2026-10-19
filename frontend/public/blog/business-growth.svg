@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Sustainable business growth</title>
+  <desc id="desc">Navy and gold illustration of a rising growth chart and business metrics.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0F172A"/><stop offset="1" stop-color="#233552"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#F5D76E"/><stop offset="1" stop-color="#D4AF37"/></linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="1020" cy="110" r="190" fill="#D4AF37" opacity=".08"/>
+  <circle cx="105" cy="570" r="250" fill="#60A5FA" opacity=".06"/>
+  <g fill="none" stroke="#94A3B8" stroke-opacity=".28" stroke-width="2">
+    <path d="M110 455H1080M110 365H1080M110 275H1080M110 185H1080"/>
+    <path d="M200 145V500M400 145V500M600 145V500M800 145V500M1000 145V500"/>
+  </g>
+  <g fill="#D4AF37" opacity=".65">
+    <rect x="190" y="360" width="92" height="140" rx="12"/>
+    <rect x="390" y="310" width="92" height="190" rx="12"/>
+    <rect x="590" y="255" width="92" height="245" rx="12"/>
+    <rect x="790" y="195" width="92" height="305" rx="12"/>
+  </g>
+  <path d="M150 365L320 330L485 285L650 240L815 178L1010 112" fill="none" stroke="url(#gold)" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M964 111L1015 108L1004 160" fill="none" stroke="#F5D76E" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+  <g fill="#F8FAFC" stroke="#D4AF37" stroke-width="7">
+    <circle cx="320" cy="330" r="13"/><circle cx="485" cy="285" r="13"/><circle cx="650" cy="240" r="13"/><circle cx="815" cy="178" r="13"/>
+  </g>
+  <text x="112" y="92" fill="#D4AF37" font-family="Arial,sans-serif" font-size="21" font-weight="700" letter-spacing="5">TMG BUSINESS INSIGHTS</text>
+  <text x="112" y="555" fill="#F8FAFC" font-family="Arial,sans-serif" font-size="38" font-weight="700">Growth built to last</text>
+</svg>
