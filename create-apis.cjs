@@ -3,7 +3,7 @@ fs.mkdirSync('app/api/plans/[id]', { recursive: true });
 fs.mkdirSync('app/api/members', { recursive: true });
 fs.mkdirSync('app/api/gym', { recursive: true });
 
-fs.writeFileSync('app/api/plans/route.ts', \import { PrismaClient } from '@prisma/client'
+fs.writeFileSync('app/api/plans/route.ts', `import { PrismaClient } from '@prisma/client'
 import { NextResponse } from 'next/server'
 const prisma = new PrismaClient()
 export async function GET() {
@@ -20,9 +20,9 @@ export async function POST(req: Request) {
   })
   return NextResponse.json(plan)
 }
-\);
+`);
 
-fs.writeFileSync('app/api/plans/[id]/route.ts', \import { PrismaClient } from '@prisma/client'
+fs.writeFileSync('app/api/plans/[id]/route.ts', `import { PrismaClient } from '@prisma/client'
 import { NextResponse } from 'next/server'
 const prisma = new PrismaClient()
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
@@ -34,9 +34,9 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   await prisma.membershipPlan.delete({ where: { id: params.id } })
   return NextResponse.json({ success: true })
 }
-\);
+`);
 
-fs.writeFileSync('app/api/members/route.ts', \import { PrismaClient } from '@prisma/client'
+fs.writeFileSync('app/api/members/route.ts', `import { PrismaClient } from '@prisma/client'
 import { NextResponse } from 'next/server'
 const prisma = new PrismaClient()
 export async function GET() {
@@ -50,9 +50,9 @@ export async function POST(req: Request) {
   const member = await prisma.member.create({ data: { name: body.name, phone: body.phone, email: body.email || null, qatarId: body.qatarId || null, status: body.status || 'ACTIVE', notes: body.notes || null, gymId: gym.id } })
   return NextResponse.json(member)
 }
-\);
+`);
 
-fs.writeFileSync('app/api/gym/route.ts', \import { PrismaClient } from '@prisma/client'
+fs.writeFileSync('app/api/gym/route.ts', `import { PrismaClient } from '@prisma/client'
 import { NextResponse } from 'next/server'
 const prisma = new PrismaClient()
 export async function GET() { const gym = await prisma.gym.findFirst(); return NextResponse.json(gym) }
@@ -62,6 +62,6 @@ export async function PUT(req: Request) {
   const updated = await prisma.gym.update({ where: { id: gym.id }, data: { name: body.name, phone: body.phone, email: body.email, address: body.address } })
   return NextResponse.json(updated)
 }
-\);
+`);
 
 console.log('API files created');
