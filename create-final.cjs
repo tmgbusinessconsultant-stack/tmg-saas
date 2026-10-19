@@ -2,7 +2,7 @@ const fs = require('fs');
 
 // SUBSCRIPTIONS API
 fs.mkdirSync('app/api/subscriptions', { recursive: true });
-fs.writeFileSync('app/api/subscriptions/route.ts', \
+fs.writeFileSync('app/api/subscriptions/route.ts', `
 import { PrismaClient } from '@prisma/client'
 import { NextResponse } from 'next/server'
 const prisma = new PrismaClient()
@@ -33,11 +33,11 @@ export async function POST(req: Request) {
   await prisma.member.update({ where: { id: body.memberId }, data: { status: 'ACTIVE' } })
   return NextResponse.json(sub)
 }
-\);
+`);
 
 // STATS API
 fs.mkdirSync('app/api/stats', { recursive: true });
-fs.writeFileSync('app/api/stats/route.ts', \
+fs.writeFileSync('app/api/stats/route.ts', `
 import { PrismaClient } from '@prisma/client'
 import { NextResponse } from 'next/server'
 const prisma = new PrismaClient()
@@ -50,11 +50,11 @@ export async function GET() {
   const revenueAgg = await prisma.subscription.aggregate({ _sum: { amountPaid: true }, where: { paymentStatus: 'PAID' } })
   return NextResponse.json({ members, active, plans, revenue: revenueAgg._sum.amountPaid || 0 })
 }
-\);
+`);
 
 // SUBSCRIPTIONS UI PAGE
 fs.mkdirSync('app/subscriptions', { recursive: true });
-fs.writeFileSync('app/subscriptions/page.tsx', \
+fs.writeFileSync('app/subscriptions/page.tsx', `
   'use client';
 import { useEffect, useState } from 'react';
 export default function SubsPage() {
@@ -92,14 +92,14 @@ export default function SubsPage() {
         <button className="bg-black text-white px-4 rounded">Activate Subscription</button>
       </form>
       <table className="w-full border text-sm"><thead><tr className="bg-gray-100"><th className="p-2 text-left">Member</th><th>Plan</th><th>QAR</th><th>Start</th><th>End</th><th>Status</th></tr></thead>
-        <tbody>{subs.map((s: any) => <tr key={s.id} className="border-t"><td className="p-2">{s.member?.name}</td><td>{s.plan?.name}</td><td>{s.amountPaid} QAR</td><td>{new Date(s.startDate).toLocaleDateString()}</td><td>{new Date(s.endDate).toLocaleDateString()}</td><td><span className={\px-2 py-1 rounded text-xs \\}>{s.status}</span></td></tr>)}</tbody></table>
+        <tbody>{subs.map((s: any) => <tr key={s.id} className="border-t"><td className="p-2">{s.member?.name}</td><td>{s.plan?.name}</td><td>{s.amountPaid} QAR</td><td>{new Date(s.startDate).toLocaleDateString()}</td><td>{new Date(s.endDate).toLocaleDateString()}</td><td><span className="px-2 py-1 rounded text-xs">{s.status}</span></td></tr>)}</tbody></table>
     </div >
   );
 }
-\);
+`);
 
 // DASHBOARD PAGE UPGRADE
-fs.writeFileSync('app/page.tsx', \
+fs.writeFileSync('app/page.tsx', `
   'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -125,6 +125,6 @@ export default function Dashboard() {
     </div>
   );
 }
-\);
+`);
 
 console.log('Done');
