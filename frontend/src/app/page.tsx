@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import Link from "next/link";
 import Image from "next/image";
 import { Suspense } from "react";
@@ -9,7 +11,7 @@ async function loadHomepageContent(): Promise<HomepageContent> {
   try {
     const base = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
     if (!base) return defaultHomepageContent;
-    const response = await fetch(`${base}/content/homepage`, { cache: "no-store", next: { revalidate: 0 } });
+    const response = await fetch(`${base}/content/homepage`, { cache: "no-store" });
     if (!response.ok) {
       console.warn(`Homepage API returned ${response.status}, using fallback`);
       return defaultHomepageContent;
@@ -89,23 +91,6 @@ function HomePageContent({ content }: { content: HomepageContent }) {
           </div>
         </div>
       </section>
-      <section aria-labelledby="search-center-heading" className="mx-auto -mt-1 max-w-5xl px-6 py-12">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl sm:p-8">
-          <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-[#8A6A00]">AI · Training · Growth</p>
-          <h2 id="search-center-heading" className="mt-2 text-center text-2xl font-bold sm:text-3xl">Find the right support for your business</h2>
-          <form action="/search" method="get" className="mx-auto mt-6 flex max-w-3xl flex-col gap-3 sm:flex-row">
-            <label htmlFor="homepage-search" className="sr-only">Search our services and insights</label>
-            <input id="homepage-search" name="q" type="search" minLength={2} maxLength={120} placeholder="Search services, insights, training…" className="min-w-0 flex-1 rounded-lg border border-slate-300 px-4 py-3" />
-            <button type="submit" className="rounded-lg bg-[#D4AF37] px-6 py-3 font-bold text-[#0F172A]">Search</button>
-          </form>
-          <div className="mt-5 flex flex-wrap justify-center gap-3">
-            <Link href="/ai" className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold hover:bg-slate-50">Ask TMG AI</Link>
-            <Link href="/upload" className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold hover:bg-slate-50">Upload a project file</Link>
-            <Link href="/quote" className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold hover:bg-slate-50">Request a quote</Link>
-          </div>
-          <p className="mt-5 text-center text-sm text-slate-600">Trusted business consulting, automation and data solutions for organizations worldwide.</p>
-        </div>
-      </section>
       <PublishedMediaSection location="homepage" title="From our work" />
       <section className="max-w-7xl mx-auto px-6 py-16">
         <div className="text-center max-w-3xl mx-auto">
@@ -155,43 +140,13 @@ function HomePageContent({ content }: { content: HomepageContent }) {
           {content.testimonials.items.filter((item) => item.approved).map((item) => (
             <div key={item.id} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
               {item.photoUrl && <Image src={mediaUrl(item.photoUrl)} alt="" width={56} height={56} unoptimized className="mb-4 h-14 w-14 rounded-full object-cover" />}
-              <div className="text-amber-600" aria-label={`${item.rating} out of 5 stars`} title={`${item.rating} out of 5 stars`}>{"★".repeat(item.rating)}{"☆".repeat(5 - item.rating)}</div>
+              <div className="text-amber-600">{"★".repeat(item.rating)}{"☆".repeat(5 - item.rating)}</div>
               <p className="mt-3 leading-7 text-slate-700">“{item.quote}”</p>
               <div className="mt-6 font-semibold text-[#0F172A]">{item.clientName}{item.company ? `, ${item.company}` : ""}</div>
             </div>
           ))}
         </div>
       </section>}
-      {content.caseStudies.length > 0 && <section className="max-w-7xl mx-auto px-6 py-16">
-        <div className="text-center"><p className="text-[#8A6A00] text-xs font-semibold uppercase tracking-[0.2em]">Selected work</p><h2 className="mt-3 text-3xl font-bold">Case studies</h2></div>
-        <div className="mt-8 grid gap-5 md:grid-cols-2">{content.caseStudies.map((item) => <article key={item.title} className="rounded-xl border border-slate-200 bg-white p-6"><h3 className="text-xl font-bold">{item.title}</h3><p className="mt-3 text-slate-600">{item.description}</p></article>)}</div>
-      </section>}
-      {content.faq.length > 0 && <section id="faq" className="bg-slate-100 py-16">
-        <div className="mx-auto max-w-4xl px-6"><p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-[#8A6A00]">FAQ</p><h2 className="mt-3 text-center text-3xl font-bold">Frequently asked questions</h2>
-          <div className="mt-8 space-y-4">{content.faq.map((item) => <details key={item.question} className="rounded-xl bg-white p-5"><summary className="cursor-pointer font-semibold">{item.question}</summary><p className="mt-3 leading-7 text-slate-600">{item.answer}</p></details>)}</div>
-        </div>
-      </section>}
-      <section aria-labelledby="growth-journey-heading" className="mx-auto max-w-7xl px-6 py-16">
-        <div className="mx-auto max-w-3xl text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8A6A00]">A clear next step</p>
-          <h2 id="growth-journey-heading" className="mt-3 text-3xl font-bold sm:text-4xl">How TMG helps you grow</h2>
-          <p className="mt-4 text-slate-600">Move from a business question to a practical consulting engagement with a secure, supported process.</p>
-        </div>
-        <ol className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {["Search for relevant services and insights", "Ask TMG AI for general guidance", "Upload project files in your secure client portal", "Discuss your goals with a consultant", "Receive a reviewed quote and scope", "Track project work and deliverables"].map((step, index) => (
-            <li key={step} className="flex gap-4 rounded-xl border border-slate-200 bg-white p-5">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FFF4C2] font-bold text-[#624B00]">{index + 1}</span>
-              <span className="pt-1 font-medium">{step}</span>
-            </li>
-          ))}
-        </ol>
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Link href="/ai" className="rounded-md bg-[#0F172A] px-5 py-3 font-semibold text-white">Try AI Assistant</Link>
-          <Link href="/upload" className="rounded-md border border-slate-300 px-5 py-3 font-semibold">Upload Project Files</Link>
-          <Link href="/quote" className="rounded-md bg-[#D4AF37] px-5 py-3 font-semibold text-black">Request Quote</Link>
-          <Link href="/booking" className="rounded-md border border-slate-300 px-5 py-3 font-semibold">Book Consultation</Link>
-        </div>
-      </section>
       <section className="bg-[#0F172A] text-white py-16">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-3xl md:text-4xl font-bold">{content.cta.heading}</h2>
