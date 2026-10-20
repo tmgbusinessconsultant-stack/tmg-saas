@@ -101,7 +101,7 @@ export class KnowledgeService {
     try {
       text = extension === 'txt' || extension === 'csv'
         ? bytes.toString('utf8')
-        : (await OfficeParser.parseOffice(new Uint8Array(bytes), { fileType: extension as SupportedFileType })).toText();
+        : String(await OfficeParser.parseOffice(new Uint8Array(bytes), { fileType: extension as SupportedFileType }));
     } catch (error) {
       this.logger.warn(`Could not extract text from clean knowledge file ${id}.`, error);
       await this.prisma.aiKnowledgeDocument.update({ where: { id }, data: { status: 'FAILED' } });

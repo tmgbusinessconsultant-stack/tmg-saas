@@ -22,7 +22,7 @@ export class FileAnalysisService {
   private readonly logger = new Logger(FileAnalysisService.name);
   private s3Client: S3Client | undefined;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async analyze(projectId: string, fileId: string, user: AuthenticatedUser, confirmed: boolean) {
     if (!confirmed) throw new BadRequestException('Confirm that the client has authorized external AI processing.');
@@ -62,7 +62,7 @@ export class FileAnalysisService {
     try {
       text = extension === 'csv' || extension === 'txt'
         ? bytes.toString('utf8')
-        : (await OfficeParser.parseOffice(new Uint8Array(bytes), { fileType: extension as SupportedFileType })).toText();
+        : String(await OfficeParser.parseOffice(new Uint8Array(bytes), { fileType: extension as SupportedFileType }))
     } catch (error) {
       this.logger.warn(`Could not extract text from project file ${fileId}.`, error);
       throw new BadRequestException('Could not read this file. Upload a valid, text-readable document.');
