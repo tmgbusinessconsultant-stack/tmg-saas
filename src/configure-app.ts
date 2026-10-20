@@ -19,9 +19,12 @@ export function configureApp(app: INestApplication): void {
   app.enableCors({
     origin: allowedOrigins.length > 0
       ? allowedOrigins
-      : process.env.NODE_ENV === 'production'
-        ? false
-        : true,
+      : [
+        'https://www.tmgbusinessconsulting.com',
+        'https://tmgbusinessconsulting.com',
+        'http://localhost:3000',
+        'http://localhost:3001'
+      ],
     credentials: true,
   });
   app.useGlobalPipes(new ValidationPipe({
