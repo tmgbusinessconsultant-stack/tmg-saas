@@ -2,6 +2,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import SiteHeader from "@/components/site-header";
+import GlobalStyles from "@/components/GlobalStyles";
 import { contactEmail, phoneNumber, whatsappNumber } from "@/lib/contact-details";
 
 export const metadata: Metadata = {
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className="bg-[#F8FAFC] text-[#0F172A] antialiased">
+        <GlobalStyles />
         <SiteHeader />
         <main className="min-h-screen">{children}</main>
         <footer className="bg-[#0F172A] text-white">
