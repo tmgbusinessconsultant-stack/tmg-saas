@@ -5,14 +5,12 @@
   --foreground: #0F172A;
   --primary: #0F172A;
   --gold: #D4AF37;
-  --blue: #2563EB;
 }
 
 html,
 body {
   overflow-x: hidden;
   max-width: 100vw;
-  width: 100%;
 }
 
 body {
@@ -21,34 +19,20 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* === 1. FIX ALL FORM BOXES - MOBILE CUT OFF === */
 * {
   box-sizing: border-box;
   min-width: 0;
 }
 
-form,
-div,
-section {
-  max-width: 100%;
-}
-
-input,
-textarea,
-select,
-button {
-  max-width: 100% !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-  min-width: 0 !important;
-}
-
+/* === FORMS - FIX CUT OFF ON MOBILE === */
 input,
 textarea,
 select {
   color: #0F172A !important;
-  background-color: #FFFFFF !important;
+  background: #FFFFFF !important;
   border: 1px solid #CBD5E1 !important;
+  max-width: 100% !important;
+  width: 100% !important;
 }
 
 input::placeholder,
@@ -58,63 +42,55 @@ textarea::placeholder {
 
 input[type="file"] {
   font-size: 13px !important;
-  padding: 8px !important;
   white-space: normal !important;
 }
 
-/* === 2. FIX WHITE TEXT ON WHITE - MAIN FIX === */
-/* Make ALL text dark by default on light backgrounds */
-.text-white,
-[class*="text-white"],
-.text-slate-100,
-[class*="text-slate-100"],
-.text-slate-200,
-[class*="text-slate-200"],
-.text-slate-300,
-[class*="text-slate-300"] {
-  color: #0F172A !important;
-}
-
-/* White cards must have dark text */
+/* === WHITE TEXT ON BLUE - FIX INVISIBLE === */
 .bg-white,
-[class*="bg-white"],
-.card,
-.workspace,
-.bg-slate-50,
-[class*="bg-slate-50"],
-.bg-gray-50 {
+[class*="bg-white"] {
   color: #0F172A !important;
-  overflow: hidden !important;
 }
 
-/* === 3. RESTORE WHITE TEXT ONLY ON DARK BLUE === */
+/* DARK BACKGROUNDS = WHITE TEXT */
 .bg-primary,
 div[class*="bg-[#0F172A]"],
 .bg-slate-900,
-[class*="bg-slate-900"],
 .bg-slate-800,
-[class*="bg-slate-800"],
-header,
-nav,
-aside,
-footer,
-.bg-primary *,
-div[class*="bg-[#0F172A]"] *,
 .bg-slate-900 *,
+div[class*="bg-[#0F172A]"] *,
 header *,
 nav *,
 footer * {
   color: #F8FAFC !important;
 }
 
-/* Gold button stays dark */
 .bg-gold,
-[class*="bg-gold"],
-button[class*="bg-[#D4AF37]"],
-.bg-primary .bg-gold,
-div[class*="bg-[#0F172A]"] .bg-gold {
+[class*="bg-gold"] {
   color: #0F172A !important;
-  background-color: #D4AF37 !important;
+  background: #D4AF37 !important;
+}
+
+/* === ADMIN TABS - AUTO WRAP & RESPONSIVE === */
+/* This is your main bug in screenshot */
+div[class*="flex"],
+.flex {
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+
+/* Make admin buttons auto-size on any device */
+button,
+a[class*="button"],
+[role="button"] {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  height: auto !important;
+  min-height: 44px !important;
+}
+
+/* Admin dashboard grid - auto responsive */
+.grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
 }
 
 img,
