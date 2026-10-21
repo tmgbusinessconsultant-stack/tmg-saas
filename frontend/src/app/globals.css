@@ -195,3 +195,18 @@ aside a:hover {
 button[class*="bg-[#D4AF37]"] {
   color: #0F172A !important;
 }
+
+/* === FIX SECONDARY BUTTONS ON DARK BLUE === */
+button[class*="border"],
+a[class*="border"],
+.border-white,
+[class*="border-white"] {
+  color: #F8FAFC !important;
+  border-color: #F8FAFC !important;
+}
+
+/* Ensure outline buttons have white text */
+button.bg-transparent,
+a.bg-transparent {
+  color: #F8FAFC !important;
+}
