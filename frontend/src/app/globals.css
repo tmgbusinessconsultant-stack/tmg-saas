@@ -4,7 +4,7 @@
   --background: #F8FAFC;
   --foreground: #0F172A;
   --primary: #0F172A;
-  --gold: #D4AF37;
+  --gold: #d6b035;
 }
 
 html,
@@ -24,7 +24,7 @@ body {
   min-width: 0;
 }
 
-/* === FORMS - FIX CUT OFF ON MOBILE === */
+/* === FIX FORMS === */
 input,
 textarea,
 select {
@@ -42,24 +42,26 @@ textarea::placeholder {
 
 input[type="file"] {
   font-size: 13px !important;
-  white-space: normal !important;
 }
 
-/* === WHITE TEXT ON BLUE - FIX INVISIBLE === */
+/* === FIX WHITE ON WHITE === */
 .bg-white,
 [class*="bg-white"] {
   color: #0F172A !important;
 }
 
-/* DARK BACKGROUNDS = WHITE TEXT */
+/* === FIX WHITE ON BLUE - THIS IS THE KEY === */
 .bg-primary,
 div[class*="bg-[#0F172A]"],
 .bg-slate-900,
 .bg-slate-800,
-.bg-slate-900 *,
+.bg-primary *,
 div[class*="bg-[#0F172A]"] *,
+.bg-slate-900 *,
+.bg-slate-800 *,
 header *,
 nav *,
+aside *,
 footer * {
   color: #F8FAFC !important;
 }
@@ -67,34 +69,35 @@ footer * {
 .bg-gold,
 [class*="bg-gold"] {
   color: #0F172A !important;
-  background: #D4AF37 !important;
+  background: #ddb638 !important;
 }
 
-/* === ADMIN TABS - AUTO WRAP & RESPONSIVE === */
-/* This is your main bug in screenshot */
-div[class*="flex"],
-.flex {
+/* === ADMIN TABS - AUTO RESPONSIVE FIX - YOUR CURRENT BUG === */
+.flex,
+div[class*="flex"] {
   flex-wrap: wrap !important;
-  gap: 8px !important;
+  gap: 10px !important;
 }
 
-/* Make admin buttons auto-size on any device */
-button,
-a[class*="button"],
-[role="button"] {
+/* Make tabs auto-change size */
+button {
   white-space: normal !important;
-  word-wrap: break-word !important;
   height: auto !important;
-  min-height: 44px !important;
+  min-height: 48px !important;
+  flex: 1 1 150px !important;
+  max-width: 100% !important;
+  line-height: 1.2 !important;
+  padding: 10px 14px !important;
 }
 
-/* Admin dashboard grid - auto responsive */
+/* Dashboard cards - auto responsive */
 .grid {
+  display: grid !important;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+  gap: 16px !important;
 }
 
 img,
-video,
 iframe {
   max-width: 100%;
 }
