@@ -4,7 +4,7 @@
   --background: #F8FAFC;
   --foreground: #0F172A;
   --primary: #0F172A;
-  --gold: #d6b035;
+  --gold: #D4AF37;
 }
 
 html,
@@ -24,33 +24,50 @@ body {
   min-width: 0;
 }
 
-/* === FIX FORMS === */
+/* === FORMS === */
 input,
 textarea,
 select {
   color: #0F172A !important;
-  background: #FFFFFF !important;
+  background: #FFF !important;
   border: 1px solid #CBD5E1 !important;
-  max-width: 100% !important;
   width: 100% !important;
 }
 
-input::placeholder,
-textarea::placeholder {
+input::placeholder {
   color: #64748B !important;
 }
 
-input[type="file"] {
-  font-size: 13px !important;
-}
-
-/* === FIX WHITE ON WHITE === */
+/* === MAIN FIX: WHITE ON WHITE -> BLACK === */
+/* Force EVERYTHING inside white cards to be black */
 .bg-white,
-[class*="bg-white"] {
+[class*="bg-white"],
+[class*="rounded-"] {
   color: #0F172A !important;
 }
 
-/* === FIX WHITE ON BLUE - THIS IS THE KEY === */
+.bg-white *,
+[class*="bg-white"] *,
+[class*="bg-white"] h3,
+[class*="bg-white"] p,
+[class*="bg-white"] span,
+[class*="bg-white"] div {
+  color: #0F172A !important;
+}
+
+/* The small light gray descriptions */
+.text-slate-100,
+.text-slate-200,
+.text-slate-300,
+.text-gray-100,
+.text-gray-200,
+[class*="text-slate-"],
+[class*="text-gray-"],
+[class*="text-white"] {
+  color: #0F172A !important;
+}
+
+/* === KEEP WHITE TEXT ONLY ON DARK BLUE === */
 .bg-primary,
 div[class*="bg-[#0F172A]"],
 .bg-slate-900,
@@ -58,46 +75,41 @@ div[class*="bg-[#0F172A]"],
 .bg-primary *,
 div[class*="bg-[#0F172A]"] *,
 .bg-slate-900 *,
-.bg-slate-800 *,
 header *,
 nav *,
-aside *,
 footer * {
   color: #F8FAFC !important;
+}
+
+/* Restore after the black fix */
+.bg-primary .bg-white,
+.bg-primary .bg-white *,
+div[class*="bg-[#0F172A]"] .bg-white,
+div[class*="bg-[#0F172A]"] .bg-white * {
+  color: #0F172A !important;
 }
 
 .bg-gold,
 [class*="bg-gold"] {
   color: #0F172A !important;
-  background: #ddb638 !important;
+  background: #D4AF37 !important;
 }
 
-/* === ADMIN TABS - AUTO RESPONSIVE FIX - YOUR CURRENT BUG === */
+/* === RESPONSIVE AUTO === */
 .flex,
 div[class*="flex"] {
   flex-wrap: wrap !important;
   gap: 10px !important;
 }
 
-/* Make tabs auto-change size */
 button {
   white-space: normal !important;
   height: auto !important;
-  min-height: 48px !important;
-  flex: 1 1 150px !important;
-  max-width: 100% !important;
-  line-height: 1.2 !important;
-  padding: 10px 14px !important;
+  min-height: 44px !important;
 }
 
-/* Dashboard cards - auto responsive */
 .grid {
   display: grid !important;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
   gap: 16px !important;
-}
-
-img,
-iframe {
-  max-width: 100%;
 }
