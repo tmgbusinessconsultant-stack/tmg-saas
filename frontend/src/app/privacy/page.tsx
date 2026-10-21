@@ -19,7 +19,7 @@ export default function PrivacyPage() {
       <p className="mt-3 text-sm text-slate-500">Last updated: 19 October 2026</p>
 
       <div className="mt-8 rounded-xl border border-amber-300 bg-amber-50 p-5 text-sm leading-6 text-amber-950">
-        TMG Business Consultant is the name displayed on this website. Before public launch, the operator should publish its full registered legal name and business address and confirm this notice with qualified local counsel.
+        TMG Business Consulting is the name displayed on this website. Before public launch, the operator should publish its full registered legal name and business address and confirm this notice with qualified local counsel.
       </div>
 
       <p className={paragraphClass}>
