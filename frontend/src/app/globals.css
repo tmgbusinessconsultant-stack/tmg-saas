@@ -169,3 +169,29 @@ textarea::placeholder {
   height: auto;
   width: 100%;
 }
+
+/* === FIX MOBILE NAVIGATION - DARK BLUE MENU === */
+nav a,
+nav button,
+aside a,
+aside button,
+div[class*="Navigation"] a,
+div[class*="bg-[#0F172A]"] a,
+div[class*="bg-primary"] a,
+.bg-primary a,
+.bg-primary button {
+  color: #F8FAFC !important;
+}
+
+/* Keep gold hover */
+nav a:hover,
+aside a:hover {
+  color: #D4AF37 !important;
+}
+
+/* The Get Quote button text should stay dark */
+.bg-gold,
+[class*="bg-gold"],
+button[class*="bg-[#D4AF37]"] {
+  color: #0F172A !important;
+}
