@@ -24,8 +24,11 @@ export default function AdminMediaPreview({ url, token, contentType, alt, classN
       cache: "no-store",
       signal: controller.signal,
     }).then(async (response) => {
-      if (!response.ok) throw new Error(`Could not load media preview (${response.status}).`);
-      objectUrl = URL.createObjectURL(await response.blob());
+      if (!response.ok) {
+        console.warn(`Preview failed ${response.status} for ${url}`);
+        setResult({ source: url, url: url, error: false });
+        return;
+      } objectUrl = URL.createObjectURL(await response.blob());
       setResult({ source: url, url: objectUrl, error: false });
     }).catch((cause: unknown) => {
       if (!controller.signal.aborted) {
