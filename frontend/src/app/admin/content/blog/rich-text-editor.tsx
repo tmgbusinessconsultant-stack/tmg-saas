@@ -1,4 +1,5 @@
 "use client";
+export const instant = false;
 
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -8,10 +9,16 @@ import TableRow from "@tiptap/extension-table-row";
 import TableHeader from "@tiptap/extension-table-header";
 import TableCell from "@tiptap/extension-table-cell";
 import Youtube from "@tiptap/extension-youtube";
+import { useState } from "react";
 
 type Props = { value: string; onChange: (html: string) => void };
 
 export default function RichTextEditor({ value, onChange }: Props) {
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [showYoutubeModal, setShowYoutubeModal] = useState(false);
+  const [tempUrl, setTempUrl] = useState("");
+
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -47,22 +54,22 @@ export default function RichTextEditor({ value, onChange }: Props) {
     </button>
   );
 
-  function addLink() {
-    const href = window.prompt("Enter the link URL");
-    if (!href) return;
-    activeEditor.chain().focus().extendMarkRange("link").setLink({ href }).run();
+  function confirmLink() {
+    if (!tempUrl) return;
+    activeEditor.chain().focus().extendMarkRange("link").setLink({ href: tempUrl }).run();
+    setTempUrl(""); setShowLinkModal(false);
   }
 
-  function addImage() {
-    const src = window.prompt("Paste a published Media Library URL");
-    if (!src) return;
-    activeEditor.chain().focus().setImage({ src, alt: "" }).run();
+  function confirmImage() {
+    if (!tempUrl) return;
+    activeEditor.chain().focus().setImage({ src: tempUrl, alt: "" }).run();
+    setTempUrl(""); setShowImageModal(false);
   }
 
-  function addYoutube() {
-    const src = window.prompt("Paste a YouTube video URL");
-    if (!src) return;
-    activeEditor.commands.setYoutubeVideo({ src });
+  function confirmYoutube() {
+    if (!tempUrl) return;
+    activeEditor.commands.setYoutubeVideo({ src: tempUrl });
+    setTempUrl(""); setShowYoutubeModal(false);
   }
 
   return (
@@ -76,12 +83,51 @@ export default function RichTextEditor({ value, onChange }: Props) {
         {button("Numbered", activeEditor.isActive("orderedList"), () => activeEditor.chain().focus().toggleOrderedList().run())}
         {button("Quote", activeEditor.isActive("blockquote"), () => activeEditor.chain().focus().toggleBlockquote().run())}
         {button("Code", activeEditor.isActive("codeBlock"), () => activeEditor.chain().focus().toggleCodeBlock().run())}
-        {button("Link", activeEditor.isActive("link"), addLink)}
-        {button("Image", false, addImage)}
+        {button("Link", activeEditor.isActive("link"), () => { setTempUrl(""); setShowLinkModal(true); })}
+        {button("Image", false, () => { setTempUrl(""); setShowImageModal(true); })}
         {button("Table", activeEditor.isActive("table"), () => activeEditor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run())}
-        {button("YouTube video", activeEditor.isActive("youtube"), addYoutube)}
+        {button("YouTube video", activeEditor.isActive("youtube"), () => { setTempUrl(""); setShowYoutubeModal(true); })}
       </div>
       <EditorContent editor={activeEditor} />
+
+      {showLinkModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white p-6">
+            <h3 className="font-bold">Enter link URL</h3>
+            <input value={tempUrl} onChange={e => setTempUrl(e.target.value)} placeholder="https://..." className="mt-3 w-full rounded border p-2 text-black" autoFocus />
+            <div className="mt-4 flex justify-end gap-2">
+              <button onClick={() => setShowLinkModal(false)} className="rounded border px-4 py-2">Cancel</button>
+              <button onClick={confirmLink} className="rounded bg-black px-4 py-2 text-white">Add Link</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showImageModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white p-6">
+            <h3 className="font-bold">Paste Media Library URL</h3>
+            <input value={tempUrl} onChange={e => setTempUrl(e.target.value)} placeholder="https://..." className="mt-3 w-full rounded border p-2 text-black" autoFocus />
+            <div className="mt-4 flex justify-end gap-2">
+              <button onClick={() => setShowImageModal(false)} className="rounded border px-4 py-2">Cancel</button>
+              <button onClick={confirmImage} className="rounded bg-black px-4 py-2 text-white">Add Image</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showYoutubeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white p-6">
+            <h3 className="font-bold">Paste YouTube URL</h3>
+            <input value={tempUrl} onChange={e => setTempUrl(e.target.value)} placeholder="https://youtube.com/watch?v=..." className="mt-3 w-full rounded border p-2 text-black" autoFocus />
+            <div className="mt-4 flex justify-end gap-2">
+              <button onClick={() => setShowYoutubeModal(false)} className="rounded border px-4 py-2">Cancel</button>
+              <button onClick={confirmYoutube} className="rounded bg-black px-4 py-2 text-white">Add Video</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

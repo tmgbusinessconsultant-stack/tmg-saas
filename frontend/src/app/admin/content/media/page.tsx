@@ -1,5 +1,4 @@
 "use client";
-
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { apiRequest, type CmsGalleryItem, type CmsMedia, mediaUrl } from "@/lib/content-management";
@@ -413,3 +412,7 @@ export default function MediaLibraryPage() {
     </main>
   );
 }
+
+
+
+

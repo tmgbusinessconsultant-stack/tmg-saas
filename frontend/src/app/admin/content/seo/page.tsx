@@ -1,5 +1,4 @@
 "use client";
-
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/content-management";
@@ -89,3 +88,7 @@ export default function SeoSettingsPage() {
     </main>
   );
 }
+
+
+
+

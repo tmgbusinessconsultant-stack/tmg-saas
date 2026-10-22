@@ -1,5 +1,4 @@
 "use client";
-
 import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { apiRequest } from "@/lib/project-delivery";
@@ -178,3 +177,7 @@ export default function AiCenterPage() {
     </main>
   );
 }
+
+
+
+

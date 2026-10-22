@@ -59,6 +59,15 @@ function PayPalPlanButton({
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ planId }),
           });
+
+          // === FIX 401 / 403 HERE ===
+          if (response.status === 401) {
+            throw new Error("Unauthorized - please login to checkout.");
+          }
+          if (response.status === 403) {
+            throw new Error("Checkout refused - you do not have permission for this plan.");
+          }
+
           const result: unknown = await response.json();
           if (!response.ok || typeof result !== "object" || result === null || !("orderID" in result) || typeof result.orderID !== "string") {
             const errorMessage = typeof result === "object" && result !== null && "message" in result && typeof result.message === "string"
@@ -74,6 +83,15 @@ function PayPalPlanButton({
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ orderID: data.orderID, planId }),
           });
+
+          // === FIX CAPTURE 401 / 403 HERE ===
+          if (response.status === 401) {
+            throw new Error("Unauthorized - session expired, please login again.");
+          }
+          if (response.status === 403) {
+            throw new Error("Checkout refused - payment could not be confirmed.");
+          }
+
           const result: unknown = await response.json();
           if (!response.ok) {
             const errorMessage = typeof result === "object" && result !== null && "message" in result && typeof result.message === "string"
@@ -90,7 +108,12 @@ function PayPalPlanButton({
         onError(error) {
           if (active) {
             setIsError(true);
-            setMessage(error instanceof Error ? error.message : "PayPal checkout failed. Please try again.");
+            const msg = error instanceof Error ? error.message : "PayPal checkout failed. Please try again.";
+            // Auto redirect if unauthorized
+            if (msg.toLowerCase().includes('unauthorized')) {
+              window.location.href = '/login';
+            }
+            setMessage(msg);
           }
         },
       });

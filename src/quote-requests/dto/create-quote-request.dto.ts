@@ -16,11 +16,13 @@ export class CreateQuoteRequestDto {
   email: string;
 
   @IsOptional()
+  @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
   @IsString()
   @MaxLength(30)
   phone?: string;
 
   @IsOptional()
+  @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
   @IsString()
   @MaxLength(120)
   company?: string;
@@ -30,6 +32,7 @@ export class CreateQuoteRequestDto {
   serviceType: string;
 
   @IsOptional()
+  @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
   @IsString()
   @MaxLength(5000)
   message?: string;
@@ -39,8 +42,9 @@ export class CreateQuoteRequestDto {
   @IsIn(['booking', 'quote', 'contact', 'whatsapp', 'website'])
   source?: string;
 
+  @Transform(({ value }) => typeof value === 'string' ? value.trim() : value) // FIX: trim token (prevents " token " fail)
   @IsString()
-  @MinLength(1)
+  @MinLength(20) // Turnstile tokens are always > 100 chars, catches empty string
   @MaxLength(4096)
   turnstileToken: string;
 }

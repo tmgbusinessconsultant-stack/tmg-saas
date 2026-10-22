@@ -1,115 +1,281 @@
 @import "tailwindcss";
 
 :root {
-  --background: #F8FAFC;
-  --foreground: #0F172A;
   --primary: #0F172A;
   --gold: #D4AF37;
+  --background: #F8FAFC;
+  --foreground: #0F172A;
+  --card-bg: #FFFFFF;
+  --header-bg: #0F172A;
+  --footer-bg: #0F172A;
+  --footer-text: #94A3B8;
+  --radius: 12px;
+  --button-radius: 8px;
+  --input-radius: 10px;
+  --input-height: 44px;
+  --button-height: 44px;
+  --border-color: #E2E8F0;
+  --font-family: 'Inter', Arial, sans-serif;
+  --font-size: 14px;
+  --h1-size: clamp(28px, 5vw, 40px);
+  --h2-size: clamp(22px, 4vw, 28px);
+  --h3-size: clamp(18px, 3vw, 20px);
+  --header-height: 64px;
+  --container-max: 1280px;
 }
 
-html,
-body {
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
   overflow-x: hidden;
-  max-width: 100vw;
+}
+
+html[data-scroll-behavior="smooth"] {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
 }
 
-* {
-  box-sizing: border-box;
-  min-width: 0;
+/* TYPOGRAPHY */
+h1 {
+  font-size: var(--h1-size);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
-/* === FORMS === */
-input,
-textarea,
-select {
+h2 {
+  font-size: var(--h2-size);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+h3 {
+  font-size: var(--h3-size);
+  font-weight: 600;
+}
+
+/* ===== FIX 1: LOGO - ALWAYS VISIBLE ON ANY BG ===== */
+img[alt*="logo" i],
+img[alt*="TMG" i],
+img[src*="logo"] {
+  background: transparent !important;
+  mix-blend-mode: normal;
+  object-fit: contain;
+  max-height: 40px;
+  width: auto;
+}
+
+/* Logo in dark header - make white if it's black logo */
+header img,
+nav img {
+  filter: brightness(0) invert(1);
+}
+
+/* If logo is already white, keep it */
+header img[src*="white"],
+header img.logo-white {
+  filter: none !important;
+}
+
+/* ===== FIX 2: CARDS - WHITE ALWAYS HAS BLACK TEXT ===== */
+.bg-white,
+.bg-white\/80,
+.bg-white\/90,
+[class*="bg-white"] {
+  background-color: var(--card-bg) !important;
   color: #0F172A !important;
-  background: #FFF !important;
-  border: 1px solid #CBD5E1 !important;
-  width: 100% !important;
 }
 
-input::placeholder {
+.bg-white * {
+  color: #0F172A;
+}
+
+.bg-white p,
+.bg-white span,
+.bg-white div,
+.bg-white li {
+  color: #334155 !important;
+}
+
+.bg-white h1,
+.bg-white h2,
+.bg-white h3,
+.bg-white h4,
+.bg-white label,
+.bg-white .font-bold,
+.bg-white .font-semibold {
+  color: #0F172A !important;
+}
+
+.bg-white .text-slate-400,
+.bg-white .text-slate-500,
+.bg-white .text-gray-400 {
   color: #64748B !important;
 }
 
-/* === MAIN FIX: WHITE ON WHITE -> BLACK === */
-/* Force EVERYTHING inside white cards to be black */
-.bg-white,
-[class*="bg-white"],
-[class*="rounded-"] {
-  color: #0F172A !important;
-}
-
-.bg-white *,
-[class*="bg-white"] *,
-[class*="bg-white"] h3,
-[class*="bg-white"] p,
-[class*="bg-white"] span,
-[class*="bg-white"] div {
-  color: #0F172A !important;
-}
-
-/* The small light gray descriptions */
-.text-slate-100,
-.text-slate-200,
-.text-slate-300,
-.text-gray-100,
-.text-gray-200,
-[class*="text-slate-"],
-[class*="text-gray-"],
-[class*="text-white"] {
-  color: #0F172A !important;
-}
-
-/* === KEEP WHITE TEXT ONLY ON DARK BLUE === */
-.bg-primary,
-div[class*="bg-[#0F172A]"],
+/* ===== FIX 3: BLUE / DARK BG - ALWAYS WHITE TEXT - NO MORE INVISIBLE ===== */
+.bg-\[\#0F172A\],
 .bg-slate-900,
 .bg-slate-800,
-.bg-primary *,
-div[class*="bg-[#0F172A]"] *,
-.bg-slate-900 *,
-header *,
-nav *,
-footer * {
-  color: #F8FAFC !important;
+.bg-\[var\(--primary\)\],
+.bg-\[var\(--header-bg\)\] {
+  background-color: var(--primary) !important;
+  color: white !important;
 }
 
-/* Restore after the black fix */
-.bg-primary .bg-white,
-.bg-primary .bg-white *,
-div[class*="bg-[#0F172A]"] .bg-white,
-div[class*="bg-[#0F172A]"] .bg-white * {
+.bg-\[\#0F172A\] h1,
+.bg-\[\#0F172A\] h2,
+.bg-\[\#0F172A\] h3,
+.bg-\[\#0F172A\] p,
+.bg-\[\#0F172A\] span,
+.bg-\[\#0F172A\] div,
+.bg-\[\#0F172A\] a,
+.bg-slate-900 h1,
+.bg-slate-900 h2,
+.bg-slate-900 h3,
+.bg-slate-900 p,
+.bg-slate-900 span,
+.bg-slate-900 div,
+.bg-slate-900 a {
+  color: white !important;
+}
+
+.bg-\[\#0F172A\] .text-slate-300,
+.bg-\[\#0F172A\] .text-slate-400,
+.bg-slate-900 .text-slate-300,
+.bg-slate-900 .text-slate-400 {
+  color: #CBD5E1 !important;
+}
+
+.bg-\[\#0F172A\] .text-\[\#D4AF37\],
+.bg-slate-900 .text-\[\#D4AF37\],
+.text-gold {
+  color: var(--gold) !important;
+}
+
+/* White card INSIDE blue header stays white with black text */
+.bg-\[\#0F172A\] .bg-white,
+.bg-slate-900 .bg-white {
+  background: white !important;
   color: #0F172A !important;
 }
 
-.bg-gold,
-[class*="bg-gold"] {
+.bg-\[\#0F172A\] .bg-white *,
+.bg-slate-900 .bg-white * {
   color: #0F172A !important;
-  background: #D4AF37 !important;
 }
 
-/* === RESPONSIVE AUTO === */
-.flex,
-div[class*="flex"] {
-  flex-wrap: wrap !important;
-  gap: 10px !important;
+.bg-\[\#0F172A\] .bg-white p,
+.bg-slate-900 .bg-white p {
+  color: #334155 !important;
 }
 
-button {
-  white-space: normal !important;
-  height: auto !important;
-  min-height: 44px !important;
+/* ===== FIX 4: GOLD BUTTONS - ALWAYS VISIBLE ===== */
+.bg-\[\#D4AF37\],
+.bg-gold {
+  background: var(--gold) !important;
+  color: #0F172A !important;
+  font-weight: 600;
 }
 
-.grid {
-  display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
-  gap: 16px !important;
+/* FORMS */
+input,
+textarea,
+select {
+  background: white;
+  color: #0F172A;
+  border: 1px solid var(--border-color);
+  border-radius: var(--input-radius);
+  min-height: var(--input-height);
+  width: 100%;
+}
+
+input::placeholder {
+  color: #94A3B8;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--primary);
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* LAYOUT */
+main {
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 16px;
+}
+
+@media (min-width: 640px) {
+  main {
+    padding: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  main {
+    padding: 32px;
+  }
+}
+
+header {
+  background: var(--header-bg);
+  min-height: var(--header-height);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(8px);
+}
+
+footer {
+  background: var(--footer-bg);
+  color: var(--footer-text);
+}
+
+/* IMAGES */
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* SELECTION */
+::selection {
+  background: var(--gold);
+  color: #0F172A;
+}
+
+/* SCROLLBAR - PROFESSIONAL */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
 }
