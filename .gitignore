@@ -12,3 +12,10 @@ storage/cms/uploads/blog/8308b377-fab6-454a-8aab-e408646cbf35/Untitled_-_Septemb
 storage/cms/uploads/blog/97335b2a-ba53-4570-adaa-08505b0e98e7/DANIEL_SSENKUBUGE_-01012055_1_.pdf
 storage/cms/uploads/blog/97fffe20-b85d-42f9-a2f0-b7b0f1a6168f/icons8-soda-100.png
 storage/cms/uploads/blog/d0c10c11-180f-4d39-9c73-e70c9d451da5/ac53fdf0b1f7ad88c4e09dbd6c8f1fa5_0.webp
+backend/
+check-*.js
+create-admin.*
+*.mjs
+seed-plans.js
+who-has-plan.js
+uploads/
