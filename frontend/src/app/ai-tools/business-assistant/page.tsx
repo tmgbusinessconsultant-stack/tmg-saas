@@ -17,14 +17,14 @@ const COUNTRIES = [
 type Message = { role: 'user' | 'assistant'; content: string; country?: string; currency?: string; };
 
 export default function BusinessAssistantPage() {
-  const [selectedCountry, setSelectedCountry] = useState<any>(COUNTRIES[0]);
+  const [selectedCountry, setselectedCountry] = useState<any>(COUNTRIES[0]);
   const [messages, setMessages] = useState<Message[]>([{ role: 'assistant', content: `Hello! I am TMG Business Consultant — Premium International 🌍\n\nI support 10 countries with local law compliance:\n🇶🇦 Qatar QAR — QFC, No Income Tax\n🇦🇺 Australia AUD A$ — Fair Work Act 2009, ASIC, ABN/ACN, GST 10%\n🇦🇪 UAE AED — MOHRE, 5% VAT\n🇸🇦 Saudi SAR — Qiwa/Mudad, 15% VAT\n🇬🇧 UK GBP £ — Equality Act, PAYE\n🇺🇸 USA USD $ — FLSA, SBA 7(a)\n🇨🇦 Canada CAD C$ — LMIA\n🇮🇳 India INR ₹ — GST 18%\n\nSelected: ${COUNTRIES[0].flag} ${COUNTRIES[0].country} | ${COUNTRIES[0].currency} (${COUNTRIES[0].symbol}) | ${COUNTRIES[0].law}\n\nAsk me anything about business setup, compliance, funding in ${COUNTRIES[0].currency}, or document generation.`, country: 'Qatar', currency: 'QAR' }]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleCountryChange = (countryName: string) => {
     const c = COUNTRIES.find(x => x.country === countryName) || COUNTRIES[0];
-    setSelectedCountry(c);
+    setselectedCountry(c);
     setMessages(prev => [...prev, { role: 'assistant', content: `Switched to ${c.flag} ${c.country} — ${c.currency} (${c.symbol})\n\nLaw: ${c.law}\nTax: ${c.tax}\nCompliance: ${c.compliance}\n\nAll business advice will now be tailored to ${c.country} market with figures in ${c.symbol} ${c.currency} and compliance under ${c.law}. How can I help with ${c.country} business?`, country: c.country, currency: c.currency }]);
   };
 
@@ -45,15 +45,15 @@ export default function BusinessAssistantPage() {
           symbol: selectedCountry.symbol,
           law: selectedCountry.law,
           tax: selectedCountry.tax,
-          compliance: selectedcountry.law,
-          context: `You are TMG Business Consultant Premium International. User is in ${selectedCountry.country} market. Use currency ${selectedCountry.currency} (${selectedCountry.symbol}), comply with ${selectedCountry.law}, tax ${selectedCountry.tax}, compliance ${selectedcountry.law}. Always show financial figures in ${selectedCountry.symbol} ${selectedCountry.currency}. Mention local law ${selectedCountry.law} in advice.`
+          compliance: selectedCountry.law,
+          context: `You are TMG Business Consultant Premium International. User is in ${selectedCountry.country} market. Use currency ${selectedCountry.currency} (${selectedCountry.symbol}), comply with ${selectedCountry.law}, tax ${selectedCountry.tax}, compliance ${selectedCountry.law}. Always show financial figures in ${selectedCountry.symbol} ${selectedCountry.currency}. Mention local law ${selectedCountry.law} in advice.`
         })
       });
       const data = await res.json();
-      const assistantContent = data.message || data.response || data.content || `Advice for ${selectedCountry.country} (${selectedCountry.currency}): ${input} — Under ${selectedCountry.law}, with tax ${selectedCountry.tax}, figures in ${selectedCountry.symbol} ${selectedCountry.currency}. Compliance: ${selectedcountry.law}.`;
+      const assistantContent = data.message || data.response || data.content || `Advice for ${selectedCountry.country} (${selectedCountry.currency}): ${input} — Under ${selectedCountry.law}, with tax ${selectedCountry.tax}, figures in ${selectedCountry.symbol} ${selectedCountry.currency}. Compliance: ${selectedCountry.law}.`;
       setMessages(prev => [...prev, { role: 'assistant', content: assistantContent, country: selectedCountry.country, currency: selectedCountry.currency }]);
     } catch (e: any) {
-      setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${e.message}. But for ${selectedCountry.country} under ${selectedCountry.law}, advice in ${selectedCountry.symbol} ${selectedCountry.currency} still available. Compliance: ${selectedcountry.law}`, country: selectedCountry.country, currency: selectedCountry.currency }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${e.message}. But for ${selectedCountry.country} under ${selectedCountry.law}, advice in ${selectedCountry.symbol} ${selectedCountry.currency} still available. Compliance: ${selectedCountry.law}`, country: selectedCountry.country, currency: selectedCountry.currency }]);
     } finally { setLoading(false); }
   };
 
@@ -66,7 +66,7 @@ export default function BusinessAssistantPage() {
 
       <div className="mt-4 flex gap-3 items-center">
         <select value={selectedCountry.country} onChange={e => handleCountryChange(e.target.value)} className="border rounded-full px-3 py-1.5 text-xs bg-white font-semibold shadow-sm">{COUNTRIES.map(c => <option key={c.country} value={c.country}>{c.flag} {c.country} - {c.currency} ({c.symbol}) | {c.law.substring(0,25)}</option>)}</select>
-        <span className="text-xs bg-black text-white px-2 py-1 rounded-full">{selectedCountry.symbol} {selectedCountry.currency} | {selectedcountry.law}</span>
+        <span className="text-xs bg-black text-white px-2 py-1 rounded-full">{selectedCountry.symbol} {selectedCountry.currency} | {selectedCountry.law}</span>
       </div>
 
       <div className="mt-6 border rounded-xl bg-white shadow-sm flex flex-col h-[600px]">
@@ -89,6 +89,7 @@ export default function BusinessAssistantPage() {
     </div>
   );
 }
+
 
 
 
