@@ -32,7 +32,7 @@ export default function BusinessPlanPage() {
   const [step, setStep] = useState(1);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [template, setTemplate] = useState('Qatar Investor');
-  const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
+  const [selectedCountry, setSelectedCountry] = useState<any>(COUNTRIES[0]);
   const [token, setToken] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -195,3 +195,6 @@ export default function BusinessPlanPage() {
     </div>
   );
 }
+
+
+

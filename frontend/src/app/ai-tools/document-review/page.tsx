@@ -27,7 +27,7 @@ export default function DocumentReviewProPage() {
   const [error, setError] = useState('');
   const [savedDoc, setSavedDoc] = useState<SavedDoc | null>(null);
   const [pdfBlobUrl, setPdfBlobUrl] = useState('');
-  const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
+  const [selectedCountry, setSelectedCountry] = useState<any>(COUNTRIES[0]);
 
   const [form, setForm] = useState({
     applicantName: 'Applicant',
@@ -153,3 +153,6 @@ export default function DocumentReviewProPage() {
     </div>
   );
 }
+
+
+

@@ -36,7 +36,7 @@ export default function CoverLetterProPage() {
   const [pdfBlobUrl, setPdfBlobUrl] = useState('');
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [template, setTemplate] = useState('Qatar Professional');
-  const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
+  const [selectedCountry, setSelectedCountry] = useState<any>(COUNTRIES[0]);
 
   const [form, setForm] = useState({
     applicantName: '',
@@ -201,7 +201,7 @@ export default function CoverLetterProPage() {
                 {pdfBlobUrl && <a href={pdfBlobUrl} download={`${form.applicantName}-Cover-Letter-${selectedCountry.country}-${selectedCountry.currency}.pdf`} className="bg-black text-white px-4 py-2 rounded text-sm">Download PDF — {selectedCountry.symbol} {selectedCountry.currency}</a>}
                 <button onClick={() => { setSavedDoc(null); setPdfBlobUrl(''); }} className="border px-4 py-2 rounded text-sm">New Letter</button>
               </div>
-              <div className="mt-3 text-xs text-gray-500 p-2 bg-gray-50 rounded">Compliance: {selectedCountry.law} | {selectedCountry.compliance || selectedCountry.tax} | TMG Premium International</div>
+              <div className="mt-3 text-xs text-gray-500 p-2 bg-gray-50 rounded">Compliance: {selectedCountry.law} | {selectedcountry.law || selectedCountry.tax} | TMG Premium International</div>
             </div>
           )}
         </div>
@@ -209,3 +209,6 @@ export default function CoverLetterProPage() {
     </div>
   );
 }
+
+
+

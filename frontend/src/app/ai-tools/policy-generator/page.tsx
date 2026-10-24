@@ -23,7 +23,7 @@ export default function PolicyGeneratorPage() {
   const [error, setError] = useState('');
   const [savedDoc, setSavedDoc] = useState<SavedDoc | null>(null);
   const [pdfBlobUrl, setPdfBlobUrl] = useState('');
-  const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
+  const [selectedCountry, setSelectedCountry] = useState<any>(COUNTRIES[0]);
   const [form, setForm] = useState({ companyName: '', policyType: 'HR Policy', employeeCount: '50', industry: '', summary: '', complianceNotes: '' });
 
   useEffect(() => { setToken(sessionStorage.getItem('accessToken') ?? ''); }, []);
@@ -89,3 +89,6 @@ export default function PolicyGeneratorPage() {
     </div>
   );
 }
+
+
+

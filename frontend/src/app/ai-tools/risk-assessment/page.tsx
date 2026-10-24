@@ -21,7 +21,7 @@ export default function RiskAssessmentPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
-  const [country, setCountry] = useState(COUNTRIES[0]);
+  const [country, setCountry] = useState<any>(COUNTRIES[0]);
   const [form, setForm] = useState({ businessType: '', industry: 'Technology', location: 'Doha', investmentAmount: 50000, teamSize: 5, concerns: '', currency: 'QAR' });
 
   useEffect(() => { setToken(sessionStorage.getItem('accessToken') || ''); }, []);
@@ -101,3 +101,5 @@ export default function RiskAssessmentPage() {
     </div>
   );
 }
+
+

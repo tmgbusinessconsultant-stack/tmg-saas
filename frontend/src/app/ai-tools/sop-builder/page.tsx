@@ -22,7 +22,7 @@ export default function SOPBuilderPage() {
   const [error, setError] = useState('');
   const [savedDoc, setSavedDoc] = useState<SavedDoc | null>(null);
   const [pdfBlobUrl, setPdfBlobUrl] = useState('');
-  const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
+  const [selectedCountry, setSelectedCountry] = useState<any>(COUNTRIES[0]);
   const [form, setForm] = useState({ companyName: '', sopType: 'Operations SOP', department: '', purpose: '', steps: '', tools: '' });
 
   useEffect(() => { setToken(sessionStorage.getItem('accessToken') ?? ''); }, []);
@@ -90,3 +90,6 @@ export default function SOPBuilderPage() {
     </div>
   );
 }
+
+
+

@@ -17,7 +17,7 @@ export default function ProductivityPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
-  const [country, setCountry] = useState(COUNTRIES[0]);
+  const [country, setCountry] = useState<any>(COUNTRIES[0]);
   const [form, setForm] = useState({ role: 'Founder', teamSize: '1-5', workSchedule: 'Sun-Thu 8AM-4PM (Qatar)', goals: '', challenges: '', ramadanMode: false });
 
   useEffect(() => { setToken(sessionStorage.getItem('accessToken') || ''); }, []);
@@ -88,3 +88,5 @@ export default function ProductivityPage() {
     </div>
   );
 }
+
+

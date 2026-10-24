@@ -39,7 +39,7 @@ export default function CVBuilderProPage() {
   const [pdfBlobUrl, setPdfBlobUrl] = useState('');
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [template, setTemplate] = useState('Qatar Professional');
-  const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
+  const [selectedCountry, setSelectedCountry] = useState<any>(COUNTRIES[0]);
   const [expectedSalary, setExpectedSalary] = useState('15000');
 
   const [contact, setContact] = useState({ fullName: '', email: '', phone: '', location: 'Doha, Qatar', linkedin: '', title: '' });
@@ -228,3 +228,6 @@ export default function CVBuilderProPage() {
     </div>
   );
 }
+
+
+
