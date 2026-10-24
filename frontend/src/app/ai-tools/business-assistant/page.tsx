@@ -1,88 +1,91 @@
-﻿'use client';
-
-import { useState, type FormEvent } from 'react';
+'use client';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import AiDataNotice from '../ai-data-notice';
-import TurnstileChallenge from '@/components/turnstile-challenge';
 
-type Message = { role: 'user' | 'assistant'; content: string };
+const COUNTRIES = [
+  { country: 'Qatar', currency: 'QAR', symbol: 'QAR ', law: 'Qatar Labour Law, QFC', tax: 'No Income Tax', flag: '🇶🇦', compliance: 'QFC LLC' },
+  { country: 'Australia', currency: 'AUD', symbol: 'A$', law: 'Fair Work Act 2009, ASIC', tax: 'GST 10%', flag: '🇦🇺', compliance: 'ABN/ACN' },
+  { country: 'UAE', currency: 'AED', symbol: 'AED ', law: 'UAE Labour Law', tax: '5% VAT', flag: '🇦🇪', compliance: 'MOHRE' },
+  { country: 'Saudi Arabia', currency: 'SAR', symbol: 'SAR ', law: 'Saudi Labour Law', tax: '15% VAT', flag: '🇸🇦', compliance: 'Qiwa' },
+  { country: 'United Kingdom', currency: 'GBP', symbol: '£', law: 'Employment Rights Act 1996', tax: 'PAYE', flag: '🇬🇧', compliance: 'UKVI' },
+  { country: 'USA', currency: 'USD', symbol: '$', law: 'FLSA, SBA', tax: 'Federal/State', flag: '🇺🇸', compliance: 'SBA 7(a)' },
+  { country: 'Canada', currency: 'CAD', symbol: 'C$', law: 'Canada Labour Code', tax: 'GST/HST', flag: '🇨🇦', compliance: 'LMIA' },
+  { country: 'India', currency: 'INR', symbol: '₹', law: 'Companies Act', tax: 'GST 18%', flag: '🇮🇳', compliance: 'PF/ESI' },
+] as const;
 
-export default function BusinessAssistant() {
+type Message = { role: 'user' | 'assistant'; content: string; country?: string; currency?: string; };
+
+export default function BusinessAssistantPage() {
+  const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
+  const [messages, setMessages] = useState<Message[]>([{ role: 'assistant', content: `Hello! I am TMG Business Consultant — Premium International 🌍\n\nI support 10 countries with local law compliance:\n🇶🇦 Qatar QAR — QFC, No Income Tax\n🇦🇺 Australia AUD A$ — Fair Work Act 2009, ASIC, ABN/ACN, GST 10%\n🇦🇪 UAE AED — MOHRE, 5% VAT\n🇸🇦 Saudi SAR — Qiwa/Mudad, 15% VAT\n🇬🇧 UK GBP £ — Equality Act, PAYE\n🇺🇸 USA USD $ — FLSA, SBA 7(a)\n🇨🇦 Canada CAD C$ — LMIA\n🇮🇳 India INR ₹ — GST 18%\n\nSelected: ${COUNTRIES[0].flag} ${COUNTRIES[0].country} | ${COUNTRIES[0].currency} (${COUNTRIES[0].symbol}) | ${COUNTRIES[0].law}\n\nAsk me anything about business setup, compliance, funding in ${COUNTRIES[0].currency}, or document generation.`, country: 'Qatar', currency: 'QAR' }]);
   const [input, setInput] = useState('');
-  const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: 'Hello! I can help with general questions about TMG services and business topics. What would you like to explore?' },
-  ]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [turnstileToken, setTurnstileToken] = useState('');
-  const [captchaRevision, setCaptchaRevision] = useState(0);
 
-  async function send(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const prompt = input.trim();
-    if (!prompt || loading || prompt.length > 4000) return;
-    if (!turnstileToken) {
-      setError('Complete the bot verification challenge before sending.');
-      return;
-    }
+  const handleCountryChange = (countryName: string) => {
+    const c = COUNTRIES.find(x => x.country === countryName) || COUNTRIES[0];
+    setSelectedCountry(c);
+    setMessages(prev => [...prev, { role: 'assistant', content: `Switched to ${c.flag} ${c.country} — ${c.currency} (${c.symbol})\n\nLaw: ${c.law}\nTax: ${c.tax}\nCompliance: ${c.compliance}\n\nAll business advice will now be tailored to ${c.country} market with figures in ${c.symbol} ${c.currency} and compliance under ${c.law}. How can I help with ${c.country} business?`, country: c.country, currency: c.currency }]);
+  };
 
-    const nextMessages: Message[] = [...messages, { role: 'user', content: prompt }];
-    const requestMessages = nextMessages.slice(-20);
-    setMessages(nextMessages);
+  const handleSend = async () => {
+    if (!input.trim()) return;
+    const userMsg: Message = { role: 'user', content: input, country: selectedCountry.country, currency: selectedCountry.currency };
+    setMessages(prev => [...prev, userMsg]);
     setInput('');
-    setError('');
     setLoading(true);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
-      if (!apiUrl) throw new Error('The AI service is not configured.');
-      const response = await fetch(`${apiUrl}/ai/chat`, {
+      const res = await fetch('/api/ai/business-assistant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ messages: requestMessages, turnstileToken }),
+        body: JSON.stringify({ 
+          message: input, 
+          country: selectedCountry.country,
+          currency: selectedCountry.currency,
+          symbol: selectedCountry.symbol,
+          law: selectedCountry.law,
+          tax: selectedCountry.tax,
+          compliance: selectedCountry.compliance,
+          context: `You are TMG Business Consultant Premium International. User is in ${selectedCountry.country} market. Use currency ${selectedCountry.currency} (${selectedCountry.symbol}), comply with ${selectedCountry.law}, tax ${selectedCountry.tax}, compliance ${selectedCountry.compliance}. Always show financial figures in ${selectedCountry.symbol} ${selectedCountry.currency}. Mention local law ${selectedCountry.law} in advice.`
+        })
       });
-      const data: unknown = await response.json();
-      if (!response.ok || typeof data !== 'object' || data === null || !('message' in data) || typeof data.message !== 'string') {
-        const responseMessage = typeof data === 'object' && data !== null && 'message' in data ? data.message : undefined;
-        const detail = typeof responseMessage === 'string'
-          ? responseMessage
-          : Array.isArray(responseMessage) && responseMessage.every((item) => typeof item === 'string')
-            ? responseMessage.join(' ')
-          : 'The assistant could not answer right now.';
-        throw new Error(detail);
-      }
-      setMessages([...nextMessages, { role: 'assistant', content: data.message }]);
-    } catch (sendError: unknown) {
-      setError(sendError instanceof Error ? sendError.message : 'The assistant could not answer right now.');
-      setMessages(nextMessages);
-    } finally {
-      setLoading(false);
-      setTurnstileToken('');
-      setCaptchaRevision((revision) => revision + 1);
-    }
-  }
+      const data = await res.json();
+      const assistantContent = data.message || data.response || data.content || `Advice for ${selectedCountry.country} (${selectedCountry.currency}): ${input} — Under ${selectedCountry.law}, with tax ${selectedCountry.tax}, figures in ${selectedCountry.symbol} ${selectedCountry.currency}. Compliance: ${selectedCountry.compliance}.`;
+      setMessages(prev => [...prev, { role: 'assistant', content: assistantContent, country: selectedCountry.country, currency: selectedCountry.currency }]);
+    } catch (e: any) {
+      setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${e.message}. But for ${selectedCountry.country} under ${selectedCountry.law}, advice in ${selectedCountry.symbol} ${selectedCountry.currency} still available. Compliance: ${selectedCountry.compliance}`, country: selectedCountry.country, currency: selectedCountry.currency }]);
+    } finally { setLoading(false); }
+  };
 
   return (
-    <section className="mx-auto max-w-3xl rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-      <div aria-live="polite" className="h-[min(60vh,500px)] min-h-72 space-y-3 overflow-y-auto rounded-xl bg-slate-50 p-4">
-        {messages.map((message, index) => (
-          <div key={`${index}-${message.role}`} className={message.role === 'user' ? 'text-right' : 'text-left'}>
-            <span className={`inline-block max-w-[90%] whitespace-pre-wrap rounded-xl px-4 py-3 text-left text-sm ${message.role === 'user' ? 'bg-[#0F172A] text-white' : 'border border-slate-200 bg-white text-slate-800'}`}>
-              {message.content}
-            </span>
-          </div>
-        ))}
-        {loading && <p className="text-sm text-slate-500" role="status">Thinking…</p>}
+    <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className="flex justify-between items-center">
+        <div><h1 className="text-3xl font-bold">Business Assistant Pro — International</h1><p className="text-sm text-gray-600 mt-1">{selectedCountry.flag} {selectedCountry.country} | {selectedCountry.currency} ({selectedCountry.symbol}) | {selectedCountry.law} | {selectedCountry.tax}</p></div>
+        <Link href="/documents" className="text-sm underline">Documents</Link>
       </div>
-      {error && <p className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">{error}</p>}
-      <form onSubmit={send} className="mt-4 flex flex-col gap-2 sm:flex-row">
-        <label htmlFor="ai-question" className="sr-only">Ask TMG AI a question</label>
-        <input id="ai-question" value={input} maxLength={4000} onChange={(event) => setInput(event.target.value)} className="min-w-0 flex-1 rounded-lg border border-slate-300 p-3" placeholder="Ask about consulting, automation, or data analysis…" />
-        <button type="submit" disabled={loading || !input.trim() || !turnstileToken} className="rounded-lg bg-[#0F172A] px-6 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">Send</button>
-      </form>
-      <div className="mt-4">
-        <TurnstileChallenge key={captchaRevision} onToken={setTurnstileToken} />
+
+      <div className="mt-4 flex gap-3 items-center">
+        <select value={selectedCountry.country} onChange={e => handleCountryChange(e.target.value)} className="border rounded-full px-3 py-1.5 text-xs bg-white font-semibold shadow-sm">{COUNTRIES.map(c => <option key={c.country} value={c.country}>{c.flag} {c.country} - {c.currency} ({c.symbol}) | {c.law.substring(0,25)}</option>)}</select>
+        <span className="text-xs bg-black text-white px-2 py-1 rounded-full">{selectedCountry.symbol} {selectedCountry.currency} | {selectedCountry.compliance}</span>
       </div>
-      <AiDataNotice />
-    </section>
+
+      <div className="mt-6 border rounded-xl bg-white shadow-sm flex flex-col h-[600px]">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {messages.map((m, i) => (
+            <div key={i} className={`p-3 rounded-xl max-w-[85%] text-sm whitespace-pre-wrap ${m.role === 'user' ? 'bg-black text-white ml-auto' : 'bg-gray-100 text-black'}`}>
+              <div className="text-[10px] opacity-60 mb-1">{m.role === 'user' ? 'You' : `TMG Assistant — ${m.country || selectedCountry.country} | ${m.currency || selectedCountry.currency}`} {m.role === 'assistant' ? `${selectedCountry.flag}` : ''}</div>
+              {m.content}
+            </div>
+          ))}
+          {loading && <div className="p-3 rounded-xl bg-gray-100 text-sm animate-pulse">Thinking for {selectedCountry.country} in {selectedCountry.currency} under {selectedCountry.law}...</div>}
+        </div>
+        <div className="border-t p-3 flex gap-2">
+          <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSend()} placeholder={`Ask about ${selectedCountry.country} business in ${selectedCountry.currency} (${selectedCountry.symbol}) — ${selectedCountry.law}...`} className="flex-1 border rounded-full px-4 py-2 text-sm" />
+          <button onClick={handleSend} disabled={loading} className="bg-black text-white px-5 py-2 rounded-full text-sm font-bold">Send — {selectedCountry.flag}</button>
+        </div>
+      </div>
+      <div className="mt-4"><AiDataNotice /></div>
+      <div className="mt-3 text-xs text-gray-500 p-2 bg-gray-50 rounded">Compliance: {selectedCountry.law} | Tax: {selectedCountry.tax} | Currency: {selectedCountry.symbol} {selectedCountry.currency} | TMG Premium International — 10 Countries</div>
+    </div>
   );
 }

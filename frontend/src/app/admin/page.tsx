@@ -1,4 +1,5 @@
 "use client";
+import AdminPlansPanel from "./AdminPlansPanel";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
@@ -170,19 +171,19 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-[240px]">
           <p className="text-[#D4AF37] uppercase tracking-[0.2em] text-xs font-semibold">Admin</p>
           <h1 className="mt-2 text-4xl font-bold">Operations dashboard</h1>
           <p className="mt-3 text-slate-600">Live quote requests and PayPal captures from the application database.</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3 w-full lg:w-auto lg:max-w-[60%]">
           <Link href="/admin/projects" className="rounded-md border border-slate-300 px-4 py-2 font-semibold">Project center</Link>
           <Link href="/admin/ai-center" className="rounded-md border border-slate-300 px-4 py-2 font-semibold">AI Center</Link>
           <Link href="/admin/analytics" className="rounded-md border border-slate-300 px-4 py-2 font-semibold">Analytics</Link>
           <Link href="/admin/integrations" className="rounded-md border border-slate-300 px-4 py-2 font-semibold">Integrations</Link>
           <Link href="/admin/settings" className="rounded-md border border-slate-300 px-4 py-2 font-semibold">System Settings</Link>
-          <Link href="/admin/users" className="rounded-md border border-slate-300 px-4 py-2 font-semibold">Users &amp; Access</Link>
+          <Link href="/admin/users" className="rounded-md border border-slate-300 px-4 py-2 font-semibold">Users & Access</Link>
           <Link href="/admin/activity" className="rounded-md border border-slate-300 px-4 py-2 font-semibold">Activity Log</Link>
           <Link href="/admin/content" className="rounded-md border border-[#D4AF37] bg-[#FFFBEB] px-4 py-2 font-semibold">Content Management</Link>
           <button type="button" onClick={() => { setLoading(true); void loadDashboard(); }} className="rounded-md border border-slate-300 px-4 py-2 font-semibold">Refresh</button>
@@ -196,8 +197,8 @@ export default function AdminDashboardPage() {
         {[
           { label: "Pending enquiries", value: pendingQuotes.toString() },
           { label: "Total enquiries", value: quotes.length.toString() },
-          { label: "Completed payments", value: paymentStats.completedPayments.toString() },
-          { label: "Revenue", value: new Intl.NumberFormat("en-US", { style: "currency", currency: paymentStats.currency }).format(paymentStats.total) },
+          { label: "Completed payments", value: (paymentStats?.completedPayments ?? 0).toString() },
+          { label: "Revenue", value: new Intl.NumberFormat("en-US", { style: "currency", currency: (paymentStats?.currency ?? 'USD') }).format(paymentStats.total) },
         ].map((stat) => (
           <div key={stat.label} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <p className="text-sm text-slate-500">{stat.label}</p>
@@ -281,10 +282,9 @@ export default function AdminDashboardPage() {
           </div>
         )}
       </section>
+      {/* MONEY PLAN CONTROL - FULL ADMIN BUTTONS */}
+      <AdminPlansPanel />
     </div>
   );
 }
-
-
-
 

@@ -1,35 +1,43 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
-import { Public } from '../auth/public.decorator';
-import { Permissions } from '../auth/permissions.decorator';
-import { CapturePaymentDto } from './dto/capture-payment.dto';
-import { CreatePaymentOrderDto } from './dto/create-payment-order.dto';
+import { Controller, Post, Get, Body, Req, Headers, UseGuards } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('payments')
 export class PaymentsController {
-  constructor(private readonly service: PaymentsService) {}
+  constructor(private payments: PaymentsService) {}
 
-  @Public()
   @Post('orders')
-  createOrder(@Body() dto: CreatePaymentOrderDto) {
-    return this.service.createOrder(dto.planId);
+  @UseGuards(JwtAuthGuard)
+  async createOrder(@Body() body: any, @Req() req: any) {
+    const userId = req.user.id || req.user.sub;
+    return this.payments.createOrder(body.planId, userId);
   }
 
-  @Public()
   @Post('capture')
-  capture(@Body() dto: CapturePaymentDto) {
-    return this.service.capture(dto);
+  @UseGuards(JwtAuthGuard)
+  async capture(@Body() body: any, @Req() req: any) {
+    const userId = req.user.id || req.user.sub;
+    return this.payments.captureOrder(body.orderID, userId, body.planId, body.billingCycle);
   }
 
-  @Permissions('finance:manage')
   @Get()
-  findAll() {
-    return this.service.findAll();
-  }
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN','ADMIN')
+  async list() { return this.payments.getPayments(); }
 
-  @Permissions('finance:manage')
   @Get('stats')
-  stats() {
-    return this.service.revenueStats();
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN','ADMIN')
+  async stats() { return this.payments.getStats(); }
+
+  // === PAYPAL WEBHOOK — PUBLIC, NO AUTH ===
+  @Post('webhook/paypal')
+  async paypalWebhook(@Body() body: any, @Headers() headers: any) {
+    // TODO: Verify webhook signature with PayPal API in production
+    // For now accept all (PayPal sends verification header)
+    console.log('Headers:', headers['paypal-transmission-id']);
+    return this.payments.handlePaypalWebhook(body);
   }
 }

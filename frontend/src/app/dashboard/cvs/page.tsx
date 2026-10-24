@@ -17,6 +17,8 @@ export default function CvLibraryPage() {
   const [selectedId, setSelectedId] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [pdfBlobUrl, setPdfBlobUrl] = useState("");
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   const loadDocuments = useCallback(async () => {
     const token = sessionStorage.getItem("accessToken");
@@ -43,6 +45,61 @@ export default function CvLibraryPage() {
   }, [loadDocuments]);
 
   const selectedDocument = documents.find((document) => document.id === selectedId);
+
+  // FIX: Fetch PDF as blob with Authorization header
+  useEffect(() => {
+    if (!selectedDocument?.id) {
+      setPdfBlobUrl("");
+      return;
+    }
+    const fetchPdf = async () => {
+      setPdfLoading(true);
+      try {
+        const token = sessionStorage.getItem("accessToken") || "";
+        const res = await fetch(`/api/cv-documents/file/${selectedDocument.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store",
+        });
+        if (!res.ok) {
+          const txt = await res.text();
+          throw new Error(txt);
+        }
+        const blob = await res.blob();
+        if (pdfBlobUrl) URL.revokeObjectURL(pdfBlobUrl);
+        const url = URL.createObjectURL(blob);
+        setPdfBlobUrl(url);
+      } catch (e: any) {
+        console.error(e);
+        setError(e.message);
+      } finally {
+        setPdfLoading(false);
+      }
+    };
+    fetchPdf();
+    return () => {
+      // cleanup not here to keep url alive
+    };
+  }, [selectedDocument?.id]);
+
+  const handleDownload = async () => {
+    if (!selectedDocument) return;
+    const token = sessionStorage.getItem("accessToken") || "";
+    const res = await fetch(`/api/cv-documents/file/${selectedDocument.id}?download=1`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      const txt = await res.text();
+      alert(txt);
+      return;
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${selectedDocument.title}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-12">
@@ -88,9 +145,11 @@ export default function CvLibraryPage() {
               <>
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                   <h2 className="font-bold">{selectedDocument.title}</h2>
-                  <a href={selectedDocument.downloadUrl} className="rounded-md bg-[#0F172A] px-4 py-2 font-semibold text-white">Download PDF</a>
+                  <button onClick={handleDownload} className="rounded-md bg-[#0F172A] px-4 py-2 font-semibold text-white">Download PDF</button>
                 </div>
-                <iframe title={`PDF preview: ${selectedDocument.title}`} src={selectedDocument.previewUrl} className="h-[720px] w-full rounded border border-slate-200" />
+                {pdfLoading ? <p>Loading PDF…</p> : pdfBlobUrl ? (
+                  <iframe title={`PDF preview: ${selectedDocument.title}`} src={pdfBlobUrl} className="h-[720px] w-full rounded border border-slate-200" />
+                ) : <p className="text-slate-600">PDF preview unavailable.</p>}
               </>
             ) : <p className="text-slate-600">Select a saved CV to preview it.</p>}
           </section>

@@ -3,32 +3,28 @@ import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class StatsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
 
   async getStats() {
-    const gym = await this.prisma.gym.findFirst();
-    if (!gym) {
-      return { members: 0, active: 0, plans: 0, revenue: 0, currency: 'USD' };
-    }
-
-    const [members, active, plans, revenue] = await Promise.all([
-      this.prisma.member.count({ where: { gymId: gym.id } }),
-      this.prisma.subscription.count({
-        where: { status: 'ACTIVE', member: { gymId: gym.id } },
-      }),
-      this.prisma.membershipPlan.count({ where: { gymId: gym.id } }),
-      this.prisma.subscription.aggregate({
-        _sum: { amountPaid: true },
-        where: { paymentStatus: 'PAID', member: { gymId: gym.id } },
-      }),
-    ]);
+    const totalUsers = await this.prisma.user.count();
+    const activePlans = await this.prisma.userPlan.count({ where: { status: 'ACTIVE' } });
+    const totalPlans = await this.prisma.userPlan.count();
+    const blockedPlans = await this.prisma.userPlan.count({ where: { status: 'BLOCKED' } });
+    const totalPayments = await this.prisma.payment.count().catch(()=>0);
+    const revenue = await this.prisma.payment.aggregate({ 
+      where: { status: 'COMPLETED' }, 
+      _sum: { amount: true } 
+    }).catch(()=>({ _sum:{ amount:0 } } as any));
 
     return {
-      members,
-      active,
-      plans,
-      revenue: revenue._sum.amountPaid ?? 0,
-      currency: gym.currency,
+      totalUsers,
+      activePlans,
+      totalPlans,
+      blockedPlans,
+      totalEnquiries: 0,
+      pendingEnquiries: 0,
+      totalRevenue: (revenue as any)._sum?.amount || 0,
+      totalPayments,
     };
   }
 }

@@ -4,8 +4,8 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { GymsModule } from './gyms/gyms.module';
 import { PlansModule } from './plans/plans.module';
+import { UserPlansModule } from './user-plans/user-plans.module';
 import { MembersModule } from './members/members.module';
-import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { GymModule } from './gym/gym.module';
 import { StatsModule } from './stats/stats.module';
 import { AppController } from './app.controller';
@@ -21,6 +21,9 @@ import { SettingsModule } from './settings/settings.module';
 import { AiModule } from './ai/ai.module';
 import { AdminManagementModule } from './admin-management/admin-management.module';
 import { CvDocumentsModule } from './cv-documents/cv-documents.module';
+import { BusinessPlansModule } from './business-plans/business-plans.module';
+import { RiskAssessmentsModule } from './risk-assessments/risk-assessments.module';
+import { ProductivityPlansModule } from './productivity-plans/productivity-plans.module';
 
 @Module({
   imports: [
@@ -28,8 +31,8 @@ import { CvDocumentsModule } from './cv-documents/cv-documents.module';
     AuthModule,
     GymsModule,
     PlansModule,
+    UserPlansModule,
     MembersModule,
-    SubscriptionsModule,
     GymModule,
     StatsModule,
     QuoteRequestsModule,
@@ -41,6 +44,9 @@ import { CvDocumentsModule } from './cv-documents/cv-documents.module';
     AiModule,
     AdminManagementModule,
     CvDocumentsModule,
+    BusinessPlansModule,
+    RiskAssessmentsModule,
+    ProductivityPlansModule,
   ],
   controllers: [AppController],
   providers: [
@@ -49,4 +55,4 @@ import { CvDocumentsModule } from './cv-documents/cv-documents.module';
     { provide: APP_GUARD, useClass: RolesGuard },
   ],
 })
-export class AppModule {}
+export class AppModule { }

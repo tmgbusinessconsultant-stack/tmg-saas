@@ -1,200 +1,118 @@
 "use client";
+import { useEffect, useState } from "react";
 
-import Script from "next/script";
-import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import { paymentPlans, type PaymentPlanId } from "@/lib/payment-plans";
-
-interface PayPalButtonsInstance {
-  render(container: HTMLElement): Promise<void>;
-  close?(): Promise<void>;
-}
-
-interface PayPalNamespace {
-  Buttons(options: {
-    createOrder(): Promise<string>;
-    onApprove(data: { orderID: string }): Promise<void>;
-    onError(error: unknown): void;
-  }): PayPalButtonsInstance;
-}
-
-declare global {
-  interface Window {
-    paypal?: PayPalNamespace;
+const PLANS = {
+  starter: { 
+    name: "Starter", monthly: 27.20, annual: 272, 
+    tools: ["CV Builder", "Business Assistant"], 
+    count: "1 AI Tool", limit: "10 docs/month", 
+    features: ["1 AI tool", "Basic CV templates", "Business Assistant", "Email support"], 
+    popular: false, id: "starter" 
+  },
+  pro: { 
+    name: "Pro", monthly: 82.14, annual: 821.4, 
+    tools: ["CV Builder", "Cover Letter", "Business Plan", "Document Review", "Policy Generator", "Business Assistant"], 
+    count: "6 AI Tools", limit: "100 docs/month", 
+    features: ["6 AI tools", "Advanced CV + Cover", "Business Plan generator", "Document Review", "Priority support"], 
+    popular: true, id: "pro" 
+  },
+  business: { 
+    name: "Business", monthly: 274.45, annual: 2744.5, 
+    tools: ["CV Builder", "Cover Letter", "Business Plan", "Document Review", "Policy Generator", "SOP Builder", "Business Contracts", "Proposal Packs", "Business Assistant"], 
+    count: "9 AI Tools - All", limit: "1000 docs/month", 
+    features: ["All 9 tools", "Human expert review", "SOP/policy pack", "1-on-1 consulting", "24h support"], 
+    popular: false, id: "business" 
   }
-}
-
-function PayPalPlanButton({
-  planId,
-  sdkReady,
-}: {
-  planId: PaymentPlanId;
-  sdkReady: boolean;
-}) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [message, setMessage] = useState("");
-  const [isError, setIsError] = useState(false);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!sdkReady || !container || !window.paypal) return;
-
-    let active = true;
-    let buttons: PayPalButtonsInstance;
-    const reportLoadFailure = (error: unknown) => {
-      window.setTimeout(() => {
-        if (active) {
-          setIsError(true);
-          setMessage(error instanceof Error ? error.message : "PayPal buttons could not be loaded.");
-        }
-      }, 0);
-    };
-    try {
-      buttons = window.paypal.Buttons({
-        async createOrder() {
-          setMessage("");
-          setIsError(false);
-          const response = await fetch("/api/paypal/orders", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ planId }),
-          });
-
-          // === FIX 401 / 403 HERE ===
-          if (response.status === 401) {
-            throw new Error("Unauthorized - please login to checkout.");
-          }
-          if (response.status === 403) {
-            throw new Error("Checkout refused - you do not have permission for this plan.");
-          }
-
-          const result: unknown = await response.json();
-          if (!response.ok || typeof result !== "object" || result === null || !("orderID" in result) || typeof result.orderID !== "string") {
-            const errorMessage = typeof result === "object" && result !== null && "message" in result && typeof result.message === "string"
-              ? result.message
-              : "Could not start PayPal checkout.";
-            throw new Error(errorMessage);
-          }
-          return result.orderID;
-        },
-        async onApprove(data) {
-          const response = await fetch("/api/paypal/orders/capture", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ orderID: data.orderID, planId }),
-          });
-
-          // === FIX CAPTURE 401 / 403 HERE ===
-          if (response.status === 401) {
-            throw new Error("Unauthorized - session expired, please login again.");
-          }
-          if (response.status === 403) {
-            throw new Error("Checkout refused - payment could not be confirmed.");
-          }
-
-          const result: unknown = await response.json();
-          if (!response.ok) {
-            const errorMessage = typeof result === "object" && result !== null && "message" in result && typeof result.message === "string"
-              ? result.message
-              : "PayPal could not confirm your payment.";
-            throw new Error(errorMessage);
-          }
-
-          if (active) {
-            setIsError(false);
-            setMessage(`Payment completed for the ${paymentPlans[planId].name} plan. Your order is ${data.orderID}.`);
-          }
-        },
-        onError(error) {
-          if (active) {
-            setIsError(true);
-            const msg = error instanceof Error ? error.message : "PayPal checkout failed. Please try again.";
-            // Auto redirect if unauthorized
-            if (msg.toLowerCase().includes('unauthorized')) {
-              window.location.href = '/login';
-            }
-            setMessage(msg);
-          }
-        },
-      });
-
-      buttons.render(container).catch((error: unknown) => {
-        reportLoadFailure(error);
-      });
-    } catch (error) {
-      reportLoadFailure(error);
-    }
-
-    return () => {
-      active = false;
-      if (buttons) void buttons.close?.();
-    };
-  }, [planId, sdkReady]);
-
-  return (
-    <div className="mt-8">
-      <div ref={containerRef} />
-      {message && (
-        <p role={isError ? "alert" : "status"} className={`mt-3 text-sm ${isError ? "text-red-700" : "text-green-700"}`}>
-          {message}
-        </p>
-      )}
-    </div>
-  );
-}
+};
 
 export default function PricingCheckout() {
-  const [sdkReady, setSdkReady] = useState(false);
-  const [sdkError, setSdkError] = useState("");
-  const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
-  const plans = Object.values(paymentPlans);
-  const scriptUrl = clientId
-    ? `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=USD&intent=capture&components=buttons`
-    : "";
+  const [billing, setBilling] = useState<"monthly"|"annual">("monthly");
+  const [currentPlan, setCurrentPlan] = useState<any>(null);
+  const [trialLoading, setTrialLoading] = useState(false);
+  const [buying, setBuying] = useState<string | null>(null);
+
+  useEffect(() => {
+    const token = sessionStorage.getItem("accessToken") || localStorage.getItem("accessToken");
+    if (!token) return;
+    const apiUrl = (process.env.NEXT_PUBLIC_API_URL||"").replace(/\/+$/,"");
+    fetch(`${apiUrl}/user-plans/current`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r=>r.ok?r.json():null)
+      .then(setCurrentPlan)
+      .catch(()=>{});
+  }, []);
+
+  async function startTrial() {
+    const token = sessionStorage.getItem("accessToken") || localStorage.getItem("accessToken");
+    if (!token) { alert("Login first"); location.href="/login"; return; }
+    setTrialLoading(true);
+    const apiUrl = (process.env.NEXT_PUBLIC_API_URL||"").replace(/\/+$/,"");
+    try {
+      const res = await fetch(`${apiUrl}/user-plans/start-trial`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) throw new Error((await res.json()).message);
+      alert("7-day Trial started! Redirecting to AI Tools...");
+      location.href="/ai-tools";
+    } catch (e:any) { alert(e.message); }
+    setTrialLoading(false);
+  }
+
+  async function handleBuy(planKey: keyof typeof PLANS) {
+    const token = sessionStorage.getItem("accessToken") || localStorage.getItem("accessToken");
+    if (!token) { alert("Login expired"); location.href="/login"; return; }
+    const p = PLANS[planKey];
+    setBuying(planKey);
+    const apiUrl = (process.env.NEXT_PUBLIC_API_URL||"").replace(/\/+$/,"");
+    try {
+      const orderRes = await fetch(`${apiUrl}/payments/orders`, {
+        method: "POST", headers: { "Content-Type":"application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ planId: p.id, billingCycle: billing })
+      });
+      if (!orderRes.ok) throw new Error(await orderRes.text());
+      const order = await orderRes.json();
+      const capRes = await fetch(`${apiUrl}/payments/capture`, {
+        method: "POST", headers: { "Content-Type":"application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ orderID: order.id, planId: p.id, billingCycle: billing })
+      });
+      if (!capRes.ok) throw new Error(await capRes.text());
+      alert(`✅ ${p.name} activated! Opening your AI tools...`);
+      location.href="/ai-tools";
+    } catch (e:any) { alert("Checkout failed: "+e.message); }
+    setBuying(null);
+  }
 
   return (
-    <>
-      {clientId && (
-        <Script
-          id="paypal-checkout-sdk"
-          src={scriptUrl}
-          strategy="afterInteractive"
-          onReady={() => setSdkReady(true)}
-          onError={() => setSdkError("PayPal checkout could not load. Check the PayPal client ID and try again.")}
-        />
+    <div className="space-y-8">
+      {currentPlan?.planId && (
+        <div className={`p-4 rounded-xl border ${currentPlan.isExpired ? "bg-red-50 border-red-300" : currentPlan.isExpiringSoon ? "bg-yellow-50 border-yellow-300" : "bg-green-50 border-green-300"}`}>
+          <p className="font-semibold">Active: {currentPlan.planId} ({currentPlan.billingCycle}) - {currentPlan.daysLeft || 0} days left</p>
+          <p className="text-sm">Tools: {currentPlan.allowedTools?.join(", ")} | Used: {currentPlan.usageCount}/{currentPlan.usageLimit}</p>
+        </div>
       )}
-
-      {!clientId && (
-        <p role="alert" className="mt-8 text-center text-sm text-red-700">
-          PayPal checkout is not configured. Set NEXT_PUBLIC_PAYPAL_CLIENT_ID in the frontend environment.
-        </p>
+      {!currentPlan?.planId && (
+        <div className="text-center p-6 bg-gradient-to-r from-purple-50 to-yellow-50 rounded-2xl border border-dashed border-[#D4AF37]">
+          <h3 className="text-xl font-bold">Try 7 Days Free - No Credit Card</h3>
+          <p className="text-sm text-slate-600">Get CV Builder + Business Assistant - 3 docs free</p>
+          <button disabled={trialLoading} onClick={startTrial} className="mt-3 bg-black text-white px-6 py-2 rounded-full font-semibold">{trialLoading?"Starting...":"Start 7-Day Free Trial"}</button>
+        </div>
       )}
-      {sdkError && <p role="alert" className="mt-8 text-center text-sm text-red-700">{sdkError}</p>}
-
-      <div className="mt-12 grid md:grid-cols-3 gap-8">
-        {plans.map((plan) => (
-          <div key={plan.id} className={`rounded-2xl border p-8 ${plan.highlight ? "border-[#D4AF37] bg-[#FFF9E5] shadow-lg md:scale-105" : "border-slate-200 bg-white"}`}>
-            {plan.highlight && <span className="bg-[#D4AF37] text-black text-xs px-2 py-1 rounded font-semibold">MOST POPULAR</span>}
-            <h2 className="text-2xl font-bold mt-2">{plan.name}</h2>
-            <div className="mt-4 text-4xl font-bold text-[#0F172A]">{plan.displayPrice}</div>
-            <p className="mt-4 text-slate-600">{plan.description}</p>
-            <ul className="mt-6 space-y-3 text-slate-700">
-              {plan.features.map((feature) => (
-                <li key={feature} className="flex gap-2"><span className="text-[#D4AF37] font-bold">✓</span> {feature}</li>
-              ))}
-            </ul>
-            {clientId && !sdkError && (
-              <PayPalPlanButton planId={plan.id} sdkReady={sdkReady} />
-            )}
-          </div>
-        ))}
+      <div className="flex justify-center"><div className="bg-slate-100 p-1 rounded-full flex"><button onClick={()=>setBilling("monthly")} className={`px-6 py-2 rounded-full text-sm font-semibold ${billing==="monthly"?"bg-white shadow":""}`}>Monthly</button><button onClick={()=>setBilling("annual")} className={`px-6 py-2 rounded-full text-sm font-semibold ${billing==="annual"?"bg-white shadow":""}`}>Annual <span className="text-green-600">-2 months free</span></button></div></div>
+      <div id="pricing" className="grid md:grid-cols-3 gap-6">
+        {(Object.keys(PLANS) as Array<keyof typeof PLANS>).map((key)=>{
+          const p=PLANS[key]; const price=billing==="monthly"?p.monthly:p.annual; 
+          const isCurrent = currentPlan?.planId?.toLowerCase() === key;
+          return (
+            <div key={key} className={`rounded-2xl border p-6 bg-white ${p.popular?"border-black shadow-xl md:scale-105":"border-slate-200"} ${isCurrent?"ring-2 ring-green-500":""}`}>
+              {p.popular && <div className="bg-black text-white text-xs px-3 py-1 rounded-full inline-block mb-3">MOST POPULAR</div>}
+              <h3 className="text-xl font-bold">{p.name}</h3>
+              <p className="text-sm text-slate-500">{p.count} - {p.limit}</p>
+              <div className="mt-4"><span className="text-3xl font-bold">${price}</span><span className="text-slate-500">/{billing==="monthly"?"mo":"yr"}</span></div>
+              <div className="mt-4 space-y-2"><p className="text-xs font-semibold uppercase tracking-wide">Includes:</p>{p.tools.map((t:string)=><div key={t} className="text-sm flex gap-1"><span>✅</span>{t}</div>)}</div>
+              <ul className="mt-4 space-y-1 text-sm text-slate-600 border-t pt-4">{p.features.map((f:string)=><li key={f}>• {f}</li>)}</ul>
+              <button onClick={()=>!isCurrent && handleBuy(key)} disabled={isCurrent || buying===key} className={`mt-6 w-full py-3 rounded-full font-semibold transition-all ${isCurrent?"bg-green-100 text-green-700 border border-green-300":p.popular?"bg-black text-white hover:bg-gray-800 cursor-pointer":"bg-white border border-black hover:bg-gray-50 cursor-pointer"}`}>{buying===key?"Processing...":isCurrent?"✓ Current":`Get ${p.name} - $${price}`}</button>
+              <p className="text-xs text-center mt-2 text-slate-400">Auto-renewal {billing} • PayPal • Cancel anytime</p>
+            </div>
+          );
+        })}
       </div>
-      <p className="mt-12 text-center text-xs text-slate-500">
-        One-time payments in USD. Prices are converted from the listed QAR packages at QAR 3.64 per USD. PayPal Sandbox is for testing only; use sandbox buyer credentials to test checkout.
-      </p>
-      <p className="mt-3 text-center text-xs leading-5 text-slate-500">
-        Checkout is processed by PayPal. By continuing, you acknowledge our <Link href="/privacy" className="underline">Privacy Notice</Link> and agree to our <Link href="/terms" className="underline">Terms</Link>. Confirm any delivery or refund details not shown with us before purchasing.
-      </p>
-    </>
+    </div>
   );
 }

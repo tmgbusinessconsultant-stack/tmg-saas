@@ -10,6 +10,6 @@ import { TurnstileService } from './turnstile.service';
   imports: [PrismaModule],
   controllers: [AiController],
   providers: [AiService, FileAnalysisService, KnowledgeService, TurnstileService],
-  exports: [TurnstileService],
+  exports: [AiService, TurnstileService, FileAnalysisService, KnowledgeService],
 })
 export class AiModule {}

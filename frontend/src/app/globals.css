@@ -21,95 +21,47 @@ body {
 
 * {
   box-sizing: border-box;
-  min-width: 0;
 }
 
-/* === FORMS === */
+/* === FORMS STYLING === */
 input,
 textarea,
 select {
-  color: #0F172A !important;
-  background: #FFF !important;
-  border: 1px solid #CBD5E1 !important;
-  width: 100% !important;
+  color: #0F172A;
+  background-color: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
 }
 
 input::placeholder {
-  color: #64748B !important;
+  color: #64748B;
 }
 
-/* === MAIN FIX: WHITE ON WHITE -> BLACK === */
-/* Force EVERYTHING inside white cards to be black */
-.bg-white,
-[class*="bg-white"],
-[class*="rounded-"] {
-  color: #0F172A !important;
+/* === BACKDROP OVERLAY & MODAL FIXES === */
+/* Ensure the dialog backdrop dims the page correctly */
+div[class*="backdrop"],
+div[role="dialog"]~div {
+  background-color: rgba(15, 23, 42, 0.6) !important;
+  backdrop-filter: blur(4px);
 }
 
-.bg-white *,
-[class*="bg-white"] *,
-[class*="bg-white"] h3,
-[class*="bg-white"] p,
-[class*="bg-white"] span,
-[class*="bg-white"] div {
-  color: #0F172A !important;
+/* Safe card contrast resets that do not conflict with Tailwind utilities */
+.bg-white h1,
+.bg-white h2,
+.bg-white h3,
+.bg-white h4,
+.bg-white h5,
+.bg-white h6 {
+  color: #0F172A;
 }
 
-/* The small light gray descriptions */
-.text-slate-100,
-.text-slate-200,
-.text-slate-300,
-.text-gray-100,
-.text-gray-200,
-[class*="text-slate-"],
-[class*="text-gray-"],
-[class*="text-white"] {
-  color: #0F172A !important;
+.bg-white p {
+  color: #334155;
 }
 
-/* === KEEP WHITE TEXT ONLY ON DARK BLUE === */
-.bg-primary,
-div[class*="bg-[#0F172A]"],
-.bg-slate-900,
-.bg-slate-800,
-.bg-primary *,
-div[class*="bg-[#0F172A]"] *,
-.bg-slate-900 *,
-header *,
-nav *,
-footer * {
-  color: #F8FAFC !important;
-}
-
-/* Restore after the black fix */
-.bg-primary .bg-white,
-.bg-primary .bg-white *,
-div[class*="bg-[#0F172A]"] .bg-white,
-div[class*="bg-[#0F172A]"] .bg-white * {
-  color: #0F172A !important;
-}
-
-.bg-gold,
-[class*="bg-gold"] {
-  color: #0F172A !important;
-  background: #D4AF37 !important;
-}
-
-/* === RESPONSIVE AUTO === */
-.flex,
-div[class*="flex"] {
-  flex-wrap: wrap !important;
-  gap: 10px !important;
-}
-
-button {
-  white-space: normal !important;
-  height: auto !important;
-  min-height: 44px !important;
-}
-
-.grid {
-  display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
-  gap: 16px !important;
+/* Ensure buttons inside primary sections keep white text explicitly */
+.bg-primary button,
+div[class*="bg-[#0F172A]"] button {
+  color: #FFFFFF;
 }

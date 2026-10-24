@@ -1,11 +1,20 @@
-import { ForbiddenException, Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { IS_PUBLIC_KEY } from './public.decorator';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if (isPublic) {
+      return true;
+    }
+
     const requiredRoles = this.reflector.getAllAndOverride<string[]>('roles', [
       context.getHandler(),
       context.getClass(),
@@ -21,21 +30,15 @@ export class RolesGuard implements CanActivate {
       user?: { role?: string; permissions?: string[] };
     }>();
     const user = request.user;
-    if (!user) {
-      throw new ForbiddenException('You do not have permission to access this resource.');
-    }
+    if (!user) return false;
 
     if (user.role === 'SUPER_ADMIN') return true;
     if (requiredRoles?.length && !requiredRoles.includes(user.role ?? '')) {
-      throw new ForbiddenException('You do not have permission to access this resource.');
+      return false;
     }
-    if (requiredPermissions?.length && !requiredPermissions.some((permission) => user.permissions?.includes(permission))) {
-      throw new ForbiddenException('You do not have permission to access this resource.');
+    if (requiredPermissions?.length && !requiredPermissions.some((p) => user.permissions?.includes(p))) {
+      return false;
     }
-    if (requiredPermissions?.includes('content:edit')) {
-      throw new ForbiddenException('Only the Super Admin can modify website content.');
-    }
-
     return true;
   }
 }
