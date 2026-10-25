@@ -3,12 +3,11 @@ import { PlanGuard } from '../user-plans/plan.guard';
 import { CvDocumentsService } from './cv-documents.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Response } from 'express';
-import * as fs from 'fs';
 
 @Controller('cv-documents')
 @UseGuards(JwtAuthGuard, PlanGuard)
 export class CvDocumentsController {
-  constructor(private readonly documents: CvDocumentsService) {}
+  constructor(private readonly documents: CvDocumentsService) { }
 
   @Post()
   async create(@Req() req: any, @Body() body: any) {
@@ -34,18 +33,12 @@ export class CvDocumentsController {
   async getFile(@Req() req: any, @Param('id') id: string, @Query('download') download: string, @Res() res: Response) {
     const wantDownload = download === 'true' || download === '1';
     const result = await this.documents.getFilePath(id, req.user, wantDownload);
-    
-    // result = { filePath, doc }
-    const filePath = (result as any).filePath;
-    const doc = (result as any).doc;
-    
-    const stat = fs.statSync(filePath);
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Length', stat.size);
-    res.setHeader('Content-Disposition', `${wantDownload ? 'attachment' : 'inline'}; filename="${doc.title || 'document'}.pdf"`);
-    
-    const stream = fs.createReadStream(filePath);
-    stream.pipe(res);
+    // S3 mode - redirect to signed URL
+    if ((result as any).fileUrl) {
+      return res.redirect((result as any).fileUrl);
+    }
+    // fallback if still local (should not happen now)
+    return res.status(404).json({ message: 'File URL not available' });
   }
 
   @Post(':id/download-control')
@@ -63,4 +56,3 @@ export class CvDocumentsController {
     return this.documents.remove(req.user, id);
   }
 }
-
