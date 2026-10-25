@@ -1,4 +1,5 @@
-﻿export async function POST(req: Request) {
+import { requireAuthAndPlan } from "@/lib/auth-guard";
+export async function POST(req: NextRequest) {
   try {
     const { messages, data } = await req.json();
     const defaultSystemPrompt = 'You are TMG Policy Generator. Draft business policies, SOPs, and governance documents that are practical, compliant, and easy to apply.';
@@ -8,8 +9,14 @@
 
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
+
+    const guard = await requireAuthAndPlan(req, "policy-generator");
+    if (!guard.ok) return guard.response;
       return Response.json({ message: 'Missing GROQ_API_KEY environment variable' });
     }
+
+    const guard = await requireAuthAndPlan(req, "policy-generator");
+    if (!guard.ok) return guard.response;
 
     const payloadMessages = Array.isArray(messages) && messages.length > 0
       ? messages
@@ -39,3 +46,5 @@
     return Response.json({ message: `Server Error: ${message}` }, { status: 500 });
   }
 }
+
+

@@ -1,37 +1,67 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Document Center | TMG Business Consulting",
+  description: "9 premium AI tools for CVs, contracts, policies, SOPs and business documents — International compliance ready.",
+};
+
 const documents = [
-  { title: "CV Builder", description: "Create a professional, ATS-friendly CV for your target role. 10 countries, A$, QAR, £, $, etc", href: "/ai-tools/cv-builder", linkLabel: "Open tool →", flag: "🇶🇦🇦🇺🇬🇧🇺🇸", active: true },
-  { title: "Cover Letter", description: "Premium International Cover Letter with country-specific compliance. QAR, AUD, GBP, USD", href: "/ai-tools/cover-letter", linkLabel: "Open tool →", flag: "🇶🇦🇦🇺", active: true },
-  { title: "Business Plan", description: "Generate a structured business plan for your idea and market. QAR, AUD A$, USD, GBP, EUR — 10 countries", href: "/ai-tools/business-plan", linkLabel: "Open tool →", flag: "🇶🇦🇦🇺🇺🇸", active: true },
-  { title: "Business Assistant", description: "Get business guidance and practical next steps. International — A$, QAR, £, $ with local law", href: "/ai-tools/business-assistant", linkLabel: "Open assistant →", flag: "🤖🌍", active: true },
-  { title: "Document Review / Judgement Review", description: "Legal Document Review with jurisdiction compliance. A$, QAR, £, $, financial impact in local currency", href: "/ai-tools/document-review", linkLabel: "Open tool →", flag: "⚖️🇦🇺🇶🇦", active: true },
-  { title: "Policy Generator", description: "HR, Leave, Safety Policies with local law compliance. Qatar Labour Law, Fair Work Act 2009, UK Employment Rights", href: "/ai-tools/policy-generator", linkLabel: "Open tool →", flag: "📋🇶🇦🇦🇺🇬🇧", active: true },
-  { title: "SOP Builder", description: "Standard Operating Procedures for operations. International compliance ready", href: "/ai-tools/sop-builder", linkLabel: "Open tool →", flag: "⚙️🌍", active: true },
-  { title: "Business Contracts", description: "Professional structures for client agreements and service arrangements. A$, QAR, AED, SAR, £, $, C$, ₹, € — 10 countries", href: "/ai-tools/business-contracts", linkLabel: "Open tool →", flag: "📄🌍", active: true },
-  { title: "Proposal Packs", description: "Presentation-ready documents for business growth and client acquisition. Investment in local currency — QAR, AUD A$, AED, etc", href: "/ai-tools/proposal-packs", linkLabel: "Open tool →", flag: "📊🌍", active: true },
+  { title: "CV Builder", desc: "ATS-friendly CVs tailored to role & country.", href: "/ai-tools/cv-builder", tag: "Most Used" },
+  { title: "Cover Letter", desc: "Country-compliant premium cover letters.", href: "/ai-tools/cover-letter", tag: "Qatar + Global" },
+  { title: "Business Plan", desc: "Structured plan with market & financials.", href: "/ai-tools/business-plan", tag: "Investor Ready" },
+  { title: "Business Assistant", desc: "Guidance and next steps for decisions.", href: "/ai-tools/business-assistant", tag: "AI Assistant" },
+  { title: "Document Review", desc: "Legal review with jurisdiction compliance.", href: "/ai-tools/document-review", tag: "Legal" },
+  { title: "Policy Generator", desc: "HR, Leave, Safety — Qatar Labour Law, Fair Work, UK Rights.", href: "/ai-tools/policy-generator", tag: "HR" },
+  { title: "SOP Builder", desc: "Operational SOPs with compliance steps.", href: "/ai-tools/sop-builder", tag: "Operations" },
+  { title: "Business Contracts", desc: "Client agreements & service structures.", href: "/ai-tools/business-contracts", tag: "10 Currencies" },
+  { title: "Proposal Packs", desc: "Client acquisition & growth documents.", href: "/ai-tools/proposal-packs", tag: "Growth" },
 ];
+
 export default function DocumentsPage() {
   return (
-    <div className="max-w-7xl mx-auto px-6 py-16">
-      <div className="text-center max-w-3xl mx-auto">
-        <p className="text-[#D4AF37] uppercase tracking-[0.2em] text-xs font-semibold">Document Center — Premium International — All 9 Tools Live ✅</p>
-        <h1 className="mt-3 text-4xl font-bold">Business documents that build trust — Global Ready</h1>
-        <p className="mt-3 text-sm text-slate-600">Qatar QAR, Australia AUD A$, UAE AED, Saudi SAR, UK GBP £, USA USD $, Canada CAD C$, India INR ₹, Singapore SGD, EU EUR € — All with local law compliance — 10 Countries | 9 Payable Services</p>
-        <div className="mt-4 flex justify-center gap-2 flex-wrap"><span className="bg-black text-white text-xs px-3 py-1 rounded-full">9 Tools Live</span><span className="bg-[#D4AF37] text-black text-xs px-3 py-1 rounded-full font-bold">AUD A$ Supported</span><span className="bg-green-600 text-white text-xs px-3 py-1 rounded-full">Premium International</span></div>
-      </div>
-      <div className="mt-12 grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {documents.map((item) => (
-          <div key={item.title} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-lg transition-shadow hover:scale-[1.02]">
-            <div className="flex justify-between"><div className="text-[#D4AF37] font-bold text-xs uppercase">TMG • {item.flag}</div><div className="text-xs bg-black text-white px-2 py-0.5 rounded-full">Premium • {item.active ? 'Live' : 'Soon'}</div></div>
-            <h2 className="mt-4 text-xl font-bold">{item.title}</h2>
-            <p className="mt-3 text-slate-600 text-sm">{item.description}</p>
-            <Link href={item.href} className="mt-4 inline-block text-sm font-semibold text-[#0F172A] hover:text-[#8A6A00] bg-amber-50 px-3 py-1 rounded-full border">
-              {item.linkLabel}
-            </Link>
+    <div className="min-h-screen bg-[#FCFCF9]">
+      <div className="max-w-7xl mx-auto px-6 py-16 md:py-24">
+        {/* Header - TMG Standard */}
+        <div className="text-center max-w-3xl mx-auto">
+          <p className="text-[#D4AF37] uppercase tracking-[0.25em] text-[11px] font-bold">Document Center</p>
+          <h1 className="mt-4 text-4xl md:text-5xl font-bold tracking-tight text-zinc-900">
+            Business documents that <span className="text-[#D4AF37]">build trust</span>
+          </h1>
+          <p className="mt-4 text-zinc-500 leading-relaxed">
+            9 tools live. International compliance — QAR, AUD, AED, SAR, GBP, USD, CAD, INR, SGD, EUR.
+          </p>
+          <div className="mt-6 flex justify-center gap-2 flex-wrap">
+            <span className="rounded-full border border-zinc-200 bg-white px-3.5 py-1.5 text-xs font-medium text-zinc-600">9 Tools Live</span>
+            <span className="rounded-full bg-zinc-900 px-3.5 py-1.5 text-xs font-bold text-white">Premium International</span>
+            <span className="rounded-full bg-[#D4AF37] px-3.5 py-1.5 text-xs font-bold text-zinc-900">AUD A$ Supported</span>
           </div>
-        ))}
+        </div>
+
+        {/* Grid - Premium */}
+        <div className="mt-14 grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {documents.map((item) => (
+            <div key={item.title} className="group rounded-[24px] border border-zinc-200 bg-white p-7 shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:border-zinc-900 transition-all duration-300 flex flex-col">
+              <div className="flex items-center justify-between">
+                <div className="h-1.5 w-1.5 rounded-full bg-[#D4AF37]" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 group-hover:text-zinc-900 transition-colors">{item.tag}</span>
+              </div>
+              <h2 className="mt-5 text-[18px] font-semibold tracking-tight text-zinc-900">{item.title}</h2>
+              <p className="mt-2 text-sm leading-6 text-zinc-500 flex-1">{item.desc}</p>
+              <Link href={item.href} className="mt-6 inline-flex items-center justify-center rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-black transition-colors self-start">
+                Open tool →
+              </Link>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-16 flex justify-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs text-zinc-500">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            Backend synced • 10 currencies • Doha, Qatar
+          </div>
+        </div>
       </div>
-      <div className="mt-12 text-center text-xs text-gray-500">Backend: cv-documents.service.ts supports CV, Cover Letter, Judgement Review, Policy, SOP, Contract, Proposal — All with currency: QAR, AUD A$, AED, SAR, GBP £, USD $, CAD C$, INR ₹, SGD S$, EUR € | TMG Premium International</div>
     </div>
   );
 }

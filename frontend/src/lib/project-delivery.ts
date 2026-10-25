@@ -1,11 +1,13 @@
 export type ProjectFile = {
   id: string;
   originalName: string;
+  name: string;
   kind: "CLIENT_UPLOAD" | "DELIVERABLE";
   size: string;
   status: "UPLOADING" | "SCANNING" | "AVAILABLE" | "REJECTED" | "FAILED";
   version: number;
   createdAt: string;
+  uploadedById?: string;
 };
 
 export type ProjectMessage = {
@@ -27,12 +29,6 @@ export type Project = {
   assignee: { id: string; name: string; email: string } | null;
   files: ProjectFile[];
   messages: ProjectMessage[];
-};
-
-type UploadInit = {
-  id: string;
-  partSize: number;
-  partCount: number;
 };
 
 function apiBaseUrl(): string {
@@ -60,18 +56,23 @@ export async function apiRequest<T>(
     try {
       const body: unknown = await response.json();
       if (typeof body === "object" && body !== null && "message" in body) {
-        const apiMessage = body.message;
+        const apiMessage = (body as any).message;
         if (typeof apiMessage === "string") message = apiMessage;
         else if (Array.isArray(apiMessage)) message = apiMessage.join(" ");
       }
     } catch {
-      // Keep the HTTP status as the explicit fallback when the response is not JSON.
+      try { message = await response.text(); } catch { }
     }
     throw new Error(message);
   }
-  return response.json() as Promise<T>;
+  const contentType = response.headers.get("content-type") || "";
+  if (contentType.includes("application/json")) {
+    return response.json() as Promise<T>;
+  }
+  return response as unknown as T;
 }
 
+// DB-ONLY UPLOAD
 export async function uploadProjectFile(
   projectId: string,
   file: File,
@@ -80,78 +81,93 @@ export async function uploadProjectFile(
   onProgress: (percent: number) => void,
 ): Promise<void> {
   const encodedProjectId = encodeURIComponent(projectId);
-  const upload = await apiRequest<UploadInit>(`/projects/${encodedProjectId}/files`, token, {
-    method: "POST",
-    body: JSON.stringify({
-      name: file.name,
-      contentType: file.type || "application/octet-stream",
-      size: file.size,
-      kind,
-    }),
-  });
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("kind", kind);
+  onProgress(10);
 
-  const parts: Array<{ partNumber: number; etag: string }> = [];
-  try {
-    let nextPart = 1;
-    let completedParts = 0;
-    const worker = async () => {
-      while (true) {
-        const partNumber = nextPart++;
-        if (partNumber > upload.partCount) return;
-        const start = (partNumber - 1) * upload.partSize;
-        const chunk = file.slice(start, Math.min(start + upload.partSize, file.size));
-        const { url } = await apiRequest<{ url: string }>(
-          `/projects/${encodedProjectId}/files/${encodeURIComponent(upload.id)}/parts/${partNumber}`,
-          token,
-          { method: "POST" },
-        );
-        const response = await fetch(url, { method: "PUT", body: chunk });
-        if (!response.ok) {
-          throw new Error(`Storage rejected upload part ${partNumber} (${response.status}).`);
-        }
-        const etag = response.headers.get("ETag");
-        if (!etag) {
-          throw new Error("Storage did not return an ETag. Check the S3 bucket CORS expose headers.");
-        }
-        parts.push({ partNumber, etag });
-        completedParts++;
-        onProgress(Math.round((completedParts / upload.partCount) * 100));
+  await new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${apiBaseUrl()}/projects/${encodedProjectId}/files/upload`);
+    xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+    };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) { onProgress(100); resolve(); }
+      else {
+        let msg = `Upload failed (${xhr.status})`;
+        try { const body = JSON.parse(xhr.responseText); if (body.message) msg = body.message; } catch { }
+        reject(new Error(msg));
       }
     };
-
-    await Promise.all(Array.from({ length: Math.min(3, upload.partCount) }, () => worker()));
-    parts.sort((a, b) => a.partNumber - b.partNumber);
-    await apiRequest(
-      `/projects/${encodedProjectId}/files/${encodeURIComponent(upload.id)}/complete`,
-      token,
-      { method: "POST", body: JSON.stringify({ parts }) },
-    );
-  } catch (uploadError) {
-    try {
-      await apiRequest(
-        `/projects/${encodedProjectId}/files/${encodeURIComponent(upload.id)}/abort`,
-        token,
-        { method: "POST" },
-      );
-    } catch (abortError) {
-      console.error("Could not abort the incomplete multipart upload.", abortError);
-      throw new AggregateError(
-        [uploadError, abortError],
-        "The file upload failed and storage cleanup also failed. Contact support before retrying.",
-      );
-    }
-    throw uploadError;
-  }
+    xhr.onerror = () => reject(new Error("Network error during upload"));
+    xhr.send(formData);
+  });
 }
 
+// DB-ONLY DOWNLOAD - works on phone, opens in new tab + downloads
 export async function downloadProjectFile(
   projectId: string,
   fileId: string,
   token: string,
 ): Promise<void> {
-  const result = await apiRequest<{ url: string }>(
-    `/projects/${encodeURIComponent(projectId)}/files/${encodeURIComponent(fileId)}/download`,
-    token,
-  );
-  window.location.assign(result.url);
+  const encodedProjectId = encodeURIComponent(projectId);
+  const encodedFileId = encodeURIComponent(fileId);
+
+  const response = await fetch(`${apiBaseUrl()}/projects/${encodedProjectId}/files/${encodedFileId}/download`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const txt = await response.text();
+    throw new Error(txt || `Download failed (${response.status})`);
+  }
+
+  const blob = await response.blob();
+  const contentDisposition = response.headers.get("Content-Disposition");
+  let filename = "download";
+  if (contentDisposition) {
+    const match = contentDisposition.match(/filename="?([^"]+)"?/);
+    if (match) filename = match[1];
+  }
+
+  // For PDF/image - open preview, then download
+  const isPreviewable = blob.type.includes("pdf") || blob.type.includes("image");
+  const url = URL.createObjectURL(blob);
+
+  if (isPreviewable) {
+    window.open(url, "_blank");
+  }
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
+}
+
+// --- NEW: DELETE FILE ---
+export async function deleteProjectFile(
+  projectId: string,
+  fileId: string,
+  token: string,
+): Promise<void> {
+  await apiRequest(`/projects/${encodeURIComponent(projectId)}/files/${encodeURIComponent(fileId)}`, token, {
+    method: "DELETE",
+  });
+}
+
+// --- NEW: DELETE MESSAGE ---
+export async function deleteProjectMessage(
+  projectId: string,
+  messageId: string,
+  token: string,
+): Promise<void> {
+  await apiRequest(`/projects/${encodeURIComponent(projectId)}/messages/${encodeURIComponent(messageId)}`, token, {
+    method: "DELETE",
+  });
 }

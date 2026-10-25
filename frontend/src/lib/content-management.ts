@@ -57,14 +57,29 @@ export type CmsGalleryItem = {
   media: { originalName: string; contentType: string; status: string };
 };
 
-export function contentApiUrl(path: string): string {
+function getApiBase(): string {
   const base = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
-  if (!base) throw new Error("The API URL is not configured.");
-  return `${base}${path}`;
+  if (!base) {
+    if (typeof window !== "undefined") return "";
+    throw new Error("NEXT_PUBLIC_API_URL not configured");
+  }
+  return base;
+}
+
+export function contentApiUrl(path: string): string {
+  const base = getApiBase();
+  if (!base) return path; // client-side safe fallback
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${cleanPath}`;
 }
 
 export function mediaUrl(path: string): string {
+  if (!path) return "";
   return /^https?:\/\//i.test(path) ? path : contentApiUrl(path);
+}
+
+export function isExternalMedia(path: string): boolean {
+  return /^https?:\/\//i.test(path);
 }
 
 export { apiRequest };

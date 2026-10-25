@@ -1,118 +1,185 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 type AuthFormProps = {
   mode: "login" | "register";
 };
 
+type ApiError = { message?: string | string[] };
+
 export default function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next")?.startsWith("/") ? searchParams.get("next") : null;
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (loading) return;
+
     setLoading(true);
     setError("");
-    const formData = new FormData(event.currentTarget);
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
 
-    if (!apiUrl) {
-      setError("The account service is not configured.");
+    const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("email") || "").trim().toLowerCase();
+    const password = String(formData.get("password") || "");
+    const name = String(formData.get("name") || "").trim();
+
+    if (!email || !password || (mode === "register" && !name)) {
+      setError("Please fill all required fields.");
       setLoading(false);
       return;
     }
 
-    const payload = mode === "register"
-      ? {
-          name: formData.get("name"),
-          email: formData.get("email"),
-          password: formData.get("password"),
-        }
-      : {
-          email: formData.get("email"),
-          password: formData.get("password"),
-        };
+    if (mode === "register" && name.length < 2) {
+      setError("Name must be at least 2 characters.");
+      setLoading(false);
+      return;
+    }
 
     try {
-      const response = await fetch(`${apiUrl}/auth/${mode}`, {
+      const response = await fetch(`/api/auth/${mode}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        credentials: "include",
+        body: JSON.stringify(mode === "register" ? { name, email, password } : { email, password }),
       });
-      const result: unknown = await response.json();
+
+      const result = (await response.json().catch(() => ({}))) as ApiError & { user?: { role?: string } };
 
       if (!response.ok) {
-        const apiMessage = typeof result === "object" && result !== null && "message" in result
-          ? Array.isArray(result.message) ? result.message.join(" ") : result.message
-          : "The request could not be completed.";
-        throw new Error(typeof apiMessage === "string" ? apiMessage : "The request could not be completed.");
+        const raw = result.message;
+        const msg = Array.isArray(raw) ? raw.join(" ") : raw || "Request failed. Please try again.";
+        throw new Error(msg);
       }
 
       if (mode === "register") {
-        router.push("/login");
+        router.push("/login?registered=1");
         return;
       }
 
-      if (typeof result !== "object" || result === null || !("accessToken" in result) || typeof result.accessToken !== "string") {
-        throw new Error("The account service returned an invalid sign-in response.");
-      }
-
-      sessionStorage.setItem("accessToken", result.accessToken);
-      const user = "user" in result && typeof result.user === "object" && result.user !== null
-        ? result.user
-        : null;
-      router.push(
-        user && "role" in user && typeof user.role === "string" && !["CLIENT", "CUSTOMER"].includes(user.role)
-          ? "/admin"
-          : "/dashboard",
-      );
-    } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "Could not connect to the account service.");
+      const role = result.user?.role;
+      router.push(next ? next : role && !["CLIENT", "CUSTOMER"].includes(role) ? "/admin" : "/dashboard");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not connect to account service.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="mx-auto max-w-md px-6 py-16">
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8A6A00]">TMG account</p>
-        <h1 className="mt-3 text-3xl font-bold">{mode === "login" ? "Sign in" : "Create an account"}</h1>
+    <div className="mx-auto px-6 py-16" style={{ maxWidth: "var(--container-max)" }}>
+      <div
+        className="mx-auto max-w-md border bg-white p-8 shadow-sm"
+        style={{ borderRadius: "var(--radius)", borderColor: "var(--border-color)", borderWidth: "var(--border-width)", background: "var(--card-bg)" }}
+      >
+        <p className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: "var(--gold)" }}>
+          TMG account
+        </p>
+        <h1 className="mt-3 text-3xl font-bold tracking-tight" style={{ fontFamily: "var(--font-family)" }}>
+          {mode === "login" ? "Sign in" : "Create an account"}
+        </h1>
+
         {mode === "register" && (
-          <p className="mt-3 text-sm leading-6 text-slate-600">New accounts are customer accounts. Administrator access is granted separately by an existing system operator.</p>
+          <p className="mt-3 text-sm leading-6 text-slate-600">
+            New accounts are customer accounts. Admin access is granted separately.
+          </p>
         )}
-        <form onSubmit={submit} className="mt-6 space-y-4">
+
+        {searchParams.get("registered") === "1" && mode === "login" && (
+          <p className="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800 border border-green-200">
+            Account created. Please sign in.
+          </p>
+        )}
+
+        <form onSubmit={submit} className="mt-6 space-y-4" noValidate>
           {mode === "register" && (
             <label className="block text-sm font-medium">
               Full name
-              <input name="name" required minLength={1} maxLength={100} autoComplete="name" className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+              <input
+                name="name"
+                required
+                minLength={2}
+                maxLength={100}
+                autoComplete="name"
+                placeholder="Ahmed Al Thani"
+                className="mt-1 w-full border px-3 py-2.5 outline-none transition focus:ring-2"
+                style={{ borderRadius: "var(--radius)", borderColor: "var(--border-color)" }}
+              />
             </label>
           )}
+
           <label className="block text-sm font-medium">
             Email
-            <input name="email" type="email" required maxLength={254} autoComplete="email" className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
+            <input
+              name="email"
+              type="email"
+              required
+              maxLength={254}
+              autoComplete="email"
+              placeholder="you@company.com"
+              className="mt-1 w-full border px-3 py-2.5 outline-none transition focus:ring-2"
+              style={{ borderRadius: "var(--radius)", borderColor: "var(--border-color)" }}
+            />
           </label>
+
           <label className="block text-sm font-medium">
-            Password
-            <input name="password" type="password" required minLength={12} maxLength={72} autoComplete={mode === "login" ? "current-password" : "new-password"} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" />
-            {mode === "register" && <span className="mt-1 block text-xs font-normal text-slate-500">Use at least 12 characters.</span>}
+            <span className="flex items-center justify-between">
+              Password
+              <button type="button" onClick={() => setShowPassword(v => !v)} className="text-xs font-normal underline" style={{ color: "var(--primary)" }}>
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </span>
+            <input
+              name="password"
+              type={showPassword ? "text" : "password"}
+              required
+              minLength={12}
+              maxLength={72}
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
+              className="mt-1 w-full border px-3 py-2.5 outline-none transition focus:ring-2"
+              style={{ borderRadius: "var(--radius)", borderColor: "var(--border-color)" }}
+            />
+            {mode === "register" && <span className="mt-1.5 block text-xs text-slate-500">Min 12 characters.</span>}
           </label>
+
           <p className="text-xs leading-5 text-slate-500">
-            Account details are handled as described in our <Link href="/privacy" className="underline">Privacy Notice</Link> and <Link href="/terms" className="underline">Terms</Link>.
+            By continuing you agree to our{" "}
+            <Link href="/privacy" className="underline" style={{ color: "var(--primary)" }}>Privacy</Link> and{" "}
+            <Link href="/terms" className="underline" style={{ color: "var(--primary)" }}>Terms</Link>.
           </p>
-          {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
-          <button type="submit" disabled={loading} className="w-full rounded-md bg-[#0F172A] px-5 py-3 font-semibold text-white disabled:opacity-60">
+
+          {error && (
+            <p role="alert" aria-live="assertive" className="rounded-lg bg-red-50 p-3 text-sm text-red-700 border border-red-200">
+              {error}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full font-semibold text-white transition hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
+            style={{ borderRadius: "var(--button-radius)", minHeight: "var(--button-height)", background: "var(--primary)" }}
+          >
             {loading ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}
           </button>
         </form>
-        <p className="mt-5 text-sm text-slate-600">
+
+        <p className="mt-6 text-center text-sm text-slate-600">
           {mode === "login" ? "Need an account? " : "Already registered? "}
-          <Link href={mode === "login" ? "/register" : "/login"} className="font-semibold text-[#0F172A] underline">
-            {mode === "login" ? "Register" : "Sign in"}
+          <Link
+            href={mode === "login" ? `/register${next ? `?next=${encodeURIComponent(next)}` : ""}` : `/login${next ? `?next=${encodeURIComponent(next)}` : ""}`}
+            className="font-semibold underline"
+            style={{ color: "var(--primary)" }}
+          >
+            {mode === "login" ? "Create account" : "Sign in"}
           </Link>
         </p>
       </div>

@@ -40,13 +40,16 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="bg-[#F8FAFC] text-[#0F172A] antialiased">
+    <html lang="en" suppressHydrationWarning>
+      <body className="antialiased">
+        {/* SINGLE SOURCE OF TRUTH - Loads all 22 design fields */}
         <GlobalStyles />
+
         <SiteHeader />
-        <main className="min-h-screen">{children}</main>
-        <footer className="bg-[#0F172A] text-white">
-          <div className="max-w-7xl mx-auto px-4 py-10 grid md:grid-cols-3 gap-8 text-sm text-slate-300">
+        <main className="min-h-screen w-full">{children}</main>
+
+        <footer className="text-white w-full" style={{ background: "var(--footer-bg)", minHeight: "var(--footer-height)" as any }}>
+          <div className="mx-auto px-4 py-10 grid md:grid-cols-3 gap-8 text-sm text-slate-300" style={{ maxWidth: "var(--container-max)" }}>
             <div>
               <div className="font-bold text-base text-white mb-3">TMG Business Consultant</div>
               <p>Helping businesses scale with practical strategy, AI tools, training, and documentation.</p>
@@ -64,17 +67,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
             <div>
               <div className="font-bold text-white mb-3">Contact</div>
-              {contactEmail && (
-                <p>Email: <a className="underline underline-offset-2" href={`mailto:${contactEmail}`}>{contactEmail}</a></p>
-              )}
-              {whatsappNumber && (
-                <p>WhatsApp: <a className="underline underline-offset-2" href={`https://wa.me/${whatsappNumber}`}>+{whatsappNumber}</a></p>
-              )}
-              {phoneNumber && (
-                <p>Phone: <a className="underline underline-offset-2" href={`tel:${phoneNumber}`}>{phoneNumber}</a></p>
-              )}
+              {contactEmail && <p>Email: <a className="underline underline-offset-2" href={`mailto:${contactEmail}`}>{contactEmail}</a></p>}
+              {whatsappNumber && <p>WhatsApp: <a className="underline underline-offset-2" href={`https://wa.me/${whatsappNumber}`}>+{whatsappNumber}</a></p>}
+              {phoneNumber && <p>Phone: <a className="underline underline-offset-2" href={`tel:${phoneNumber}`}>{phoneNumber}</a></p>}
               <Link href="/contact" className="mt-2 inline-block font-semibold text-white underline">Contact TMG</Link>
-              <p>Doha, Qatar</p>
+              <p className="mt-2">Doha, Qatar</p>
             </div>
           </div>
         </footer>

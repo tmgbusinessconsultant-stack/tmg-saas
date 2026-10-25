@@ -1,5 +1,3 @@
-
-
 import Link from "next/link";
 import Image from "next/image";
 import { Suspense } from "react";
@@ -11,20 +9,16 @@ async function loadHomepageContent(): Promise<HomepageContent> {
   try {
     const base = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
     if (!base) return defaultHomepageContent;
-    const response = await fetch(`${base}/content/homepage`, { cache: "no-store" });
+    const response = await fetch(`${base}/content/homepage`, { cache: "no-store", next: { revalidate: 0 } });
     if (!response.ok) {
-      console.warn(`Homepage API returned ${response.status}, using fallback`);
+      console.warn(`Homepage API ${response.status}, using fallback`);
       return defaultHomepageContent;
     }
     const body = await response.text();
     if (!body.trim()) return defaultHomepageContent;
     let value: Partial<HomepageContent> | null;
-    try {
-      value = JSON.parse(body) as Partial<HomepageContent> | null;
-    } catch {
-      console.warn("Homepage content was not valid JSON, using fallback");
-      return defaultHomepageContent;
-    }
+    try { value = JSON.parse(body) as Partial<HomepageContent>; }
+    catch { return defaultHomepageContent; }
     if (!value) return defaultHomepageContent;
     return {
       ...defaultHomepageContent,
@@ -37,14 +31,14 @@ async function loadHomepageContent(): Promise<HomepageContent> {
       cta: { ...defaultHomepageContent.cta, ...value.cta },
     };
   } catch (e) {
-    console.warn("Could not load homepage content, using default:", e);
+    console.warn("Homepage content fallback:", e);
     return defaultHomepageContent;
   }
 }
 
 export default function Home() {
   return (
-    <Suspense fallback={<HomePageContent content={defaultHomepageContent} />}>
+    <Suspense fallback={<HomeSkeleton />}>
       <LiveHomepageContent />
     </Suspense>
   );
@@ -55,105 +49,124 @@ async function LiveHomepageContent() {
   return <HomePageContent content={content} />;
 }
 
+function HomeSkeleton() {
+  return (
+    <div className="animate-pulse">
+      <div className="h-[600px] bg-[var(--primary)]/20" />
+      <div className="max-w-7xl mx-auto px-6 py-16 grid md:grid-cols-4 gap-6">
+        {[1, 2, 3, 4].map(i => <div key={i} className="h-48 bg-slate-200 rounded-2xl" />)}
+      </div>
+    </div>
+  );
+}
+
 function HomePageContent({ content }: { content: HomepageContent }) {
   return (
-    <div>
-      <section className="bg-gradient-to-br from-[#0F172A] via-[#1E293B] to-[#0F172A] text-white">
-        <div className="max-w-7xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-12 items-center">
+    <div className="w-full">
+      {/* HERO - Connected to Design System */}
+      <section className="text-white" style={{ background: `linear-gradient(135deg, var(--header-bg), var(--primary))` }}>
+        <div className="mx-auto px-6 py-24 grid md:grid-cols-2 gap-12 items-center" style={{ maxWidth: "var(--container-max)" }}>
           <div>
-            <div className="inline-block bg-[#D4AF37]/20 border border-[#D4AF37] text-[#D4AF37] px-3 py-1 rounded-full text-xs mb-4">
+            <div className="inline-block border px-3 py-1 rounded-full text-xs mb-4 font-bold" style={{ background: "color-mix(in srgb, var(--gold) 20%, transparent)", borderColor: "var(--gold)", color: "var(--gold)" }}>
               {content.hero.kicker}
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold leading-tight">
-              {content.hero.title} <span className="text-[#D4AF37]">{content.hero.highlight}</span>
+            <h1 className="font-bold leading-tight" style={{ fontSize: "var(--h1-size)", fontFamily: "var(--font-family)" }}>
+              {content.hero.title} <span style={{ color: "var(--gold)" }}>{content.hero.highlight}</span>
             </h1>
-            <p className="mt-6 text-gray-300 text-lg">{content.hero.description}</p>
+            <p className="mt-6 text-lg opacity-80">{content.hero.description}</p>
             <div className="mt-8 flex flex-wrap gap-4">
-              <Link href={content.hero.primaryHref} className="bg-[#D4AF37] text-black px-8 py-3 rounded-md font-bold hover:bg-white transition">{content.hero.primaryText}</Link>
-              <Link href={content.hero.secondaryHref} className="border border-white px-8 py-3 rounded-md hover:bg-white hover:text-black transition">{content.hero.secondaryText}</Link>
+              <Link href={content.hero.primaryHref} className="px-8 py-3 font-bold transition hover:opacity-90 hover:scale-[1.02]" style={{ background: "var(--gold)", color: "#000", borderRadius: "var(--button-radius)", minHeight: "var(--button-height)" }}>{content.hero.primaryText}</Link>
+              <Link href={content.hero.secondaryHref} className="border border-white px-8 py-3 hover:bg-white hover:text-black transition" style={{ borderRadius: "var(--button-radius)", minHeight: "var(--button-height)" }}>{content.hero.secondaryText}</Link>
             </div>
           </div>
-          <div className="bg-white rounded-2xl p-8 text-black shadow-2xl">
+          <div className="p-8 shadow-2xl" style={{ background: "var(--card-bg)", borderRadius: "var(--radius)", color: "var(--foreground)" }}>
             {content.hero.imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={mediaUrl(content.hero.imageUrl)} alt="" className="mb-6 max-h-48 w-full rounded-lg object-cover" />
+              <img src={mediaUrl(content.hero.imageUrl)} alt="" className="mb-6 max-h-48 w-full rounded-lg object-cover" style={{ borderRadius: "var(--radius)" }} />
             ) : (
               <div className="flex justify-center mb-6">
                 <Image src="/logo.png" alt="TMG" width={200} height={70} className="h-16 w-auto" />
               </div>
             )}
-            <h3 className="font-bold text-xl">{content.quickCard.title}</h3>
-            <p className="text-sm text-gray-600 mt-2 mb-6">{content.quickCard.description}</p>
-            <Link href={content.quickCard.buttonHref} className="block text-center bg-[#0F172A] text-white py-3 rounded-md font-semibold hover:bg-[#D4AF37] hover:text-black transition">{content.quickCard.buttonText}</Link>
+            <h3 className="font-bold text-xl" style={{ fontSize: "var(--h2-size)" }}>{content.quickCard.title}</h3>
+            <p className="text-sm mt-2 mb-6 opacity-70">{content.quickCard.description}</p>
+            <Link href={content.quickCard.buttonHref} className="block text-center py-3 font-semibold transition hover:opacity-90" style={{ background: "var(--primary)", color: "#fff", borderRadius: "var(--button-radius)", minHeight: "var(--button-height)" }}>{content.quickCard.buttonText}</Link>
             <div className="mt-6 grid grid-cols-2 gap-3 text-xs">
-              {content.statistics.map((stat) => <div key={`${stat.value}-${stat.label}`} className="bg-[#F8FAFC] p-3 rounded border"><strong>{stat.value}</strong> {stat.label}</div>)}
+              {content.statistics.map((stat) => <div key={`${stat.value}-${stat.label}`} className="p-3 rounded border" style={{ background: "var(--background)", borderColor: "var(--border-color)", borderRadius: "var(--radius)" }}><strong>{stat.value}</strong> {stat.label}</div>)}
             </div>
           </div>
         </div>
       </section>
+
       <PublishedMediaSection location="homepage" title="From our work" />
-      <section className="max-w-7xl mx-auto px-6 py-16">
+
+      <section className="mx-auto px-6 py-16" style={{ maxWidth: "var(--container-max)" }}>
         <div className="text-center max-w-3xl mx-auto">
-          <p className="text-[#D4AF37] font-semibold uppercase tracking-[0.2em] text-xs">Our Services</p>
-          <h2 className="text-3xl md:text-4xl font-bold mt-3">{content.services.heading}</h2>
+          <p className="font-semibold uppercase tracking-[0.2em] text-xs" style={{ color: "var(--gold)" }}>Our Services</p>
+          <h2 className="font-bold mt-3" style={{ fontSize: "var(--h1-size)", fontFamily: "var(--font-family)" }}>{content.services.heading}</h2>
         </div>
         <div className="mt-10 grid md:grid-cols-2 xl:grid-cols-4 gap-6">
           {content.services.cards.map((service) => (
-            <div key={service.title} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-lg transition">
-              <div className="text-[#D4AF37] font-bold text-sm uppercase tracking-wide">TMG</div>
-              <h3 className="mt-4 text-xl font-bold">{service.title}</h3>
-              <p className="mt-3 text-slate-600">{service.description}</p>
+            <div key={service.title} className="p-6 shadow-sm hover:shadow-lg transition hover:-translate-y-1" style={{ background: "var(--card-bg)", borderColor: "var(--border-color)", borderWidth: "var(--border-width)", borderRadius: "var(--radius)" }}>
+              <div className="font-bold text-sm uppercase tracking-wide" style={{ color: "var(--gold)" }}>TMG</div>
+              <h3 className="mt-4 font-bold" style={{ fontSize: "var(--h3-size)" }}>{service.title}</h3>
+              <p className="mt-3 opacity-70">{service.description}</p>
             </div>
           ))}
         </div>
       </section>
-      <section className="bg-slate-100">
-        <div className="max-w-7xl mx-auto px-6 py-16 grid md:grid-cols-2 gap-12 items-center">
+
+      <section style={{ background: "var(--background)" }}>
+        <div className="mx-auto px-6 py-16 grid md:grid-cols-2 gap-12 items-center" style={{ maxWidth: "var(--container-max)" }}>
           <div>
-            <p className="text-[#D4AF37] uppercase tracking-[0.2em] text-xs font-semibold">About TMG</p>
-            <h2 className="text-3xl md:text-4xl font-bold mt-3">{content.about.title}</h2>
-            <p className="mt-5 text-slate-600 leading-7">{content.about.description}</p>
+            <p className="uppercase tracking-[0.2em] text-xs font-semibold" style={{ color: "var(--gold)" }}>About TMG</p>
+            <h2 className="font-bold mt-3" style={{ fontSize: "var(--h1-size)" }}>{content.about.title}</h2>
+            <p className="mt-5 leading-7 opacity-70" style={{ lineHeight: "var(--line-height)" }}>{content.about.description}</p>
             <div className="mt-8 space-y-4">
               {content.about.reasons.map((item) => (
                 <div key={item} className="flex items-start gap-3">
-                  <span className="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#D4AF37] text-xs font-bold text-black">✓</span>
-                  <p className="text-slate-700">{item}</p>
+                  <span className="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-black" style={{ background: "var(--gold)" }}>✓</span>
+                  <p>{item}</p>
                 </div>
               ))}
             </div>
           </div>
-          <div className="rounded-3xl bg-[#0F172A] p-8 text-white shadow-xl">
-            <h3 className="text-2xl font-bold">{content.about.asideTitle}</h3>
-            <ul className="mt-6 space-y-4 text-slate-200">
+          <div className="p-8 text-white shadow-xl" style={{ background: "var(--primary)", borderRadius: "24px" }}>
+            <h3 className="font-bold" style={{ fontSize: "var(--h2-size)" }}>{content.about.asideTitle}</h3>
+            <ul className="mt-6 space-y-4 opacity-80">
               {content.about.asideItems.map((item) => <li key={item}>• {item}</li>)}
             </ul>
-            <Link href="/about" className="mt-8 inline-block bg-[#D4AF37] text-black px-6 py-3 rounded-md font-bold">Learn more</Link>
+            <Link href="/about" className="mt-8 inline-block px-6 py-3 font-bold" style={{ background: "var(--gold)", color: "#000", borderRadius: "var(--button-radius)" }}>Learn more</Link>
           </div>
         </div>
       </section>
-      {content.testimonials.items.some((item) => item.approved) && <section className="max-w-7xl mx-auto px-6 py-16">
-        <div className="text-center max-w-2xl mx-auto">
-          <p className="text-[#D4AF37] uppercase tracking-[0.2em] text-xs font-semibold">Testimonials</p>
-          <h2 className="text-3xl font-bold mt-3">{content.testimonials.heading}</h2>
-        </div>
-        <div className="mt-10 grid md:grid-cols-2 gap-6">
-          {content.testimonials.items.filter((item) => item.approved).map((item) => (
-            <div key={item.id} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              {item.photoUrl && <Image src={mediaUrl(item.photoUrl)} alt="" width={56} height={56} unoptimized className="mb-4 h-14 w-14 rounded-full object-cover" />}
-              <div className="text-amber-600">{"★".repeat(item.rating)}{"☆".repeat(5 - item.rating)}</div>
-              <p className="mt-3 leading-7 text-slate-700">“{item.quote}”</p>
-              <div className="mt-6 font-semibold text-[#0F172A]">{item.clientName}{item.company ? `, ${item.company}` : ""}</div>
-            </div>
-          ))}
-        </div>
-      </section>}
-      <section className="bg-[#0F172A] text-white py-16">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold">{content.cta.heading}</h2>
-          <p className="mt-4 text-slate-300">{content.cta.description}</p>
+
+      {content.testimonials.items.some((item) => item.approved) && (
+        <section className="mx-auto px-6 py-16" style={{ maxWidth: "var(--container-max)" }}>
+          <div className="text-center max-w-2xl mx-auto">
+            <p className="uppercase tracking-[0.2em] text-xs font-semibold" style={{ color: "var(--gold)" }}>Testimonials</p>
+            <h2 className="font-bold mt-3" style={{ fontSize: "var(--h1-size)" }}>{content.testimonials.heading}</h2>
+          </div>
+          <div className="mt-10 grid md:grid-cols-2 gap-6">
+            {content.testimonials.items.filter((item) => item.approved).map((item) => (
+              <div key={item.id} className="p-6 shadow-sm" style={{ background: "var(--card-bg)", borderColor: "var(--border-color)", borderWidth: "var(--border-width)", borderRadius: "var(--radius)" }}>
+                {item.photoUrl && <Image src={mediaUrl(item.photoUrl)} alt="" width={56} height={56} unoptimized className="mb-4 h-14 w-14 rounded-full object-cover" />}
+                <div style={{ color: "var(--gold)" }}>{"★".repeat(item.rating)}{"☆".repeat(5 - item.rating)}</div>
+                <p className="mt-3 leading-7">“{item.quote}”</p>
+                <div className="mt-6 font-semibold" style={{ color: "var(--foreground)" }}>{item.clientName}{item.company ? `, ${item.company}` : ""}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="text-white py-16" style={{ background: "var(--primary)" }}>
+        <div className="mx-auto px-6 text-center" style={{ maxWidth: "var(--container-max)" }}>
+          <h2 className="font-bold" style={{ fontSize: "var(--h1-size)" }}>{content.cta.heading}</h2>
+          <p className="mt-4 opacity-70">{content.cta.description}</p>
           <div className="mt-8 flex justify-center flex-wrap gap-4">
-            <Link href={content.cta.primaryHref} className="bg-[#D4AF37] text-black px-8 py-3 rounded-md font-bold">{content.cta.primaryText}</Link>
-            <Link href={content.cta.secondaryHref} className="border border-white px-8 py-3 rounded-md">{content.cta.secondaryText}</Link>
+            <Link href={content.cta.primaryHref} className="px-8 py-3 font-bold" style={{ background: "var(--gold)", color: "#000", borderRadius: "var(--button-radius)", minHeight: "var(--button-height)" }}>{content.cta.primaryText}</Link>
+            <Link href={content.cta.secondaryHref} className="border border-white px-8 py-3" style={{ borderRadius: "var(--button-radius)", minHeight: "var(--button-height)" }}>{content.cta.secondaryText}</Link>
           </div>
         </div>
       </section>

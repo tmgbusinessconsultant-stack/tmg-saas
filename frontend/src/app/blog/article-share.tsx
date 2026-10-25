@@ -26,29 +26,34 @@ export default function ArticleShare({ title }: { title: string }) {
 
     try {
       await navigator.clipboard.writeText(url);
-      setMessage("Article link copied.");
+      setMessage("Link copied.");
     } catch {
-      setMessage("Copy this page URL from your browser to share the article.");
+      setMessage("Copy URL from your browser to share.");
     }
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-wrap items-center gap-2.5">
       <button
         type="button"
         onClick={shareArticle}
-        className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-[#0F172A] hover:bg-slate-100"
+        className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-900 hover:border-zinc-900 hover:bg-zinc-900 hover:text-white transition-colors"
       >
-        Share article
+        <span className="h-1.5 w-1.5 rounded-full bg-[#D4AF37]" />
+        Share
       </button>
       <button
         type="button"
         onClick={shareOnLinkedIn}
-        className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-[#0F172A] hover:bg-slate-100"
+        className="inline-flex items-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-900 hover:border-zinc-900 transition-colors"
       >
         LinkedIn
       </button>
-      {message && <span role="status" className="text-sm text-slate-600">{message}</span>}
+      {message && (
+        <span role="status" className="rounded-full border border-zinc-100 bg-zinc-50 px-3 py-1.5 text-xs text-zinc-600">
+          {message}
+        </span>
+      )}
     </div>
   );
 }

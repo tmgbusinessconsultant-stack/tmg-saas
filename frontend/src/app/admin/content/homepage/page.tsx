@@ -176,7 +176,7 @@ export default function HomepageContentPage() {
             <select value={form.heroImage} onChange={(event) => setForm({ ...form, heroImage: event.target.value })} className="mt-2 block w-full rounded-md border border-slate-300 p-2">
               <option value="">Use the default logo</option>
               {form.heroImage && !media.some((item) => item.url === form.heroImage && item.originalName.toLowerCase().includes(mediaSearch.trim().toLowerCase())) && <option value={form.heroImage}>Current image (not in the filtered list)</option>}
-              {media.filter((item) => item.status === "AVAILABLE" && item.locations.includes("homepage") && item.originalName.toLowerCase().includes(mediaSearch.trim().toLowerCase())).map((item) => <option key={item.id} value={item.url}>{item.originalName}</option>)}
+              {media.filter((item) => item.status === "AVAILABLE" && (item.locations ?? []).includes("homepage") && item.originalName.toLowerCase().includes(mediaSearch.trim().toLowerCase())).map((item) => <option key={item.id} value={item.url}>{item.originalName}</option>)}
             </select>
             <span className="mt-1 block text-xs font-normal text-slate-500">Only scanned images published to Homepage are available. “Publish to Homepage” adds images to the From our work section; the hero image is selected here.</span>
             {form.heroImage && <div className="mt-3 max-w-md"><AdminMediaPreview url={form.heroImage} token={token} contentType="image/*" alt="Selected homepage hero" className="max-h-48 w-full rounded-lg object-contain" /></div>}

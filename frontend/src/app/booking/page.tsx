@@ -1,27 +1,62 @@
+import type { Metadata } from "next";
+import { Suspense } from "react";
 import QuoteRequestForm from "../quote-request-form";
 
-export default function BookingPage({ source = "booking" }: { source?: "booking" | "quote" }) {
+export const metadata: Metadata = {
+  title: "Get Quote | TMG Business Consulting",
+  description: "Tell us your business needs — strategy, AI setup, SOPs, or growth support. Get a tailored proposal within 24 hours.",
+  alternates: { canonical: "https://tmgbusinessconsulting.com/booking" },
+  openGraph: {
+    title: "Get Quote | TMG Business Consulting",
+    description: "Share your goals and get a tailored proposal from TMG.",
+    url: "https://tmgbusinessconsulting.com/booking",
+    type: "website",
+  },
+};
+
+export default function BookingPage() {
   return (
-    <div className="max-w-5xl mx-auto px-6 py-16">
-      <div className="grid md:grid-cols-2 gap-8">
-        <div>
-          <p className="text-[#D4AF37] uppercase tracking-[0.2em] text-xs font-semibold">Get a quote</p>
-          <h1 className="mt-3 text-4xl font-bold">Tell us what you need</h1>
-          <p className="mt-4 text-slate-600 leading-7">
-            Share your goals, service needs, and preferred timeline. We’ll respond with a tailored proposal and next steps.
-          </p>
-          <div className="mt-8 rounded-2xl bg-slate-100 p-6">
-            <h2 className="font-bold text-xl">What you can request</h2>
-            <ul className="mt-4 space-y-2 text-slate-700">
-              <li>• Business consulting</li>
-              <li>• AI tool setup</li>
-              <li>• Process and SOP creation</li>
-              <li>• Website or digital growth support</li>
-            </ul>
+    <div className="min-h-screen bg-[#FCFCF9]">
+      <div className="mx-auto max-w-7xl px-6 py-14 md:py-20">
+        <div className="grid md:grid-cols-2 gap-10 lg:gap-16 items-start">
+          {/* Left */}
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#D4AF37]">Get a quote</p>
+            <h1 className="mt-4 text-4xl md:text-5xl font-bold tracking-tight text-zinc-900 leading-[1.1]">Tell us what you need</h1>
+            <p className="mt-5 text-[15px] leading-7 text-zinc-500 max-w-xl">
+              Share your goals, service needs, and timeline. We’ll respond with a tailored proposal and next steps within 24 hours.
+            </p>
+
+            <div className="mt-8 rounded-[24px] border border-zinc-200 bg-white p-6 md:p-7 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
+              <h2 className="text-sm font-semibold text-zinc-900">What you can request</h2>
+              <ul className="mt-4 space-y-3">
+                {[
+                  "Business consulting & strategy",
+                  "AI tool setup & automation",
+                  "Process and SOP creation",
+                  "Website & digital growth support",
+                  "Training & workshops",
+                ].map((item) => (
+                  <li key={item} className="flex gap-3 text-[14px] text-zinc-600">
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#D4AF37]" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-zinc-100 bg-zinc-50 px-3.5 py-2 text-xs text-zinc-600">
+                <span className="h-2 w-2 rounded-full bg-[#D4AF37] animate-pulse" />
+                Average response: 2 hours
+              </div>
+            </div>
+          </div>
+
+          {/* Right */}
+          <div className="rounded-[24px] border border-zinc-200 bg-white p-6 md:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
+            <Suspense fallback={<div className="h-64 animate-pulse rounded-[16px] bg-zinc-100" />}>
+              <QuoteRequestForm source="booking" />
+            </Suspense>
           </div>
         </div>
-
-        <QuoteRequestForm source={source} />
       </div>
     </div>
   );

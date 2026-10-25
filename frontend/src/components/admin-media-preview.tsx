@@ -12,49 +12,69 @@ type Props = {
 };
 
 export default function AdminMediaPreview({ url, token, contentType, alt, className }: Props) {
-  const [result, setResult] = useState<{ source: string; url?: string; error: boolean } | null>(null);
+  const [objectUrl, setObjectUrl] = useState<string | null>(null);
+  const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const isExternal = /^https?:\/\//i.test(url);
 
   useEffect(() => {
-    if (/^https?:\/\//i.test(url) || !token) return;
+    if (isExternal || !token || !url) return;
 
-    let objectUrl: string | undefined;
+    setLoading(true);
+    setError(false);
+    let blobUrl: string | undefined;
     const controller = new AbortController();
-    void fetch(contentApiUrl(url), {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: "no-store",
-      signal: controller.signal,
-    }).then(async (response) => {
-      if (!response.ok) {
-        console.warn(`Preview failed ${response.status} for ${url}`);
-        setResult({ source: url, url: url, error: false });
-        return;
-      } objectUrl = URL.createObjectURL(await response.blob());
-      setResult({ source: url, url: objectUrl, error: false });
-    }).catch((cause: unknown) => {
-      if (!controller.signal.aborted) {
-        setResult({ source: url, error: true });
-        console.error(cause);
+
+    (async () => {
+      try {
+        const res = await fetch(contentApiUrl(url), {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        if (!res.ok) throw new Error(`Preview ${res.status}`);
+        const blob = await res.blob();
+        blobUrl = URL.createObjectURL(blob);
+        setObjectUrl(blobUrl);
+      } catch (e) {
+        if (!controller.signal.aborted) setError(true);
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
       }
-    });
+    })();
 
     return () => {
       controller.abort();
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
     };
-  }, [token, url]);
+  }, [token, url, isExternal]);
 
-  const isExternalUrl = /^https?:\/\//i.test(url);
-  const previewUrl = isExternalUrl ? url : result?.source === url ? result.url : null;
-  if (!isExternalUrl && result?.source === url && result.error) {
-    return <span role="status">Preview unavailable</span>;
+  if (isExternal) {
+    if (contentType.startsWith("image/")) {
+      // eslint-disable-next-line @next/next/no-img-element
+      return <img src={url} alt={alt} className={className} />;
+    }
+    if (contentType.startsWith("video/")) {
+      return <video controls src={url} className={className} />;
+    }
+    return <a href={url} target="_blank" rel="noreferrer" className="inline-flex rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold hover:border-zinc-900">Preview document</a>;
   }
-  if (!previewUrl) return <span role="status">Loading preview…</span>;
+
+  if (error) {
+    return <span className="inline-flex rounded-[12px] border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">Preview unavailable</span>;
+  }
+
+  if (loading || !objectUrl) {
+    return <span className="inline-flex h-10 w-full animate-pulse rounded-[12px] bg-zinc-100" role="status" aria-label="Loading preview" />;
+  }
+
   if (contentType.startsWith("image/")) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={previewUrl} alt={alt} className={className} />;
+    return <img src={objectUrl} alt={alt} className={className} />;
   }
   if (contentType.startsWith("video/")) {
-    return <video controls src={previewUrl} className={className} />;
+    return <video controls src={objectUrl} className={className} />;
   }
-  return <a href={previewUrl} target="_blank" rel="noreferrer" className="font-semibold underline">Preview document</a>;
+  return <a href={objectUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold hover:border-zinc-900">Preview document</a>;
 }

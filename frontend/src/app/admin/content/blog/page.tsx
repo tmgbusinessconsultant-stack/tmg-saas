@@ -286,7 +286,7 @@ export default function BlogManagementPage() {
               <input value={form.featuredImage} onChange={(event) => setForm({ ...form, featuredImage: event.target.value })} placeholder="Paste a published Media Library URL" className="mt-1 block w-full rounded-md border border-slate-300 p-2" />
               <select value="" onChange={(event) => setForm({ ...form, featuredImage: event.target.value })} className="mt-2 block w-full rounded-md border border-slate-300 p-2">
                 <option value="">Choose a scanned blog image…</option>
-                {media.filter((item) => item.status === "AVAILABLE" && item.locations.includes("blog")).map((item) => <option key={item.id} value={`${process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "")}${item.url}`}>{item.originalName}</option>)}
+                {media.filter((item) => item.status === "AVAILABLE" && (item.locations ?? []).includes("blog")).map((item) => <option key={item.id} value={`${process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "")}${item.url}`}>{item.originalName}</option>)}
               </select>
             </label>
             <label className="text-sm font-medium">Gallery image URLs

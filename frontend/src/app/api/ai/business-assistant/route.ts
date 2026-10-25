@@ -1,7 +1,10 @@
+import { requireAuthAndPlan } from "@/lib/auth-guard";
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
   try {
+    const guard = await requireAuthAndPlan(req, "business-assistant");
+    if (!guard.ok) return guard.response;
     const body = await req.json();
     const { message, country = 'Qatar', currency = 'QAR', symbol = 'QAR ', law = 'Qatar Labour Law', tax = 'No Income Tax', compliance = 'QFC', context } = body;
 
@@ -14,6 +17,8 @@ export async function POST(req: NextRequest) {
     let aiResponse = '';
 
     try {
+    const guard = await requireAuthAndPlan(req, "business-assistant");
+    if (!guard.ok) return guard.response;
       // Try to call Nest backend AI service
       const backendRes = await fetch(`${backendUrl}/ai/business-assistant`, {
         method: 'POST',
@@ -91,3 +96,5 @@ Need specific document? Use:
 export async function GET() {
   return NextResponse.json({ status: 'Business Assistant Pro International — 10 Countries', currencies: ['QAR','AUD A$','AED','SAR','GBP £','USD $','CAD C$','INR ₹','SGD S$','EUR €'], laws: ['Qatar Labour Law','Fair Work Act 2009','UAE Labour Law','Saudi Labour Law','UK Employment Rights Act','FLSA'] });
 }
+
+
