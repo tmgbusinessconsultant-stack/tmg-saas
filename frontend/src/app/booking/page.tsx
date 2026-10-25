@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import QuoteRequestForm from "../quote-request-form";
+import QuoteRequestForm from "@/components/quote-request-form";
 
 export const metadata: Metadata = {
   title: "Get Quote | TMG Business Consulting",
