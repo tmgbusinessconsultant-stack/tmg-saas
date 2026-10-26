@@ -1,3 +1,4 @@
+import { PaypalModule } from './paypal/paypal.module';
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { PrismaModule } from './prisma/prisma.module';
@@ -26,8 +27,7 @@ import { RiskAssessmentsModule } from './risk-assessments/risk-assessments.modul
 import { ProductivityPlansModule } from './productivity-plans/productivity-plans.module';
 
 @Module({
-  imports: [
-    PrismaModule,
+  imports: [PaypalModule, PrismaModule,
     AuthModule,
     GymsModule,
     PlansModule,
@@ -56,3 +56,5 @@ import { ProductivityPlansModule } from './productivity-plans/productivity-plans
   ],
 })
 export class AppModule { }
+
+

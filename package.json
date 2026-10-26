@@ -21,12 +21,15 @@
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.3.0",
+    "@paypal/react-paypal-js": "^10.6.1",
     "@prisma/client": "^5.11.0",
     "@vercel/analytics": "^2.0.1",
     "bcryptjs": "^3.0.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
-    "dotenv": "^18.0.8",
+    "dotenv": "^18.0.9",
+    "express": "^5.3.0",
+    "node-fetch": "^3.3.2",
     "officeparser": "^8.1.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
@@ -48,5 +51,19 @@
   },
   "overrides": {
     "pdfjs-dist": "4.10.38"
-  }
+  },
+  "description": "",
+  "main": "check-admin-tables.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tmgbusinessconsultant-stack/tmg-saas.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/tmgbusinessconsultant-stack/tmg-saas/issues"
+  },
+  "homepage": "https://github.com/tmgbusinessconsultant-stack/tmg-saas#readme"
 }
