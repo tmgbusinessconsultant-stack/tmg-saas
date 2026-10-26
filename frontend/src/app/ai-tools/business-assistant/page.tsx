@@ -97,7 +97,7 @@ export default function BusinessAssistantPage() {
           <div className="flex-1 overflow-y-auto p-5 md:p-6 space-y-4">
             {messages.map((m, i) => (
               <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] rounded-[18px] px-4 py-3 text-[14px] leading-6 whitespace-pre-wrap ${m.role === 'user' ? 'bg-zinc-900 text-white rounded-br-[6px]' : 'bg-zinc-50 border border-zinc-100 text-zinc-800 rounded-bl-[6px]'}`}>
+                <div className={`max-w-[85%] rounded-[18px] px-4 py-3 text-[14px] leading-6 whitespace-pre-wrap break-words [overflow-wrap:anywhere] leading-relaxed ${m.role === 'user' ? 'bg-zinc-900 text-white rounded-br-[6px]' : 'bg-zinc-50 border border-zinc-100 text-zinc-800 rounded-bl-[6px]'}`}>
                   <div className="text-[10px] font-bold uppercase tracking-[0.15em] opacity-50 mb-1">{m.role === 'user' ? 'You' : `TMG • ${m.country || selectedCountry.country}`}</div>
                   {m.content}
                 </div>
@@ -131,3 +131,4 @@ export default function BusinessAssistantPage() {
     </div>
   );
 }
+
