@@ -15,8 +15,8 @@ export class QuoteRequestsService {
         phone: dto.phone?.trim() || null,
         company: dto.company?.trim() || null,
         service: dto.serviceType,
-        details: dto.message?.trim() || '',
-        source: dto.source ?? 'website',
+        details: dto.details?.trim() || '',
+        source: (dto as any).source ?? 'website',
       },
       select: {
         id: true,
@@ -47,3 +47,4 @@ export class QuoteRequestsService {
     return this.prisma.quoteRequest.findUniqueOrThrow({ where: { id } });
   }
 }
+

@@ -40,7 +40,7 @@ export class RiskAssessmentsService {
 
     const aiResult = await this.ai.ask({ message: prompt, context: "risk-assessment" } as any, userId, "127.0.0.1");
     
-    const saved = await this.prisma.riskAssessment.create({
+    const saved = await this.prisma.risk_assessments.create({
       data: {
         userId,
         businessType: dto.businessType,
@@ -61,6 +61,7 @@ export class RiskAssessmentsService {
     return saved;
   }
 
-  list(user: any) { return this.prisma.riskAssessment.findMany({ where: { userId: user.id||user.sub }, orderBy: { createdAt: "desc" } }); }
-  get(user: any, id: string) { return this.prisma.riskAssessment.findFirst({ where: { id, userId: user.id||user.sub } }); }
+  list(user: any) { return this.prisma.risk_assessments.findMany({ where: { userId: user.id||user.sub }, orderBy: { createdAt: "desc" } }); }
+  get(user: any, id: string) { return this.prisma.risk_assessments.findFirst({ where: { id, userId: user.id||user.sub } }); }
 }
+

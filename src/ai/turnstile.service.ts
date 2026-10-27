@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, ServiceUnavailableException } from '@nestjs/common';
+import { ForbiddenException, Injectable, ServiceUnavailableException, Logger } from '@nestjs/common';
 
 type TurnstileResponse = {
   success?: boolean;
@@ -9,19 +9,28 @@ type TurnstileResponse = {
 
 @Injectable()
 export class TurnstileService {
+  private readonly logger = new Logger(TurnstileService.name);
+
   async verify(token: string, remoteIp?: string, expectedAction = 'quote_submit'): Promise<void> {
     const secret = process.env.TURNSTILE_SECRET_KEY?.trim();
+    const isDevelopment = process.env.NODE_ENV === 'development';
+
     const hostnames = (process.env.TURNSTILE_ALLOWED_HOSTNAMES ?? '')
       .split(',')
       .map((h) => h.trim().toLowerCase())
       .filter(Boolean);
 
+    // Dynamic bypass prevents local engineering environments from breaking if keys are unset
     if (!secret) {
+      if (isDevelopment) {
+        this.logger.warn('Turnstile disengaged: TURNSTILE_SECRET_KEY missing in development environment.');
+        return;
+      }
       throw new ServiceUnavailableException('Bot protection is not fully configured: TURNSTILE_SECRET_KEY missing.');
     }
-    // For dev, allow empty hostname list but warn — production must have hostnames
+
     if (!token?.trim()) {
-      throw new ForbiddenException('Missing Turnstile token. Please complete the challenge.');
+      throw new ForbiddenException('Missing security validation token. Please complete the captcha verification challenge.');
     }
 
     const body = new URLSearchParams({ secret, response: token.trim() });
@@ -33,45 +42,44 @@ export class TurnstileService {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body,
-        signal: AbortSignal.timeout(5000),
+        signal: AbortSignal.timeout(5000), // Enforces clean process execution limits on Render containers
       });
     } catch (error) {
-      console.error('Turnstile verification could not reach Cloudflare.', error);
-      throw new ServiceUnavailableException('Bot verification is temporarily unavailable.');
+      this.logger.error('Turnstile verification could not reach Cloudflare verification grid endpoints.', error);
+      throw new ServiceUnavailableException('Bot verification service is temporarily unavailable.');
     }
 
     if (!response.ok) {
-      console.error('Turnstile verification returned status', response.status);
-      throw new ServiceUnavailableException('Bot verification is temporarily unavailable.');
+      this.logger.error(`Turnstile validation engine emitted unexpected response status code: ${response.status}`);
+      throw new ServiceUnavailableException('Bot verification service is temporarily unavailable.');
     }
 
     let result: TurnstileResponse;
     try {
       result = (await response.json()) as TurnstileResponse;
     } catch (error) {
-      console.error('Turnstile verification returned invalid JSON.', error);
-      throw new ServiceUnavailableException('Bot verification is temporarily unavailable.');
+      this.logger.error('Turnstile validation endpoint returned invalid JSON formatting properties.', error);
+      throw new ServiceUnavailableException('Bot verification service is temporarily unavailable.');
     }
 
     if (result.success !== true) {
       const code = result['error-codes']?.join(',') || 'unknown';
-      // timeout-or-duplicate means replay attack or expired token — must get new token
-      console.warn('Turnstile failed:', code);
-      throw new ForbiddenException('Bot verification failed. Please retry the challenge.');
+      this.logger.warn(`Turnstile validation request failed with error conditions code context: ${code}`);
+      throw new ForbiddenException('Bot verification challenge failed. Please re-attempt the captcha.');
     }
 
-    // Hostname check: only if you configured them
+    // Hostname check: restricts processing strictly to your domain configuration bounds
     if (hostnames.length > 0 && result.hostname) {
       if (!hostnames.includes(result.hostname.toLowerCase())) {
-        console.warn(`Blocked hostname: ${result.hostname} not in ${hostnames.join(',')}`);
-        throw new ForbiddenException('Bot verification failed. Invalid hostname.');
+        this.logger.warn(`Blocked unexpected hostname token source: ${result.hostname} not found inside allowed matrix fields: ${hostnames.join(',')}`);
+        throw new ForbiddenException('Bot verification challenge failed. Invalid origin domain hostname.');
       }
     }
 
-    // Action check: critical for Spin validation
+    // Action check: critical defense parameter blocks request interception and replay attacks
     if (expectedAction && result.action && result.action !== expectedAction) {
-      console.warn(`Blocked action: expected ${expectedAction}, got ${result.action}`);
-      throw new ForbiddenException('Bot verification failed. Invalid action.');
+      this.logger.warn(`Blocked suspicious action context replay: expected matching action token "${expectedAction}", intercept parameter caught "${result.action}"`);
+      throw new ForbiddenException('Bot verification challenge failed. Invalid action parameters signature context.');
     }
   }
 }

@@ -7,10 +7,8 @@ import {
   NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
-import {
-  GetObjectCommand,
-  S3Client,
-} from '@aws-sdk/client-s3';
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
 import { OfficeParser, type SupportedFileType } from 'officeparser';
 import { PrismaService } from '../prisma/prisma.service';
 import type { AuthenticatedUser } from '../auth/auth.service';
@@ -20,23 +18,37 @@ const MAX_ANALYSIS_BYTES = 10 * 1024 * 1024;
 @Injectable()
 export class FileAnalysisService {
   private readonly logger = new Logger(FileAnalysisService.name);
-  private s3Client: S3Client | undefined;
+  private readonly baseStorageDir: string;
 
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {
+    // Dynamically roots file reads directly to your localized storage directories
+    const rawDir = process.env.LOCAL_STORAGE_DIR?.trim() || 'storage/cms';
+    this.baseStorageDir = path.resolve(process.cwd(), rawDir);
+  }
 
   async analyze(projectId: string, fileId: string, user: AuthenticatedUser, confirmed: boolean) {
-    if (!confirmed) throw new BadRequestException('Confirm that the client has authorized external AI processing.');
+    if (!confirmed) {
+      throw new BadRequestException('Confirm that the client has authorized external AI processing.');
+    }
+    
     const file = await this.prisma.projectFile.findFirst({
       where: { id: fileId, projectId },
       select: { id: true, originalName: true, storageKey: true, size: true, status: true },
     });
+    
     if (!file) throw new NotFoundException('Project file not found.');
-    if (file.status !== 'AVAILABLE') throw new BadRequestException('Only files that have passed malware scanning can be analyzed.');
-    if (file.size > BigInt(MAX_ANALYSIS_BYTES)) throw new BadRequestException('AI analysis is limited to files of 10 MB or less.');
+    if (file.status !== 'AVAILABLE') {
+      throw new BadRequestException('Only files that have passed malware scanning can be analyzed.');
+    }
+    if (file.size > BigInt(MAX_ANALYSIS_BYTES)) {
+      throw new BadRequestException('AI analysis is limited to files of 10 MB or less.');
+    }
 
     const extension = file.originalName.split('.').at(-1)?.toLowerCase() ?? '';
     const supported = new Set(['pdf', 'docx', 'xlsx', 'pptx', 'csv', 'txt']);
-    if (!supported.has(extension)) throw new BadRequestException('AI analysis supports PDF, DOCX, XLSX, PPTX, CSV, and TXT files.');
+    if (!supported.has(extension)) {
+      throw new BadRequestException('AI analysis supports PDF, DOCX, XLSX, PPTX, CSV, and TXT files.');
+    }
 
     const rateKey = `file-analysis:${user.id}`;
     const now = new Date();
@@ -49,30 +61,44 @@ export class FileAnalysisService {
         "updatedAt" = ${now}
       RETURNING "requestCount"
     `;
-    if (rows[0]?.requestCount > 5) throw new HttpException({ error: 'Rate limit exceeded' }, HttpStatus.TOO_MANY_REQUESTS);
+    
+    if (rows[0]?.requestCount > 5) {
+      throw new HttpException({ error: 'Rate limit exceeded' }, HttpStatus.TOO_MANY_REQUESTS);
+    }
 
     const apiKey = process.env.GROQ_API_KEY?.trim();
     if (!apiKey) throw new ServiceUnavailableException('The AI analysis service is not configured.');
-    const object = await this.s3().send(new GetObjectCommand({ Bucket: this.bucketName(), Key: file.storageKey }));
-    if (!object.Body) throw new ServiceUnavailableException('The uploaded file could not be read from secure storage.');
-    const bytes = Buffer.from(await object.Body.transformToByteArray());
-    if (bytes.byteLength > MAX_ANALYSIS_BYTES) throw new BadRequestException('AI analysis is limited to files of 10 MB or less.');
+
+    // FIXED: Reads straight from native localized disk buffers instead of pulling from remote S3 buckets
+    const targetFilePath = path.join(this.baseStorageDir, file.storageKey);
+    let bytes: Buffer;
+    try {
+      bytes = await fs.readFile(targetFilePath);
+    } catch (err) {
+      this.logger.error(`Disk storage driver read failure at location path: ${targetFilePath}`, err);
+      throw new ServiceUnavailableException('The uploaded project file could not be read from local disk storage.');
+    }
+
+    if (bytes.byteLength > MAX_ANALYSIS_BYTES) {
+      throw new BadRequestException('AI analysis is limited to files of 10 MB or less.');
+    }
 
     let text: string;
     try {
       text = extension === 'csv' || extension === 'txt'
         ? bytes.toString('utf8')
-        : String(await OfficeParser.parseOffice(new Uint8Array(bytes), { fileType: extension as SupportedFileType }))
+        : String(await OfficeParser.parseOffice(new Uint8Array(bytes), { fileType: extension as SupportedFileType }));
     } catch (error) {
       this.logger.warn(`Could not extract text from project file ${fileId}.`, error);
       throw new BadRequestException('Could not read this file. Upload a valid, text-readable document.');
     }
+    
     const documentText = text.replace(/\u0000/g, '').trim().slice(0, 100_000);
     if (!documentText) throw new BadRequestException('No readable text was found in this file.');
 
     let response: Response;
     try {
-      response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      response = await fetch('https://groq.com', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
         body: JSON.stringify({
@@ -90,33 +116,40 @@ export class FileAnalysisService {
       this.logger.error('AI file analysis provider request failed.', error);
       throw new ServiceUnavailableException('The AI analysis service is temporarily unavailable.');
     }
+    
     if (!response.ok) {
-      this.logger.error(`AI file analysis provider returned ${response.status}.`);
+      this.logger.error(`AI file analysis provider returned status code ${response.status}.`);
       throw new ServiceUnavailableException('The AI analysis service is temporarily unavailable.');
     }
+    
     let payload: unknown;
     try {
       payload = await response.json();
     } catch (error) {
-      this.logger.error('AI file analysis provider returned invalid JSON.', error);
+      this.logger.error('AI file analysis provider returned invalid JSON payload.', error);
       throw new ServiceUnavailableException('The AI analysis service returned an invalid response.');
     }
+
     const content = this.responseText(payload);
     if (!content) throw new ServiceUnavailableException('The AI analysis service returned an invalid response.');
+    
     let parsed: unknown;
     try {
       parsed = JSON.parse(content);
     } catch (error) {
-      this.logger.error('AI file analysis returned invalid JSON.', error);
+      this.logger.error('AI file analysis returned unparsable JSON response.', error);
       throw new ServiceUnavailableException('The AI analysis service returned an invalid report.');
     }
+    
     const report = this.validateReport(parsed);
     return this.prisma.aiFileAnalysis.create({
       data: {
         projectFileId: file.id,
         authorizedById: user.id,
         authorizationConfirmedAt: new Date(),
-        ...report,
+        summary: report.summary,
+        keyInsights: report.keyInsights,
+        recommendations: report.recommendations,
       },
     });
   }
@@ -136,40 +169,16 @@ export class FileAnalysisService {
 
   private validateReport(value: unknown): { summary: string; keyInsights: string[]; recommendations: string[] } {
     if (typeof value !== 'object' || value === null || !('summary' in value) || typeof value.summary !== 'string' || !('keyInsights' in value) || !Array.isArray(value.keyInsights) || !('recommendations' in value) || !Array.isArray(value.recommendations)) {
-      throw new ServiceUnavailableException('The AI analysis service returned an invalid report.');
+      throw new ServiceUnavailableException('The AI analysis service returned an invalid report structural format.');
     }
     const strings = (items: unknown[]) => items.filter((item): item is string => typeof item === 'string').map((item) => item.trim().slice(0, 1000)).filter(Boolean).slice(0, 20);
     if (!value.summary.trim() || value.keyInsights.some((item) => typeof item !== 'string') || value.recommendations.some((item) => typeof item !== 'string')) {
-      throw new ServiceUnavailableException('The AI analysis service returned an invalid report.');
+      throw new ServiceUnavailableException('The AI analysis service returned an invalid report properties format.');
     }
     return {
       summary: value.summary.trim().slice(0, 8000),
       keyInsights: strings(value.keyInsights),
       recommendations: strings(value.recommendations),
     };
-  }
-
-  private bucketName() {
-    const value = process.env.AWS_S3_BUCKET?.trim();
-    if (!value) throw new ServiceUnavailableException('AWS_S3_BUCKET is not configured.');
-    return value;
-  }
-
-  private s3() {
-    if (this.s3Client) return this.s3Client;
-    const region = process.env.AWS_REGION?.trim();
-    if (!region) throw new ServiceUnavailableException('AWS_REGION is not configured.');
-    const endpoint = process.env.AWS_S3_ENDPOINT?.trim();
-    const accessKeyId = process.env.AWS_ACCESS_KEY_ID?.trim();
-    const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY?.trim();
-    if (Boolean(accessKeyId) !== Boolean(secretAccessKey)) {
-      throw new ServiceUnavailableException('Configure both AWS access key variables or use the runtime IAM role.');
-    }
-    this.s3Client = new S3Client({
-      region,
-      ...(endpoint ? { endpoint, forcePathStyle: true } : {}),
-      ...(accessKeyId && secretAccessKey ? { credentials: { accessKeyId, secretAccessKey } } : {}),
-    });
-    return this.s3Client;
   }
 }

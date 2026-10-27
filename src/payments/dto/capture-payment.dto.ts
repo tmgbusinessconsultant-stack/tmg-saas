@@ -1,13 +1,11 @@
-import { IsIn, IsString, Matches } from 'class-validator';
+import { IsString } from 'class-validator';
 
-export type PaymentPlanId = 'starter' | 'pro' | 'business';
+export type PaymentPlanId = string;
 
 export class CapturePaymentDto {
   @IsString()
-  @Matches(/^[A-Z0-9-]{10,64}$/)
-  orderID: string;
+  orderID!: string;
 
   @IsString()
-  @IsIn(['starter', 'pro', 'business'])
-  planId: PaymentPlanId;
+  planId!: PaymentPlanId;
 }

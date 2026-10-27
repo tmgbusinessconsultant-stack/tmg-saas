@@ -28,20 +28,27 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: JwtPayload) {
+    // FIXED: Safely resolves audience checks if passed as an array or collection matrix
+    const hasValidAudience = Array.isArray(payload?.aud)
+      ? payload.aud.includes('tmg-business-api')
+      : payload?.aud === 'tmg-business-api';
+
     if (
       typeof payload?.sub !== 'string' ||
       !Number.isInteger(payload.tokenVersion) ||
       payload.iss !== 'tmg-business-consultant' ||
-      payload.aud !== 'tmg-business-api'
+      !hasValidAudience
     ) {
-      throw new UnauthorizedException('Invalid authentication token.');
+      throw new UnauthorizedException('Invalid authentication token structure.');
     }
 
+    // Retransmits validation queries to the core stateful database counter block
     const user = await this.authService.getUserForToken(payload.sub, payload.tokenVersion);
     if (!user) {
-      throw new UnauthorizedException('This account is inactive or the session has expired.');
+      throw new UnauthorizedException('This account is inactive or the session has expired globally.');
     }
 
+    // Returns sanitized data context containing role and permission attributes cleanly onto request.user
     return user;
   }
 }

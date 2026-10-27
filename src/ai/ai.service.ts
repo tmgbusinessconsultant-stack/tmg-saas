@@ -27,10 +27,14 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
 
   onModuleInit() {
     this.retentionTimer = setInterval(() => {
-      void this.cleanupExpiredRecords().catch((error: unknown) => this.logger.error('AI/search retention cleanup failed.', error));
+      void this.cleanupExpiredRecords().catch((error: unknown) =>
+        this.logger.error('AI/search retention cleanup failed.', error),
+      );
     }, 6 * 60 * 60 * 1000);
     this.retentionTimer.unref();
-    void this.cleanupExpiredRecords().catch((error: unknown) => this.logger.error('AI/search retention cleanup failed.', error));
+    void this.cleanupExpiredRecords().catch((error: unknown) =>
+      this.logger.error('AI/search retention cleanup failed.', error),
+    );
   }
 
   onModuleDestroy() {
@@ -42,7 +46,10 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
     const sessionId = supplied ? this.verifySession(supplied) : null;
     const id = sessionId ?? randomUUID();
     const signature = this.signSession(id);
-    return { sessionId: id, cookie: `tmg_ai_session=${id}.${signature}; Path=/api/ai; HttpOnly; SameSite=Lax; Max-Age=2592000${process.env.NODE_ENV === 'production' ? '; Secure' : ''}` };
+    return {
+      sessionId: id,
+      cookie: `tmg_ai_session=${id}.${signature}; Path=/api/ai; HttpOnly; SameSite=Lax; Max-Age=2592000${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`,
+    };
   }
 
   async ask(input: AskAiDto, sessionId: string, ipAddress?: string) {
@@ -87,10 +94,12 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
       this.logger.error('AI provider request failed.', error);
       throw new ServiceUnavailableException('The AI service is temporarily unavailable.');
     }
+
     if (!response.ok) {
       this.logger.error(`AI provider returned ${response.status}.`);
       throw new ServiceUnavailableException('The AI service is temporarily unavailable.');
     }
+
     let payload: unknown;
     try {
       payload = await response.json();
@@ -98,6 +107,7 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
       this.logger.error('AI provider returned invalid JSON.', error);
       throw new ServiceUnavailableException('The AI service returned an invalid response.');
     }
+
     const answer = this.extractAnswer(payload);
     if (!answer) {
       this.logger.error('AI provider response did not contain an answer.');
@@ -107,9 +117,7 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
     await this.prisma.aiConversation.create({
       data: { sessionId: this.hash(sessionId), message: question, response: answer },
     });
-    await this.prisma.aiConversation.deleteMany({
-      where: { createdAt: { lt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000) } },
-    });
+
     return { message: answer };
   }
 
@@ -121,7 +129,7 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
         where: { createdAt: { gte: since } },
         orderBy: { createdAt: 'desc' },
         take: 100,
-        select: { id: true, userId: true, sessionId: true, message: true, response: true, createdAt: true },
+        select: { id: true, sessionId: true, message: true, response: true, createdAt: true },
       }),
       this.prisma.$queryRaw<Array<{ message: string; count: bigint }>>`
         SELECT "message", COUNT(*) AS "count"
@@ -193,7 +201,6 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
     await this.prisma.searchQuery.create({
       data: { query: normalized.toLowerCase(), resultCount, sessionHash: sessionId ? this.hash(sessionId) : null },
     });
-    await this.prisma.searchQuery.deleteMany({ where: { createdAt: { lt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000) } } });
     return { recorded: true };
   }
 
@@ -227,18 +234,13 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
       INSERT INTO "AiRateLimit" ("key", "windowStartedAt", "requestCount", "updatedAt")
       VALUES (${key}, ${now}, 1, ${now})
       ON CONFLICT ("key") DO UPDATE SET
-        "requestCount" = CASE
-          WHEN "AiRateLimit"."windowStartedAt" <= ${new Date(now.getTime() - 60_000)} THEN 1
-          ELSE "AiRateLimit"."requestCount" + 1
-        END,
-        "windowStartedAt" = CASE
-          WHEN "AiRateLimit"."windowStartedAt" <= ${new Date(now.getTime() - 60_000)} THEN ${now}
-          ELSE "AiRateLimit"."windowStartedAt"
-        END,
+        "requestCount" = CASE WHEN "AiRateLimit"."windowStartedAt" <= ${new Date(now.getTime() - 60_000)} THEN 1 ELSE "AiRateLimit"."requestCount" + 1 END,
+        "windowStartedAt" = CASE WHEN "AiRateLimit"."windowStartedAt" <= ${new Date(now.getTime() - 60_000)} THEN ${now} ELSE "AiRateLimit"."windowStartedAt" END,
         "updatedAt" = ${now}
       RETURNING "requestCount"
     `;
-    if (rows[0]?.requestCount > maximum) {
+    const count = rows[0]?.requestCount ?? 0;
+    if (count > maximum) {
       throw new HttpException({ error: 'Rate limit exceeded' }, HttpStatus.TOO_MANY_REQUESTS);
     }
   }
@@ -253,8 +255,8 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
   }
 
   private extractAnswer(payload: unknown): string | null {
-    if (typeof payload !== 'object' || payload === null || !('choices' in payload) || !Array.isArray(payload.choices)) return null;
-    const first = payload.choices[0];
+    if (typeof payload !== 'object' || payload === null || !('choices' in payload) || !Array.isArray((payload as any).choices)) return null;
+    const first = (payload as any).choices[0];
     if (typeof first !== 'object' || first === null || !('message' in first) || typeof first.message !== 'object' || first.message === null || !('content' in first.message) || typeof first.message.content !== 'string') return null;
     return first.message.content.slice(0, 12000);
   }
@@ -285,6 +287,10 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
   }
 
   private readCookie(header: string | undefined, name: string) {
-    return header?.split(';').map((part) => part.trim()).find((part) => part.startsWith(`${name}=`))?.slice(name.length + 1);
+    return header
+      ?.split(';')
+      .map((part) => part.trim())
+      .find((part) => part.startsWith(`${name}=`))
+      ?.slice(name.length + 1);
   }
 }

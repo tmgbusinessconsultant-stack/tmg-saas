@@ -1,0 +1,9 @@
+  private projectInclude() {
+    return {
+      User_Project_ownerIdToUser: { select: { id: true, name: true, email: true } },
+      User_Project_assigneeIdToUser: { select: { id: true, name: true, email: true } },
+      ProjectFile: { orderBy: { createdAt: 'desc' as const }, select: { id: true, name: true, originalName: true, contentType: true, size: true, storageKey: true, kind: true, status: true, createdAt: true } },
+      ProjectMessage: { orderBy: { createdAt: 'desc' as const }, select: { id: true, body: true, createdAt: true, User: { select: { id: true, name: true } } } },
+      ProjectActivity: { orderBy: { createdAt: 'desc' as const }, select: { id: true, action: true, detail: true, createdAt: true } },
+    };
+  }

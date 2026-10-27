@@ -7,5 +7,6 @@ import { AdminManagementService } from './admin-management.service';
   imports: [PrismaModule],
   controllers: [AdminManagementController],
   providers: [AdminManagementService],
+  exports: [AdminManagementService], // Exported to support cross-service audit trail logging securely
 })
-export class AdminManagementModule {}
+export class AdminManagementModule { }

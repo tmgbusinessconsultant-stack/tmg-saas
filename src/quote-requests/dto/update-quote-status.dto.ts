@@ -3,5 +3,5 @@ import { QuoteStatus } from '@prisma/client';
 
 export class UpdateQuoteStatusDto {
   @IsEnum(QuoteStatus)
-  status: QuoteStatus;
+  status!: QuoteStatus;
 }

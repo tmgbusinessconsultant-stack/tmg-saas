@@ -18,6 +18,7 @@ const DESIGN_DEFAULTS = {
   buttonRadius: "8px",
   cardRadius: "12px",
   inputHeight: "44px",
+  inputRadius: "12px",
   buttonHeight: "44px",
   fontSize: "14px",
   h1Size: "36px",
@@ -142,7 +143,7 @@ export default function AdminSettingsPage() {
   };
 
   useEffect(() => {
-    const accessToken = sessionStorage.getItem("accessToken") || localStorage.getItem("token") || "";
+    const accessToken = sessionStorage.getItem("accessToken") || localStorage.getItem("accessToken") || localStorage.getItem("token") || "";
     if (!accessToken) { setError("Sign in as admin"); setLoading(false); return; }
     setToken(accessToken);
     apiRequest<{ maximumMegabytes: number }>("/settings/project-upload-limit", accessToken).then(s => setMaximumMegabytes(String(s.maximumMegabytes))).catch(() => { }).finally(() => setLoading(false));
@@ -162,8 +163,8 @@ export default function AdminSettingsPage() {
     }).catch(() => { });
   }, []);
 
-  async function loadLive(accessToken?: string) { const t = accessToken || token || sessionStorage.getItem("accessToken") || localStorage.getItem("token") || ""; if (!t) return; setLiveLoading(true); try { const rows = await apiRequest<EffectiveRow[]>("/settings/public", t); setLiveRows(rows); } catch { } setLiveLoading(false); }
-  async function loadAudit(accessToken?: string) { const t = accessToken || token || sessionStorage.getItem("accessToken") || localStorage.getItem("token") || ""; if (!t) return; try { const rows = await apiRequest<AuditRow[]>("/settings/audit", t); setAudits(rows); } catch { try { const rows = await apiRequest<AuditRow[]>("/settings/audit-log", t); setAudits(rows); } catch { } } }
+  async function loadLive(accessToken?: string) { const t = accessToken || token || sessionStorage.getItem("accessToken") || localStorage.getItem("accessToken") || localStorage.getItem("token") || ""; if (!t) return; setLiveLoading(true); try { const rows = await apiRequest<EffectiveRow[]>("/settings/public", t); setLiveRows(rows); } catch { } setLiveLoading(false); }
+  async function loadAudit(accessToken?: string) { const t = accessToken || token || sessionStorage.getItem("accessToken") || localStorage.getItem("accessToken") || localStorage.getItem("token") || ""; if (!t) return; try { const rows = await apiRequest<AuditRow[]>("/settings/audit", t); setAudits(rows); } catch { try { const rows = await apiRequest<AuditRow[]>("/settings/audit-log", t); setAudits(rows); } catch { } } }
   async function saveLive(key: string, value: string) { setLiveSavingKey(key); setError(""); setNotice(""); try { await apiRequest(`/settings/${key}`, token, { method: "PUT", body: JSON.stringify({ value }) }); setNotice(`${key} saved LIVE ✓`); await loadLive(); await loadAudit(); } catch (e: any) { setError(e.message); } finally { setLiveSavingKey(null); } }
   async function resetLive(key: string) { if (!confirm(`Reset ${key} to ENV default?`)) return; try { await apiRequest(`/settings/${key}`, token, { method: "DELETE" }); setNotice(`${key} reset to ENV`); await loadLive(); await loadAudit(); } catch (e: any) { setError(e.message); } }
   async function saveSettings(e: FormEvent<HTMLFormElement>) { e.preventDefault(); setSaving(true); try { const result = await apiRequest<{ maximumMegabytes: number }>("/settings/project-upload-limit", token, { method: "PATCH", body: JSON.stringify({ maximumMegabytes: Number(maximumMegabytes) }) }); setMaximumMegabytes(String(result.maximumMegabytes)); setNotice("Upload limit saved."); } catch (err: any) { setError(err.message); } finally { setSaving(false); } }
@@ -353,3 +354,4 @@ export default function AdminSettingsPage() {
     </main>
   );
 }
+

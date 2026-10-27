@@ -1,0 +1,569 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                               String                @id @default(uuid())
+  email                            String                @unique
+  name                             String
+  passwordHash                     String
+  role                             UserRole              @default(CLIENT)
+  isActive                         Boolean               @default(true)
+  tokenVersion                     Int                   @default(0)
+  passwordChangedAt                DateTime              @default(now())
+  createdAt                        DateTime              @default(now())
+  updatedAt                        DateTime              @updatedAt
+  permissions                      String[]              @default([])
+  ActivityLog                      ActivityLog[]
+  AiConversation                   AiConversation[]
+  AiFileAnalysis                   AiFileAnalysis[]
+  AiKnowledgeDocument              AiKnowledgeDocument[]
+  AiUsage                          AiUsage[]
+  BusinessPlan                     BusinessPlan[]
+  ContentAuditLog                  ContentAuditLog[]
+  ContentMedia                     ContentMedia[]
+  cvDocuments                      CvDocument[]
+  CvPayment                        CvPayment[]
+  Payment                          Payment[]
+  Project_Project_assigneeIdToUser Project[]             @relation("Project_assigneeIdToUser")
+  Project_Project_ownerIdToUser    Project[]             @relation("Project_ownerIdToUser")
+  ProjectActivity                  ProjectActivity[]
+  ProjectFile                      ProjectFile[]
+  ProjectMessage                   ProjectMessage[]
+  QuoteRequest                     QuoteRequest[]
+  userPlan                         UserPlan[]
+  productivity_plans               productivity_plans[]
+  risk_assessments                 risk_assessments[]
+
+  @@index([createdAt])
+  @@index([role, isActive])
+  @@map("User")
+}
+
+model UserPlan {
+  id                   String    @id @default(uuid())
+  userId               String
+  planId               String
+  billingCycle         String
+  status               String    @default("ACTIVE")
+  allowedTools         String[]  @default([])
+  usageLimit           Int       @default(0)
+  usageCount           Int       @default(0)
+  startDate            DateTime  @default(now())
+  endDate              DateTime
+  trialEndsAt          DateTime?
+  autoRenew            Boolean   @default(true)
+  paypalSubscriptionId String?   @unique
+  paypalOrderId        String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([endDate])
+  @@index([userId, status])
+  @@map("UserPlan")
+}
+
+model CvDocument {
+  id           String      @id @default(uuid())
+  ownerId      String
+  title        String
+  content      String
+  storageKey   String      @unique
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  currency     String      @default("QAR")
+  downloadMode String      @default("BLOCKED")
+  price        Float       @default(0)
+  owner        User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  CvPayment    CvPayment[]
+
+  @@index([ownerId, createdAt])
+  @@map("CvDocument")
+}
+
+model ActivityLog {
+  id        String   @id
+  actorId   String
+  action    String
+  targetId  String?
+  detail    Json?
+  createdAt DateTime @default(now())
+  User      User     @relation(fields: [actorId], references: [id])
+
+  @@index([action, createdAt])
+  @@index([actorId, createdAt])
+}
+
+model AiConversation {
+  id        String   @id
+  userId    String?
+  sessionId String
+  message   String
+  response  String
+  createdAt DateTime @default(now())
+  User      User?    @relation(fields: [userId], references: [id])
+
+  @@index([createdAt])
+  @@index([sessionId, createdAt])
+  @@index([userId, createdAt])
+}
+
+model AiFileAnalysis {
+  id                       String      @id
+  projectFileId            String
+  authorizedById           String
+  authorizationConfirmedAt DateTime
+  summary                  String
+  keyInsights              String[]    @default([])
+  recommendations          String[]    @default([])
+  createdAt                DateTime    @default(now())
+  User                     User        @relation(fields: [authorizedById], references: [id])
+  ProjectFile              ProjectFile @relation(fields: [projectFileId], references: [id], onDelete: Cascade)
+
+  @@index([authorizedById, createdAt])
+  @@index([projectFileId, createdAt])
+}
+
+model AiKnowledgeDocument {
+  id           String   @id
+  fileName     String
+  contentType  String
+  storageKey   String   @unique
+  status       String   @default("SCANNING")
+  indexedText  String?
+  uploadedById String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime
+  User         User     @relation(fields: [uploadedById], references: [id])
+
+  @@index([status, createdAt])
+}
+
+model AiRateLimit {
+  key             String   @id
+  windowStartedAt DateTime
+  requestCount    Int      @default(1)
+  updatedAt       DateTime
+
+  @@index([updatedAt])
+}
+
+model AiUsage {
+  id        String   @id
+  userId    String?
+  tool      String
+  createdAt DateTime @default(now())
+  User      User?    @relation(fields: [userId], references: [id])
+
+  @@index([tool, createdAt])
+  @@index([userId, createdAt])
+}
+
+model BlogCategory {
+  id        String     @id
+  name      String     @unique
+  slug      String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime
+  BlogPost  BlogPost[]
+}
+
+model BlogPost {
+  id             String       @id
+  title          String
+  slug           String       @unique
+  excerpt        String
+  content        String
+  featuredImage  String?
+  galleryImages  String[]     @default([])
+  author         String
+  categoryId     String
+  tags           String[]     @default([])
+  status         String       @default("DRAFT")
+  publishDate    DateTime?
+  seoTitle       String?
+  seoDescription String?
+  seoKeywords    String[]     @default([])
+  openGraphImage String?
+  canonicalUrl   String?
+  schemaMarkup   Json?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime
+  BlogCategory   BlogCategory @relation(fields: [categoryId], references: [id])
+
+  @@index([categoryId, status])
+  @@index([status, publishDate])
+}
+
+model BusinessPlan {
+  id           String   @id
+  ownerId      String
+  title        String
+  content      String
+  storageKey   String   @unique
+  template     String   @default("Qatar Investor")
+  downloadMode String   @default("BLOCKED")
+  price        Float    @default(0)
+  currency     String   @default("QAR")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime
+  User         User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId, createdAt])
+}
+
+model CmsSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime
+}
+
+model ContentAuditLog {
+  id         String   @id
+  actorId    String
+  action     String
+  entityType String
+  entityId   String
+  detail     Json?
+  createdAt  DateTime @default(now())
+  User       User     @relation(fields: [actorId], references: [id])
+
+  @@index([actorId, createdAt])
+  @@index([entityType, entityId, createdAt])
+}
+
+model ContentMedia {
+  id                 String        @id
+  uploadedById       String
+  storageKey         String        @unique
+  originalName       String
+  contentType        String
+  size               BigInt
+  status             String        @default("AVAILABLE")
+  publishedLocations String[]      @default([])
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime
+  fileData           String?
+  youtubeUrl         String?
+  User               User          @relation(fields: [uploadedById], references: [id])
+  GalleryItem        GalleryItem[]
+
+  @@index([contentType, createdAt])
+  @@index([status, createdAt])
+}
+
+model CvPayment {
+  id           String     @id
+  cvDocumentId String
+  userId       String
+  amount       Float
+  status       String     @default("PENDING")
+  provider     String?
+  providerId   String?
+  createdAt    DateTime   @default(now())
+  CvDocument   CvDocument @relation(fields: [cvDocumentId], references: [id], onDelete: Cascade)
+  User         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([cvDocumentId, userId])
+  @@index([userId, status])
+}
+
+model GalleryItem {
+  id           String       @id
+  mediaId      String
+  title        String
+  description  String
+  category     String
+  displayOrder Int          @default(0)
+  isVisible    Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime
+  ContentMedia ContentMedia @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  @@index([category, isVisible])
+  @@index([isVisible, displayOrder])
+}
+
+model Gym {
+  id             String           @id
+  name           String           @default("TMG Business Consulting")
+  phone          String?
+  email          String?
+  address        String?
+  currency       String           @default("USD")
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime
+  Member         Member[]
+  MembershipPlan MembershipPlan[]
+}
+
+model Member {
+  id       String   @id
+  gymId    String
+  name     String
+  phone    String
+  email    String?
+  qatarId  String?
+  status   String   @default("ACTIVE")
+  joinDate DateTime @default(now())
+  Gym      Gym      @relation(fields: [gymId], references: [id])
+}
+
+model MembershipPlan {
+  id          String   @id
+  gymId       String
+  name        String
+  type        String
+  price       Float
+  duration    Int
+  sessions    Int?
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  Gym         Gym      @relation(fields: [gymId], references: [id])
+}
+
+model Payment {
+  id              String        @id
+  userId          String?
+  provider        String        @default("PAYPAL")
+  providerOrderId String        @unique
+  captureId       String?       @unique
+  planId          String
+  amount          Decimal       @db.Decimal(10, 2)
+  currency        String        @db.VarChar(3)
+  status          PaymentStatus @default(PENDING)
+  completedAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime
+  User            User?         @relation(fields: [userId], references: [id])
+
+  @@index([status, createdAt])
+  @@index([userId, createdAt])
+}
+
+model Project {
+  id                            String            @id
+  ownerId                       String
+  assigneeId                    String?
+  serviceType                   String
+  title                         String
+  description                   String
+  status                        ProjectStatus     @default(PENDING)
+  dueDate                       DateTime?
+  createdAt                     DateTime          @default(now())
+  updatedAt                     DateTime
+  User_Project_assigneeIdToUser User?             @relation("Project_assigneeIdToUser", fields: [assigneeId], references: [id])
+  User_Project_ownerIdToUser    User              @relation("Project_ownerIdToUser", fields: [ownerId], references: [id], onDelete: Cascade)
+  ProjectActivity               ProjectActivity[]
+  ProjectFile                   ProjectFile[]
+  ProjectMessage                ProjectMessage[]
+
+  @@index([assigneeId, status])
+  @@index([ownerId, updatedAt])
+  @@index([status, updatedAt])
+}
+
+model ProjectActivity {
+  id        String   @id
+  projectId String
+  actorId   String?
+  action    String
+  detail    String?
+  createdAt DateTime @default(now())
+  User      User?    @relation(fields: [actorId], references: [id])
+  Project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+}
+
+model ProjectFile {
+  id             String            @id
+  projectId      String
+  uploadedById   String
+  name           String
+  originalName   String
+  contentType    String
+  size           BigInt
+  storageKey     String            @unique
+  multipartId    String?
+  kind           ProjectFileKind
+  status         ProjectFileStatus @default(AVAILABLE)
+  familyKey      String
+  version        Int               @default(1)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime
+  fileData       String?
+  AiFileAnalysis AiFileAnalysis[]
+  Project        Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  User           User              @relation(fields: [uploadedById], references: [id])
+
+  @@unique([projectId, familyKey, version])
+  @@index([projectId, kind, status])
+  @@index([uploadedById, createdAt])
+}
+
+model ProjectMessage {
+  id        String   @id
+  projectId String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+  User      User     @relation(fields: [authorId], references: [id])
+  Project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+}
+
+model QuoteRequest {
+  id        String      @id
+  userId    String?
+  fullName  String
+  email     String
+  phone     String?
+  company   String?
+  service   String
+  details   String
+  source    String      @default("website")
+  status    QuoteStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime
+  User      User?       @relation(fields: [userId], references: [id])
+
+  @@index([email, createdAt])
+  @@index([status, createdAt])
+  @@index([userId, createdAt])
+}
+
+model SearchQuery {
+  id          String   @id
+  query       String
+  resultCount Int
+  sessionHash String?
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([query, createdAt])
+}
+
+model Setting {
+  key       String   @id
+  value     String
+  isPublic  Boolean  @default(true)
+  updatedBy String?
+  updatedAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model SettingAudit {
+  id        String   @id
+  key       String
+  oldValue  String?
+  newValue  String
+  changedBy String
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
+}
+
+model productivity_plans {
+  id           String   @id
+  userId       String
+  role         String
+  teamSize     Int
+  workSchedule String
+  country      String   @default("Qatar")
+  goals        String
+  challenges   String
+  weeklyPlan   Json?
+  kpis         Json?
+  icsPath      String?
+  pdfPath      String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime
+  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model risk_assessments {
+  id               String   @id
+  userId           String
+  businessType     String
+  industry         String
+  location         String
+  country          String   @default("Qatar")
+  currency         String   @default("QAR")
+  investmentAmount Float
+  teamSize         Int
+  concerns         String
+  riskMatrix       Json?
+  overallScore     String?
+  recommendations  Json?
+  pdfPath          String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime
+  User             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum ProjectFileKind {
+  CLIENT_UPLOAD
+  DELIVERABLE
+}
+
+enum ProjectFileStatus {
+  UPLOADING
+  SCANNING
+  AVAILABLE
+  REJECTED
+  FAILED
+}
+
+enum ProjectStatus {
+  PENDING
+  ASSIGNED
+  IN_PROGRESS
+  REVIEW
+  CLIENT_FEEDBACK
+  COMPLETED
+  DELIVERED
+  ARCHIVED
+}
+
+enum QuoteStatus {
+  PENDING
+  REVIEWING
+  QUOTED
+  ACCEPTED
+  DECLINED
+  CLOSED
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+  SUPER_ADMIN
+  ADMIN_MANAGER
+  CONTENT_MANAGER
+  FINANCE_MANAGER
+  PROJECT_MANAGER
+  STAFF
+  CLIENT
+}
+
+

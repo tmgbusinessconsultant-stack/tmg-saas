@@ -51,7 +51,11 @@ export default function AuthForm({ mode }: AuthFormProps) {
         body: JSON.stringify(mode === "register" ? { name, email, password } : { email, password }),
       });
 
-      const result = (await response.json().catch(() => ({}))) as ApiError & { user?: { role?: string } };
+      const result = (await response.json().catch(() => ({}))) as ApiError & { 
+        accessToken?: string;
+        refreshToken?: string;
+        user?: { role?: string; id?: string; email?: string };
+      };
 
       if (!response.ok) {
         const raw = result.message;
@@ -62,6 +66,21 @@ export default function AuthForm({ mode }: AuthFormProps) {
       if (mode === "register") {
         router.push("/login?registered=1");
         return;
+      }
+
+      // ✅ SAVE TOKEN - THIS WAS MISSING!
+      if (result.accessToken) {
+        try {
+          localStorage.setItem("accessToken", result.accessToken);
+          localStorage.setItem("token", result.accessToken);
+          sessionStorage.setItem("accessToken", result.accessToken);
+          if (result.refreshToken) {
+            localStorage.setItem("refreshToken", result.refreshToken);
+          }
+          if (result.user) {
+            localStorage.setItem("user", JSON.stringify(result.user));
+          }
+        } catch {}
       }
 
       const role = result.user?.role;
@@ -133,7 +152,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
           <label className="block text-sm font-medium">
             <span className="flex items-center justify-between">
               Password
-              <button type="button" onClick={() => setShowPassword(v => !v)} className="text-xs font-normal underline" style={{ color: "var(--primary)" }}>
+              <button type="button" onClick={() => setShowPassword(v => !v)} className="text-xs font-normal underline"style={{ color: "var(--primary)" }}>
                 {showPassword ? "Hide" : "Show"}
               </button>
             </span>

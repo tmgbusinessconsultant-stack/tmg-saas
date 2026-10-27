@@ -34,6 +34,16 @@ type PaymentStats = {
 
 const quoteStatuses = ["PENDING", "REVIEWING", "QUOTED", "ACCEPTED", "DECLINED", "CLOSED"];
 
+function getToken() {
+  if (typeof window === "undefined") return "";
+  return (
+    sessionStorage.getItem("accessToken") ||
+    localStorage.getItem("accessToken") ||
+    localStorage.getItem("token") ||
+    ""
+  );
+}
+
 export default function AdminDashboardPage() {
   const [quotes, setQuotes] = useState<QuoteRequest[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -42,12 +52,13 @@ export default function AdminDashboardPage() {
   const [updatingId, setUpdatingId] = useState("");
   const [error, setError] = useState("");
   const [token, setToken] = useState("");
+
   const [quoteSearch, setQuoteSearch] = useState("");
   const [paymentSearch, setPaymentSearch] = useState("");
   const [quoteStatusFilter, setQuoteStatusFilter] = useState<string>("ALL");
 
   const loadDashboard = useCallback(async () => {
-    const accessToken = sessionStorage.getItem("accessToken") || localStorage.getItem("token") || "";
+    const accessToken = getToken();
     if (!accessToken) {
       setToken("");
       setLoading(false);
@@ -74,6 +85,7 @@ export default function AdminDashboardPage() {
       if ([quotesResponse, paymentsResponse, statsResponse].some((r) => r.status === 401 || r.status === 403)) {
         sessionStorage.removeItem("accessToken");
         localStorage.removeItem("token");
+        localStorage.removeItem("accessToken");
         setToken("");
         throw new Error("Admin access required. Sign in again.");
       }
@@ -97,6 +109,17 @@ export default function AdminDashboardPage() {
   }, []);
 
   useEffect(() => {
+    // FIX: AUTO-CLEAR BAD HEADER DESIGN THAT MADE HEADER WHITE
+    try {
+      const saved = localStorage.getItem("tmg_colors");
+      if (saved) {
+        const c = JSON.parse(saved);
+        if (c.headerBg === "#FFFFFF" || c.headerBg === "#ffffff" || c.headerBg === "white" || c.bg === "#FFFFFF") {
+          localStorage.removeItem("tmg_colors");
+        }
+      }
+    } catch {}
+    
     const timer = window.setTimeout(() => { void loadDashboard(); }, 0);
     return () => window.clearTimeout(timer);
   }, [loadDashboard]);
@@ -128,7 +151,7 @@ export default function AdminDashboardPage() {
       });
       if (!response.ok) {
         const body: unknown = await response.json().catch(() => ({}));
-        const message = typeof body === "object" && body !== null && "message" in body && typeof (body as any).message === "string" ? (body as any).message : `Could not update (${response.status})`;
+        const message = typeof body === "object" && body !== null && "message" in body && typeof (body as any).message=== "string" ? (body as any).message : `Could not update (${response.status})`;
         throw new Error(message);
       }
       setQuotes((current) => current.map((quote) => quote.id === id ? { ...quote, status } : quote));
@@ -153,7 +176,7 @@ export default function AdminDashboardPage() {
   async function logout() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
     if (apiUrl && token) {
-      try { await fetch(`${apiUrl}/auth/logout`, { method: "POST", headers: { Authorization: `Bearer ${token}` } }); } catch { }
+      try { await fetch(`${apiUrl}/auth/logout`, { method: "POST", headers: { Authorization: `Bearer ${token}` } }); }catch { }
     }
     sessionStorage.removeItem("accessToken");
     localStorage.removeItem("token");
@@ -228,11 +251,11 @@ export default function AdminDashboardPage() {
         <div className="flex flex-wrap items-center justify-between gap-3 border-b p-5">
           <div><h2 className="text-xl font-bold">Quote requests</h2><p className="text-sm text-slate-500">{filteredQuotes.length} / {quotes.length}</p></div>
           <div className="flex gap-2">
-            <input value={quoteSearch} onChange={e => setQuoteSearch(e.target.value)} placeholder="Search name, email, service..." className="px-3 py-2 text-sm border rounded-lg w-64" />
+            <input value={quoteSearch} onChange={e => setQuoteSearch(e.target.value)} placeholder="Search name, email,service..." className="px-3 py-2 text-sm border rounded-lg w-64" />
             <select value={quoteStatusFilter} onChange={e => setQuoteStatusFilter(e.target.value)} className="px-3 py-2 text-sm border rounded-lg">
               <option value="ALL">All Status</option>{quoteStatuses.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
-            <button onClick={exportQuotesCsv} className="px-3 py-2 text-sm border rounded-lg hover:bg-slate-50">Export CSV</button>
+            <button onClick={exportQuotesCsv} className="px-3 py-2 text-sm border rounded-lg hover:bg-slate-50">ExportCSV</button>
           </div>
         </div>
         {filteredQuotes.length === 0 ? <p className="p-8 text-slate-500">No quote requests</p> : (
@@ -244,7 +267,7 @@ export default function AdminDashboardPage() {
                   <tr key={quote.id} className="border-t align-top">
                     <td className="whitespace-nowrap px-4 py-4">{new Date(quote.createdAt).toLocaleDateString()}</td>
                     <td className="px-4 py-4"><div className="font-semibold">{quote.fullName}</div><a href={`mailto:${quote.email}`} className="underline">{quote.email}</a>{quote.phone && <div>{quote.phone}</div>}{quote.company && <div className="text-slate-500">{quote.company}</div>}</td>
-                    <td className="max-w-md px-4 py-4"><div className="font-medium">{quote.service}</div><p className="mt-1 whitespace-pre-wrap text-slate-600 line-clamp-3">{quote.details}</p><p className="text-xs text-slate-400">Source: {quote.source}</p></td>
+                    <td className="max-w-md px-4 py-4"><div className="font-medium">{quote.service}</div><p className="mt-1 whitespace-pre-wrap text-slate-600 line-clamp-3">{quote.details}</p><p className="text-xs text-slate-400">Source:{quote.source}</p></td>
                     <td className="px-4 py-4">
                       <select value={quote.status} disabled={updatingId === quote.id} onChange={(e) => { void updateStatus(quote.id, e.target.value); }} className="rounded-md border bg-white px-2 py-2 text-sm disabled:opacity-60">
                         {quoteStatuses.map((status) => <option key={status} value={status}>{status}</option>)}

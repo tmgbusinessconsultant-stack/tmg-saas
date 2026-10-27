@@ -31,7 +31,7 @@ export class ProductivityPlansService {
 
     const aiResult = await this.ai.ask({ message: prompt, context: "productivity-planner" } as any, userId, "127.0.0.1");
 
-    const saved = await this.prisma.productivityPlan.create({
+    const saved = await this.prisma.productivity_plans.create({
       data: {
         userId,
         role: dto.role,
@@ -49,6 +49,7 @@ export class ProductivityPlansService {
     return saved;
   }
 
-  list(user: any) { return this.prisma.productivityPlan.findMany({ where: { userId: user.id||user.sub }, orderBy: { createdAt: "desc" } }); }
-  get(user: any, id: string) { return this.prisma.productivityPlan.findFirst({ where: { id, userId: user.id||user.sub } }); }
+  list(user: any) { return this.prisma.productivity_plans.findMany({ where: { userId: user.id||user.sub }, orderBy: { createdAt: "desc" } }); }
+  get(user: any, id: string) { return this.prisma.productivity_plans.findFirst({ where: { id, userId: user.id||user.sub } }); }
 }
+

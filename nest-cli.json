@@ -1,1 +1,17 @@
-{"collection":"@nestjs/schematics","sourceRoot":"src"}
+{
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "builder": {
+      "type": "swc",
+      "options": {
+        "swcOptions": {
+          "sourceMaps": true
+        }
+      }
+    },
+    "assets": ["modules/mail/templates/**/*"],
+    "watchAssets": true
+  }
+}

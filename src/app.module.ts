@@ -1,4 +1,3 @@
-import { PaypalModule } from './paypal/paypal.module';
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { PrismaModule } from './prisma/prisma.module';
@@ -25,9 +24,11 @@ import { CvDocumentsModule } from './cv-documents/cv-documents.module';
 import { BusinessPlansModule } from './business-plans/business-plans.module';
 import { RiskAssessmentsModule } from './risk-assessments/risk-assessments.module';
 import { ProductivityPlansModule } from './productivity-plans/productivity-plans.module';
+import { PaypalModule } from './paypal/paypal.module';
 
 @Module({
-  imports: [PaypalModule, PrismaModule,
+  imports: [
+    PrismaModule,
     AuthModule,
     GymsModule,
     PlansModule,
@@ -47,6 +48,7 @@ import { ProductivityPlansModule } from './productivity-plans/productivity-plans
     BusinessPlansModule,
     RiskAssessmentsModule,
     ProductivityPlansModule,
+    PaypalModule,
   ],
   controllers: [AppController],
   providers: [
@@ -55,6 +57,4 @@ import { ProductivityPlansModule } from './productivity-plans/productivity-plans
     { provide: APP_GUARD, useClass: RolesGuard },
   ],
 })
-export class AppModule { }
-
-
+export class AppModule {}

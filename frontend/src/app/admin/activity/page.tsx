@@ -17,13 +17,17 @@ export default function AdminActivityPage() {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      const token = sessionStorage.getItem("accessToken");
+      const token = sessionStorage.getItem("accessToken") || localStorage.getItem("accessToken");
       if (!token) {
         setError("Sign in with the Super Admin account to view the activity log.");
         return;
       }
-      void apiRequest<ActivityItem[]>("/admin/activity", token)
-        .then(setItems)
+      void apiRequest<any>("/admin/activity", token)
+        .then((res) => {
+          // Handle: array OR {data: []} OR {items: []} OR {activity: []}
+          const list = Array.isArray(res) ? res : res.data || res.items || res.activity || [];
+          setItems(Array.isArray(list) ? list : []);
+        })
         .catch((requestError: unknown) => setError(requestError instanceof Error ? requestError.message : "Could not load activity."));
     }, 0);
     return () => window.clearTimeout(timer);
@@ -41,20 +45,16 @@ export default function AdminActivityPage() {
           <tbody>
             {items.map((item) => (
               <tr key={item.id} className="border-t border-slate-200">
-                <td className="p-3">{new Date(item.createdAt).toLocaleString()}</td>
-                <td className="p-3">{item.actor.name}<span className="block text-xs text-slate-500">{item.actor.email}</span></td>
+                <td className="p-3">{item.createdAt ? new Date(item.createdAt).toLocaleString() : "-"}</td>
+                <td className="p-3">{item.actor?.name || "Unknown"}<span className="block text-xs text-slate-500">{item.actor?.email || ""}</span></td>
                 <td className="p-3">{item.action}</td>
-                <td className="p-3"><code className="whitespace-pre-wrap break-all">{item.targetId ? `${item.targetId}: ` : ""}{JSON.stringify(item.detail)}</code></td>
+                <td className="p-3"><code className="whitespace-pre-wrap break-all text-xs">{item.targetId ? `${item.targetId}: ` : ""}{JSON.stringify(item.detail)?.slice(0,300)}</code></td>
               </tr>
             ))}
-            {items.length === 0 && <tr><td colSpan={4} className="p-4 text-slate-600">No activity recorded yet.</td></tr>}
+            {items.length === 0 && !error && <tr><td colSpan={4} className="p-8 text-center text-slate-500">No activity recorded yet.</td></tr>}
           </tbody>
         </table>
       </div>
     </main>
   );
 }
-
-
-
-

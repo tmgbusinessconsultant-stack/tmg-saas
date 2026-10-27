@@ -1,533 +1,74 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum PlanStatus {
+  FREE
+  ACTIVE
+  CANCELED
+  PAST_DUE
+}
+
 model User {
-  id                   String                @id @default(cuid())
-  email                String                @unique
-  name                 String
-  passwordHash         String
-  role                 UserRole              @default(CLIENT)
-  isActive             Boolean               @default(true)
-  tokenVersion         Int                   @default(0)
-  passwordChangedAt    DateTime              @default(now())
-  createdAt            DateTime              @default(now())
-  updatedAt            DateTime              @updatedAt
-  permissions          String[]              @default([])
-  activityLogs         ActivityLog[]
-  aiConversations      AiConversation[]
-  aiFileAuthorizations AiFileAnalysis[]      @relation("AiFileAnalysisAuthorizedBy")
-  aiKnowledgeDocuments AiKnowledgeDocument[] @relation("AiKnowledgeUploadedBy")
-  aiUsage              AiUsage[]
-  businessPlans        BusinessPlan[]
-  contentAuditLogs     ContentAuditLog[]
-  uploadedMedia        ContentMedia[]
-  cvDocuments          CvDocument[]
-  cvPayments           CvPayment[]
-  payments             Payment[]
-  assignedProjects     Project[]             @relation("ProjectAssignee")
-  ownedProjects        Project[]             @relation("ProjectOwner")
-  projectActivities    ProjectActivity[]
-  projectFiles         ProjectFile[]
-  projectMessages      ProjectMessage[]
-  quoteRequests        QuoteRequest[]
-  userPlans            UserPlan[]
-
-  @@index([role, isActive])
-  @@index([createdAt])
-}
-
-model Project {
-  id          String            @id @default(cuid())
-  ownerId     String
-  assigneeId  String?
-  serviceType String
-  title       String
-  description String
-  status      ProjectStatus     @default(PENDING)
-  dueDate     DateTime?
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  assignee    User?             @relation("ProjectAssignee", fields: [assigneeId], references: [id])
-  owner       User              @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  activities  ProjectActivity[]
-  files       ProjectFile[]
-  messages    ProjectMessage[]
-
-  @@index([ownerId, updatedAt])
-  @@index([assigneeId, status])
-  @@index([status, updatedAt])
-}
-
-model ProjectFile {
-  id           String            @id @default(cuid())
-  projectId    String
-  uploadedById String
-  name         String
-  originalName String
-  contentType  String
-  size         BigInt
-  storageKey   String            @unique
-  multipartId  String?
-  kind         ProjectFileKind
-  status       ProjectFileStatus @default(UPLOADING)
-  familyKey    String
-  version      Int               @default(1)
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-  aiAnalyses   AiFileAnalysis[]
-  project      Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  uploadedBy   User              @relation(fields: [uploadedById], references: [id])
-
-  @@unique([projectId, familyKey, version])
-  @@index([projectId, kind, status])
-  @@index([uploadedById, createdAt])
-}
-
-model ProjectMessage {
-  id        String   @id @default(cuid())
-  projectId String
-  authorId  String
-  body      String
-  createdAt DateTime @default(now())
-  author    User     @relation(fields: [authorId], references: [id])
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@index([projectId, createdAt])
-}
-
-model ProjectActivity {
-  id        String   @id @default(cuid())
-  projectId String
-  actorId   String?
-  action    String
-  detail    String?
-  createdAt DateTime @default(now())
-  actor     User?    @relation(fields: [actorId], references: [id])
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@index([projectId, createdAt])
-}
-
-model ContentMedia {
-  id                 String        @id @default(cuid())
-  uploadedById       String
-  storageKey         String        @unique
-  originalName       String
-  contentType        String
-  size               BigInt
-  status             String        @default("SCANNING")
-  publishedLocations String[]      @default([])
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
-  uploadedBy         User          @relation(fields: [uploadedById], references: [id])
-  galleryItems       GalleryItem[]
-
-  @@index([status, createdAt])
-  @@index([contentType, createdAt])
-}
-
-model BlogCategory {
-  id        String     @id @default(cuid())
-  name      String     @unique
-  slug      String     @unique
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  posts     BlogPost[]
-}
-
-model BlogPost {
-  id             String       @id @default(cuid())
-  title          String
-  slug           String       @unique
-  excerpt        String
-  content        String
-  featuredImage  String?
-  galleryImages  String[]     @default([])
-  author         String
-  categoryId     String
-  tags           String[]     @default([])
-  status         String       @default("DRAFT")
-  publishDate    DateTime?
-  seoTitle       String?
-  seoDescription String?
-  seoKeywords    String[]     @default([])
-  openGraphImage String?
-  canonicalUrl   String?
-  schemaMarkup   Json?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  category       BlogCategory @relation(fields: [categoryId], references: [id])
-
-  @@index([status, publishDate])
-  @@index([categoryId, status])
-}
-
-model GalleryItem {
-  id           String       @id @default(cuid())
-  mediaId      String
-  title        String
-  description  String
-  category     String
-  displayOrder Int          @default(0)
-  isVisible    Boolean      @default(true)
+  id           String       @id @default(uuid())
+  email        String       @unique
+  name         String?
+  passwordHash String
+  role         Role         @default(USER)
+  isActive     Boolean      @default(true)
+  tokenVersion Int          @default(0)
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
-  media        ContentMedia @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  cvDocuments  CvDocument[]
+  userPlan     UserPlan?
 
-  @@index([isVisible, displayOrder])
-  @@index([category, isVisible])
-}
-
-model CmsSetting {
-  key       String   @id
-  value     Json
-  updatedAt DateTime @updatedAt
-}
-
-model ContentAuditLog {
-  id         String   @id @default(cuid())
-  actorId    String
-  action     String
-  entityType String
-  entityId   String
-  detail     Json?
-  createdAt  DateTime @default(now())
-  actor      User     @relation(fields: [actorId], references: [id])
-
-  @@index([entityType, entityId, createdAt])
-  @@index([actorId, createdAt])
-}
-
-model ActivityLog {
-  id        String   @id @default(cuid())
-  actorId   String
-  action    String
-  targetId  String?
-  detail    Json?
-  createdAt DateTime @default(now())
-  actor     User     @relation(fields: [actorId], references: [id])
-
-  @@index([actorId, createdAt])
-  @@index([action, createdAt])
-}
-
-model CvDocument {
-  id           String      @id @default(cuid())
-  ownerId      String
-  title        String
-  content      String
-  storageKey   String      @unique
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  currency     String      @default("QAR")
-  downloadMode String      @default("BLOCKED")
-  price        Float       @default(0)
-  owner        User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  payments     CvPayment[]
-
-  @@index([ownerId, createdAt])
-}
-
-model CvPayment {
-  id           String     @id @default(cuid())
-  cvDocumentId String
-  userId       String
-  amount       Float
-  status       String     @default("PENDING")
-  provider     String?
-  providerId   String?
-  createdAt    DateTime   @default(now())
-  cvDocument   CvDocument @relation(fields: [cvDocumentId], references: [id], onDelete: Cascade)
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([cvDocumentId, userId])
-  @@index([userId, status])
-}
-
-model QuoteRequest {
-  id        String      @id @default(cuid())
-  userId    String?
-  fullName  String
-  email     String
-  phone     String?
-  company   String?
-  service   String
-  details   String
-  source    String      @default("website")
-  status    QuoteStatus @default(PENDING)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  user      User?       @relation(fields: [userId], references: [id])
-
-  @@index([status, createdAt])
-  @@index([userId, createdAt])
-  @@index([email, createdAt])
-}
-
-model Payment {
-  id              String        @id @default(cuid())
-  userId          String?
-  provider        String        @default("PAYPAL")
-  providerOrderId String        @unique
-  captureId       String?       @unique
-  planId          String
-  amount          Decimal       @db.Decimal(10, 2)
-  currency        String        @db.VarChar(3)
-  status          PaymentStatus @default(PENDING)
-  completedAt     DateTime?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  user            User?         @relation(fields: [userId], references: [id])
-
-  @@index([userId, createdAt])
-  @@index([status, createdAt])
-}
-
-model AiUsage {
-  id        String   @id @default(cuid())
-  userId    String?
-  tool      String
-  createdAt DateTime @default(now())
-  user      User?    @relation(fields: [userId], references: [id])
-
-  @@index([userId, createdAt])
-  @@index([tool, createdAt])
-}
-
-model AiConversation {
-  id        String   @id @default(cuid())
-  userId    String?
-  sessionId String
-  message   String
-  response  String
-  createdAt DateTime @default(now())
-  user      User?    @relation(fields: [userId], references: [id])
-
-  @@index([createdAt])
-  @@index([userId, createdAt])
-  @@index([sessionId, createdAt])
-}
-
-model AiRateLimit {
-  key             String   @id
-  windowStartedAt DateTime
-  requestCount    Int      @default(1)
-  updatedAt       DateTime @updatedAt
-
-  @@index([updatedAt])
-}
-
-model AiKnowledgeDocument {
-  id           String   @id @default(cuid())
-  fileName     String
-  contentType  String
-  storageKey   String   @unique
-  status       String   @default("SCANNING")
-  indexedText  String?
-  uploadedById String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  uploadedBy   User     @relation("AiKnowledgeUploadedBy", fields: [uploadedById], references: [id])
-
-  @@index([status, createdAt])
-}
-
-model SearchQuery {
-  id          String   @id @default(cuid())
-  query       String
-  resultCount Int
-  sessionHash String?
-  createdAt   DateTime @default(now())
-
-  @@index([createdAt])
-  @@index([query, createdAt])
-}
-
-model AiFileAnalysis {
-  id                       String      @id @default(cuid())
-  projectFileId            String
-  authorizedById           String
-  authorizationConfirmedAt DateTime
-  summary                  String
-  keyInsights              String[]    @default([])
-  recommendations          String[]    @default([])
-  createdAt                DateTime    @default(now())
-  authorizedBy             User        @relation("AiFileAnalysisAuthorizedBy", fields: [authorizedById], references: [id])
-  projectFile              ProjectFile @relation(fields: [projectFileId], references: [id], onDelete: Cascade)
-
-  @@index([projectFileId, createdAt])
-  @@index([authorizedById, createdAt])
-}
-
-model Gym {
-  id        String           @id @default(cuid())
-  name      String           @default("TMG Business Consulting")
-  phone     String?
-  email     String?
-  address   String?
-  currency  String           @default("USD")
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-  members   Member[]
-  plans     MembershipPlan[]
-}
-
-model MembershipPlan {
-  id          String   @id @default(cuid())
-  gymId       String
-  name        String
-  type        String
-  price       Float
-  duration    Int
-  sessions    Int?
-  description String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  gym         Gym      @relation(fields: [gymId], references: [id])
-}
-
-model Member {
-  id            String         @id @default(cuid())
-  gymId         String
-  name          String
-  phone         String
-  email         String?
-  qatarId       String?
-  status        String         @default("ACTIVE")
-  joinDate      DateTime       @default(now())
-  gym           Gym            @relation(fields: [gymId], references: [id])
-  subscriptions Subscription[]
-}
-
-model Subscription {
-  id                String   @id @default(cuid())
-  memberId          String
-  planId            String
-  startDate         DateTime @default(now())
-  endDate           DateTime
-  status            String   @default("ACTIVE")
-  paymentStatus     String   @default("PAID")
-  paymentMethod     String   @default("CASH")
-  amountPaid        Float
-  remainingSessions Int?
-  createdAt         DateTime @default(now())
-  member            Member   @relation(fields: [memberId], references: [id])
-}
-
-model Setting {
-  key       String   @id
-  value     String
-  isPublic  Boolean  @default(true)
-  updatedBy String?
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
-}
-
-model SettingAudit {
-  id        String   @id @default(cuid())
-  key       String
-  oldValue  String?
-  newValue  String
-  changedBy String
-  createdAt DateTime @default(now())
-
-  @@index([key, createdAt])
-}
-
-model BusinessPlan {
-  id           String   @id @default(cuid())
-  ownerId      String
-  title        String
-  content      String
-  storageKey   String   @unique
-  template     String   @default("Qatar Investor")
-  downloadMode String   @default("BLOCKED")
-  price        Float    @default(0)
-  currency     String   @default("QAR")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  owner        User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-
-  @@index([ownerId, createdAt])
+  @@map("User")
 }
 
 model UserPlan {
-  id                   String    @id @default(cuid())
-  userId               String
-  planId               String
-  billingCycle         String
-  status               String    @default("ACTIVE")
-  allowedTools         String[]  @default([])
-  usageLimit           Int       @default(0)
-  usageCount           Int       @default(0)
-  startDate            DateTime  @default(now())
-  endDate              DateTime
-  trialEndsAt          DateTime?
-  autoRenew            Boolean   @default(true)
-  paypalSubscriptionId String?   @unique
+  id                   String     @id @default(uuid())
+  userId               String     @unique
+  user                 User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId               String     // starter, pro, growth
+  status               PlanStatus @default(FREE)
+  billingCycle         String     @default("monthly") // monthly, annual
+  autoRenew            Boolean    @default(true)
+  paypalSubscriptionId String?    @unique
   paypalOrderId        String?
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
-  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trialEndsAt          DateTime?
+  usageLimit           Int        @default(10)
+  usageCount           Int        @default(0)
+  allowedTools         String[]   @default(["cv-builder", "business-assistant"])
+  endDate              DateTime?
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
 
-  @@index([userId, status])
-  @@index([endDate])
+  @@map("UserPlan")
 }
 
-enum UserRole {
-  CUSTOMER
-  ADMIN
-  SUPER_ADMIN
-  ADMIN_MANAGER
-  CONTENT_MANAGER
-  FINANCE_MANAGER
-  PROJECT_MANAGER
-  STAFF
-  CLIENT
-}
+model CvDocument {
+  id           String   @id @default(uuid())
+  ownerId      String
+  owner        User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  title        String
+  content      String   @db.Text
+  storageKey   String
+  downloadMode String   @default("FREE") // FREE, PAID
+  price        Float    @default(0.0)
+  currency     String   @default("QAR")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-enum QuoteStatus {
-  PENDING
-  REVIEWING
-  QUOTED
-  ACCEPTED
-  DECLINED
-  CLOSED
-}
-
-enum PaymentStatus {
-  PENDING
-  COMPLETED
-  FAILED
-  REFUNDED
-}
-
-enum ProjectStatus {
-  PENDING
-  ASSIGNED
-  IN_PROGRESS
-  REVIEW
-  CLIENT_FEEDBACK
-  COMPLETED
-  DELIVERED
-  ARCHIVED
-}
-
-enum ProjectFileKind {
-  CLIENT_UPLOAD
-  DELIVERABLE
-}
-
-enum ProjectFileStatus {
-  UPLOADING
-  SCANNING
-  AVAILABLE
-  REJECTED
-  FAILED
+  @@map("CvDocument")
 }

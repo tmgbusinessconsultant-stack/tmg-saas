@@ -9,12 +9,16 @@ import {
   UploadedFile,
   UseInterceptors,
   Body,
+  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Request, Response } from 'express';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { Public } from '../auth/public.decorator';
 import { Permissions } from '../auth/permissions.decorator';
+import { Roles } from '../auth/roles.decorator';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
 import type { AuthenticatedUser } from '../auth/auth.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AiService } from './ai.service';
@@ -24,13 +28,14 @@ import { FileAnalysisService } from './file-analysis.service';
 import { KnowledgeService } from './knowledge.service';
 
 @Controller('ai')
+@UseGuards(JwtAuthGuard, RolesGuard) // Grounding Guard Strategy preserves multi-layer verification paths
 export class AiController {
   constructor(
     private readonly ai: AiService,
     private readonly knowledge: KnowledgeService,
     private readonly fileAnalysis: FileAnalysisService,
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   @Public()
   @Post('chat')
@@ -57,6 +62,7 @@ export class AiController {
     return this.ai.searchSuggestions(request.ip);
   }
 
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Permissions('ai:manage')
   @Get('admin/analytics')
   async analytics() {
@@ -91,24 +97,28 @@ export class AiController {
     };
   }
 
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Permissions('ai:manage')
   @Get('admin/conversations')
   conversations() {
     return this.ai.listConversations();
   }
 
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Permissions('ai:manage')
   @Delete('admin/conversations/:id')
   deleteConversation(@Param('id') id: string) {
     return this.ai.deleteConversation(id);
   }
 
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Permissions('ai:manage')
   @Get('admin/knowledge')
   listKnowledge() {
     return this.knowledge.list();
   }
 
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Permissions('ai:manage')
   @Post('admin/knowledge')
   @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }))
@@ -116,18 +126,21 @@ export class AiController {
     return this.knowledge.upload(file, user);
   }
 
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Permissions('ai:manage')
   @Post('admin/knowledge/:id/scan')
   refreshKnowledgeScan(@Param('id') id: string) {
     return this.knowledge.refreshScan(id);
   }
 
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Permissions('ai:manage')
   @Delete('admin/knowledge/:id')
   deleteKnowledge(@Param('id') id: string) {
     return this.knowledge.delete(id);
   }
 
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Permissions('projects:manage')
   @Post('admin/projects/:projectId/files/:fileId/analyze')
   analyzeFile(
@@ -139,6 +152,7 @@ export class AiController {
     return this.fileAnalysis.analyze(projectId, fileId, user, body.confirmExternalProcessing);
   }
 
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Permissions('projects:manage')
   @Get('admin/projects/:projectId/files/:fileId/analysis')
   latestFileAnalysis(@Param('projectId') projectId: string, @Param('fileId') fileId: string) {

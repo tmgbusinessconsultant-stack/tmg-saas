@@ -14,7 +14,7 @@ type ProviderResponse = Record<string, unknown>;
 export class IntegrationsService {
   private readonly logger = new Logger(IntegrationsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   status() {
     const microsoftConfigured = this.hasMicrosoftCredentials();

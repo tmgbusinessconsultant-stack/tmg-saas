@@ -1,47 +1,68 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
-import { UserPlansService } from './user-plans.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class PlanGuard implements CanActivate {
-  constructor(private userPlans: UserPlansService) {}
+  constructor(private readonly prisma: PrismaService) {}
+
+  // Map your 3 plans to allowed AI tools
+  private readonly PLAN_TOOLS: Record<string, string[]> = {
+    starter: ['business-assistant'], // 1 tool
+    pro: ['business-assistant', 'cv-builder', 'business-plan', 'document-review', 'cover-letter', 'risk-assessment'],
+    business: ['business-assistant', 'cv-builder', 'business-plan', 'document-review', 'cover-letter', 'risk-assessment', 'sop-builder', 'policy-generator', 'expert-review'],
+    free: [],
+  };
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const req = context.switchToHttp().getRequest();
-    const user = req.user;
-    if (!user) throw new ForbiddenException('Login required');
+    const request = context.switchToHttp().getRequest();
+    const user = request.user;
 
-    // Get tool id from route or body
-    // For cv-documents: body.documentType contains tool name
-    const body = req.body || {};
-    const toolMap: Record<string, string> = {
-      'cover-letter': 'cover-letter',
-      'cv': 'cv-builder',
-      'business-plan': 'business-plan',
-      'judgement': 'document-review',
-      'document-review': 'document-review',
-      'policy-generator': 'policy-generator',
-      'policy': 'policy-generator',
-      'sop-builder': 'sop-builder',
-      'sop': 'sop-builder',
-      'business-contract': 'business-contracts',
-      'contract': 'business-contracts',
-      'proposal-pack': 'proposal-packs',
-      'proposal': 'proposal-packs',
-    };
+    if (!user) throw new ForbiddenException('Not authenticated - login first');
+    if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') return true;
 
-    let toolId = 'cv-builder'; // default
-    if (body.documentType) {
-      toolId = toolMap[body.documentType] || body.documentType;
-    } else if (body.type) {
-      toolId = toolMap[body.type] || body.type;
+    const userId = user.userId || user.id || user.sub;
+    const userPlan = await this.prisma.userPlan.findFirst({ 
+      where: { userId },
+      orderBy: { createdAt: 'desc' } // get latest plan
+    });
+
+    if (!userPlan) {
+      throw new ForbiddenException('No active plan. Please subscribe at /pricing to unlock AI Tools.');
     }
 
-    // Check access
-    try {
-      await this.userPlans.checkToolAccess(user.id || user.sub, toolId);
-      return true;
-    } catch (e) {
-      throw e;
+    if (userPlan.status !== 'ACTIVE' && userPlan.status !== 'FREE') {
+      throw new ForbiddenException(`Your ${userPlan.planId} plan is ${userPlan.status}. Please renew at /pricing.`);
     }
+
+    if (userPlan.expiresAt && new Date(userPlan.expiresAt) < new Date() && userPlan.status !== 'FREE') {
+      throw new ForbiddenException(`Your ${userPlan.planId} plan expired on ${userPlan.expiresAt}. Renew at /pricing.`);
+    }
+
+    // If allowedTools is empty in DB (old records), fill from PLAN_TOOLS mapping
+    let allowedTools: string[] = (userPlan as any).allowedTools || [];
+    if (allowedTools.length === 0) {
+      allowedTools = this.PLAN_TOOLS[userPlan.planId] || this.PLAN_TOOLS['free'] || [];
+    }
+
+    // Attach for controller use
+    request.userPlan = userPlan;
+    request.allowedTools = allowedTools;
+
+    const path: string = request.route?.path || request.url || '';
+
+    // Check tool access
+    if (path.includes('cv-documents') || path.includes('cv-builder')) {
+      if (!allowedTools.includes('cv-builder') && !allowedTools.includes('business-assistant')) {
+        throw new ForbiddenException('Your current plan does not include CV Builder. Upgrade to Pro at /pricing.');
+      }
+    }
+
+    if (path.includes('business-assistant')) {
+      if (!allowedTools.includes('business-assistant')) {
+        throw new ForbiddenException('Business Assistant requires Starter plan or higher. Subscribe at /pricing.');
+      }
+    }
+
+    return true;
   }
 }

@@ -41,16 +41,18 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
 
   const loadUsers = useCallback(async () => {
-    const token = sessionStorage.getItem("accessToken");
+    const token = sessionStorage.getItem("accessToken") || localStorage.getItem("accessToken");
     if (!token) {
       setError("Sign in with the Super Admin account to manage users.");
       setLoading(false);
       return;
     }
     try {
-      const result = await apiRequest<ManagedUser[]>("/admin/users", token);
-      setUsers(result);
-      setSelectedId((current) => current && result.some((user) => user.id === current) ? current : result[0]?.id ?? "");
+      const result = await apiRequest<any>("/admin/users", token);
+      // FIX: backend may return { users: [] } or { data: [] }
+      const list: ManagedUser[] = Array.isArray(result) ? result : result.users || result.data || result.items || [];
+      setUsers(Array.isArray(list) ? list : []);
+      setSelectedId((current) => current && list.some((user: any) => user.id === current) ? current : list[0]?.id ?? "");
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "Could not load users.");
     } finally {
@@ -66,7 +68,7 @@ export default function AdminUsersPage() {
   const filteredUsers = useMemo(() => {
     if (!search.trim()) return users;
     const s = search.toLowerCase();
-    return users.filter(u => u.name.toLowerCase().includes(s) || u.email.toLowerCase().includes(s) || u.role.toLowerCase().includes(s));
+    return users.filter(u => (u.name || "").toLowerCase().includes(s) || (u.email || "").toLowerCase().includes(s) || (u.role || "").toLowerCase().includes(s));
   }, [users, search]);
 
   const selectedUser = users.find((user) => user.id === selectedId);
@@ -75,7 +77,7 @@ export default function AdminUsersPage() {
 
   async function saveAccess(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const token = sessionStorage.getItem("accessToken");
+    const token = sessionStorage.getItem("accessToken") || localStorage.getItem("accessToken");
     if (!token || !selectedId) return;
     setSaving(true); setError(""); setMessage("");
     try {
@@ -93,7 +95,7 @@ export default function AdminUsersPage() {
 
   async function toggleActive() {
     if (!selectedUser) return;
-    const token = sessionStorage.getItem("accessToken");
+    const token = sessionStorage.getItem("accessToken") || localStorage.getItem("accessToken");
     if (!token) return;
     if (!window.confirm(`${selectedUser.isActive ? "Suspend" : "Activate"} ${selectedUser.email}?`)) return;
     setSaving(true); setError("");
@@ -105,7 +107,6 @@ export default function AdminUsersPage() {
       setUsers((c) => c.map(u => u.id === updated.id ? updated : u));
       setMessage(updated.isActive ? "User activated" : "User suspended");
     } catch (e: any) {
-      // fallback if backend uses /admin/users/:id/access with isActive
       try {
         const updated = await apiRequest<ManagedUser>(`/admin/users/${encodeURIComponent(selectedUser.id)}/access`, token, {
           method: "PATCH",
@@ -119,7 +120,7 @@ export default function AdminUsersPage() {
 
   async function deleteUser() {
     if (!selectedUser) return;
-    const token = sessionStorage.getItem("accessToken");
+    const token = sessionStorage.getItem("accessToken") || localStorage.getItem("accessToken");
     if (!token) return;
     if (!window.confirm(`PERMANENTLY DELETE ${selectedUser.name} (${selectedUser.email})? This cannot be undone.`)) return;
     const confirmEmail = window.prompt(`Type email to confirm deletion: ${selectedUser.email}`);
@@ -150,9 +151,9 @@ export default function AdminUsersPage() {
               {filteredUsers.map((user) => (
                 <li key={user.id}>
                   <button type="button" onClick={() => setSelectedId(user.id)} className={`w-full rounded-lg border p-3 text-left ${selectedId === user.id ? "border-[#D4AF37] bg-[#FFFBEB]" : "border-slate-200"} ${!user.isActive ? "opacity-60" : ""}`}>
-                    <span className="block font-semibold">{user.name} {user.role.includes("SUPER") && "👑"}</span>
+                    <span className="block font-semibold">{user.name} {user.role?.includes("SUPER") && "👑"}</span>
                     <span className="block text-sm text-slate-600">{user.email}</span>
-                    <span className="mt-1 block text-xs"><span className={`px-2 py-0.5 rounded-full ${user.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>{user.isActive ? "Active" : "Suspended"}</span> <span className="text-slate-500 ml-1">{user.role.replaceAll("_", " ")}</span></span>
+                    <span className="mt-1 block text-xs"><span className={`px-2 py-0.5 rounded-full ${user.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>{user.isActive ? "Active" : "Suspended"}</span> <span className="text-slate-500 ml-1">{(user.role || "").replaceAll("_", " ")}</span></span>
                   </button>
                 </li>
               ))}
@@ -164,7 +165,7 @@ export default function AdminUsersPage() {
             <h2 className="text-xl font-semibold">Role and permissions</h2>
             {selectedUser ? (
               <>
-                <p className="mt-2 text-sm text-slate-600">{selectedUser.name} · {selectedUser.email} · Joined {new Date(selectedUser.createdAt).toLocaleDateString()}</p>
+                <p className="mt-2 text-sm text-slate-600">{selectedUser.name} · {selectedUser.email} · Joined {selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString() : "-"}</p>
 
                 <label className="mt-5 block text-sm font-medium">Role
                   <select value={role} onChange={(e) => setDrafts((c) => ({ ...c, [selectedId]: { role: e.target.value, permissions } }))} className="mt-1 w-full rounded-md border px-3 py-2">

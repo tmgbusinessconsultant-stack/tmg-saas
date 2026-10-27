@@ -1,76 +1,84 @@
 $ErrorActionPreference = "Stop"
-$appRoot = Join-Path $PSScriptRoot "src\app"
+$appRoot = Join-Path $PSScriptRoot "src/app"
+
+if (-not (Test-Path $appRoot)) {
+  $appRoot = Join-Path $PSScriptRoot "app"
+}
 
 function New-AI-Api([string]$name, [string]$sysPrompt) {
-  $dir = Join-Path $appRoot "api\ai\$name"
+  $dir = Join-Path $appRoot "api/ai/$name"
   $routePath = Join-Path $dir "route.ts"
+  
   if (Test-Path $routePath) {
-    Write-Host "Keeping existing API: $name"
+    Write-Host "Keeping existing configuration framework path: $name"
     return
   }
+  
   New-Item -ItemType Directory -Force -Path $dir | Out-Null
   $safePrompt = $sysPrompt.Replace("'", "''").Replace("`", "\`")
+  
   $route = @"
 import { NextRequest, NextResponse } from "next/server";
+import { requireAuthAndPlan } from "@/lib/auth-guard";
 
 const SYSTEM_PROMPT = `__SYSTEM_PROMPT__
-You are international-first. Adapt to user's location: US, UK, EU, Qatar, GCC, etc. Only mention Qatar/GCC if user asks or location is Qatar/GCC. Be professional, actionable, and concise.`;
+You are international-first. Adapt dynamically to the target market: US, UK, EU, Qatar, or GCC. Only prioritize GCC specific provisions if explicitly requested by the context or active location metadata state parameters.`;
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const input = (typeof body?.input === 'string' ? body.input : body?.prompt || '').trim();
+    const guard = await requireAuthAndPlan(req, "business-assistant");
+    if (!guard.ok) return guard.response;
+
+    const body = await req.json().catch(() => ({}));
+    const input = (typeof body?.message === 'string' ? body.message : body?.input || '').trim();
+    
     if (!input || input.length < 10) {
-      return NextResponse.json({ message: 'Please provide at least 10 characters.' }, { status: 400 });
-    }
-    if (input.length > 8000) {
-      return NextResponse.json({ message: 'Input too long (max 8000 chars).' }, { status: 400 });
+      return NextResponse.json({ message: 'Input parameter minimum execution constraint requires 10 characters.' }, { status: 400 });
     }
 
     const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey) return NextResponse.json({ message: 'AI not configured.' }, { status: 500 });
+    if (!apiKey) return NextResponse.json({ message: 'Downstream LLM Core Infrastructure Key mismatch.' }, { status: 500 });
 
-    // TODO: Add your auth + plan check here: await checkSubscription(req)
-
-    const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const groqRes = await fetch('https://groq.com', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      headers: { 'Content-Type': 'application/json', Authorization: \`Bearer \${apiKey}\` },
       body: JSON.stringify({
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: input },
         ],
         model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
-        temperature: 0.6,
+        temperature: 0.5,
         max_tokens: 4000,
       }),
     });
 
     const result = await groqRes.json();
     if (!groqRes.ok) {
-      return NextResponse.json({ message: 'AI provider failed.', details: result?.error?.message }, { status: groqRes.status });
+      return NextResponse.json({ message: 'Downstream AI engine compilation exception.', details: result?.error?.message }, { status: groqRes.status });
     }
 
-    const message = result.choices?.[0]?.message?.content?.trim();
-    if (!message) return NextResponse.json({ message: 'Empty AI response.' }, { status: 502 });
+    const outputText = result.choices?.[0]?.message?.content?.trim();
+    if (!outputText) return NextResponse.json({ message: 'Null response buffer emitted from LLM loop.' }, { status: 502 });
 
-    return NextResponse.json({ message });
+    return NextResponse.json({ message: outputText });
   } catch (e) {
-    return NextResponse.json({ message: e instanceof Error ? e.message : 'Server error' }, { status: 500 });
+    return NextResponse.json({ message: e instanceof Error ? e.message : 'Internal pipeline server compilation fault.' }, { status: 500 });
   }
 }
 "@
   $route = $route.Replace("__SYSTEM_PROMPT__", $safePrompt)
   Set-Content -Path $routePath -Value $route -Encoding utf8
-  Write-Host "Created API: $name"
+  Write-Host "Successfully generated API Route Handler: $name"
 }
 
-# International-first prompts
-New-AI-Api "cv-builder" "You are TMG CV Builder AI. Create ATS-optimized CVs for global roles (US, UK, EU, GCC). Include header, summary, experience with metrics, skills, education. Format in clean Markdown."
-New-AI-Api "business-plan" "You are TMG Business Plan AI. Generate a bank/investor-ready plan: executive summary, market analysis, products, marketing, ops, 3-year financials. Adapt currency/market to user location."
-New-AI-Api "document-review" "You are TMG Document Review AI. Review for grammar, clarity, tone, compliance. Give score 0-100, critical issues, and fixed version."
-New-AI-Api "sop-builder" "You are TMG SOP Builder AI. Create SOP: purpose, scope, roles, steps, KPIs, risks, checklist. International standard (ISO friendly)."
-New-AI-Api "cover-letter" "You are TMG Cover Letter AI. Write ~300 word tailored cover letter, professional, achievement-focused, for international roles."
-New-AI-Api "risk-assessment" "You are TMG Risk AI. Identify operational, financial, compliance risks and mitigations in a table."
+# Execution Pipeline Initialization Matrix Lookups
+New-AI-Api "document-review" "You are TMG Document Review AI. Check grammar, clarity, formatting, and compliance parameters for target international structures."
+New-AI-Api "cv-builder" "You are TMG CV Builder AI. Generate metric-driven ATS high-performance CV text templates natively in clean Markdown format fields."
+New-AI-Api "cover-letter" "You are TMG Cover Letter AI. Craft explicit achievement-focused application abstracts tuned to corporate market structures safely."
+New-AI-Api "business-plan" "You are TMG Business Plan AI. Generate bank-ready investment prospectus parameters complete with multi-year operations summaries."
+New-AI-Api "sop-builder" "You are TMG SOP Builder AI. Structure operational frameworks mapping out process boundaries, target KPIs, and control checklists."
+New-AI-Api "policy-generator" "You are TMG Policy Generator AI. Author clean compliance policies incorporating jurisdiction legal guardrails contextually."
+New-AI-Api "risk-assessment" "You are TMG Risk AI. Enumerate and score strategic liabilities, balance factors, and mitigations in tabular models."
 
-Write-Host "AI routes are now international, secure, and premium-ready."
+Write-Host "All premium microservice route configurations successfully integrated."

@@ -1,0 +1,11 @@
+import Link from "next/link";
+export default function CvBuilderPage(){
+  return (
+    <div className="p-10 max-w-2xl mx-auto text-center">
+      <h1 className="text-2xl font-bold">CV Builder - Advanced Moved</h1>
+      <p className="mt-2 text-gray-500">Now in AI Tools + CV Documents connected</p>
+      <Link href="/ai-tools/cv-builder" className="mt-6 inline-block bg-black text-white px-8 py-3 rounded-xl">Go to Advanced CV Builder</Link>
+      <div className="mt-4 flex gap-4 justify-center"><Link href="/cv-documents" className="text-sm border px-3 py-1 rounded">CV Documents</Link><Link href="/documents" className="text-sm border px-3 py-1 rounded">Documents Hub</Link></div>
+    </div>
+  );
+}

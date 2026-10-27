@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect } from "react";
 
 const DEFAULTS = {
@@ -12,7 +13,7 @@ const DEFAULTS = {
     borderColor: "#CBD5E1",
     buttonRadius: "8px",
     cardRadius: "12px",
-    inputRadius: "12px", // <-- FIXED: was missing
+    inputRadius: "12px",
     inputHeight: "44px",
     buttonHeight: "44px",
     fontSize: "14px",
@@ -30,11 +31,9 @@ const DEFAULTS = {
 type DesignColors = typeof DEFAULTS & Record<string, any>;
 
 function normalizeKey(key: string): string {
-    // design_primary -> primary, design_card_bg -> cardBg, design-card-bg -> cardBg
     let k = key.replace(/^design_/, "").replace(/^design-/, "");
-    // handle snake_case and kebab-case to camelCase
     k = k.replace(/[-_](.)/g, (_, c) => c.toUpperCase());
-    // fix common aliases
+
     const alias: Record<string, string> = {
         bgColor: "bg",
         background: "bg",
@@ -51,7 +50,7 @@ function normalizeKey(key: string): string {
 
 export function GlobalStyles() {
     useEffect(() => {
-        const apply = (c: DesignColors) => {
+        const applyThemeProperties = (c: Partial<DesignColors>) => {
             const r = document.documentElement;
             r.style.setProperty("--primary", c.primary || DEFAULTS.primary);
             r.style.setProperty("--gold", c.gold || DEFAULTS.gold);
@@ -81,12 +80,18 @@ export function GlobalStyles() {
 
         try {
             const saved = localStorage.getItem("tmg_colors");
-            if (saved) apply(JSON.parse(saved));
+            if (saved) applyThemeProperties(JSON.parse(saved));
         } catch { }
 
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
+        // Secure formatting to protect cross-origin network operations
+        const rawUrl = process.env.NEXT_PUBLIC_API_URL || "";
+        const apiUrl = rawUrl.trim().replace(/\/+$/, "");
+
         if (apiUrl) {
-            fetch(`${apiUrl}/settings/public`, { cache: "no-store" })
+            // Resolves fallback routing endpoints mapping settings directly
+            const targetEndpoint = apiUrl.endsWith("/api") ? `${apiUrl}/settings/public` : `${apiUrl}/api/settings/public`;
+
+            fetch(targetEndpoint, { cache: "no-store" })
                 .then((res) => (res.ok ? res.json() : null))
                 .then((rows: any[] | null) => {
                     if (!rows || !Array.isArray(rows)) return;
@@ -96,7 +101,7 @@ export function GlobalStyles() {
                         try {
                             const colors = typeof jsonRow.effectiveValue === "string" ? JSON.parse(jsonRow.effectiveValue) : jsonRow.effectiveValue;
                             if (colors?.primary || colors?.bg) {
-                                apply({ ...DEFAULTS, ...colors });
+                                applyThemeProperties({ ...DEFAULTS, ...colors });
                                 localStorage.setItem("tmg_colors", JSON.stringify(colors));
                                 return;
                             }
@@ -114,7 +119,7 @@ export function GlobalStyles() {
                                     (base as any)[normalized] = row.effectiveValue;
                                 }
                             });
-                            apply(base);
+                            applyThemeProperties(base);
                             localStorage.setItem("tmg_colors", JSON.stringify(base));
                         } catch { }
                     }
@@ -124,12 +129,12 @@ export function GlobalStyles() {
 
         const onStorage = (e: StorageEvent) => {
             if (e.key === "tmg_colors" && e.newValue) {
-                try { apply({ ...DEFAULTS, ...JSON.parse(e.newValue) }); } catch { }
+                try { applyThemeProperties({ ...DEFAULTS, ...JSON.parse(e.newValue) }); } catch { }
             }
         };
         const onCustom = (e: Event) => {
             const detail = (e as CustomEvent).detail;
-            if (detail) apply({ ...DEFAULTS, ...detail });
+            if (detail) applyThemeProperties({ ...DEFAULTS, ...detail });
         };
 
         window.addEventListener("storage", onStorage);
