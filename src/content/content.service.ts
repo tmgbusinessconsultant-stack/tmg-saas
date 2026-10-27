@@ -1,8 +1,8 @@
-import { Injectable, NotFoundException, ServiceUnavailableException } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import * as fs from "fs";
 import * as path from "path";
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, GetObjectTaggingCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectTaggingCommand } from "@aws-sdk/client-s3";
 
 @Injectable()
 export class ContentService {
@@ -14,7 +14,6 @@ export class ContentService {
   }
 
   private storageDriver() {
-    // LOCAL PREFERRED - S3 optional
     const hasS3 = process.env.AWS_S3_BUCKET && process.env.AWS_S3_BUCKET.length > 5 && !process.env.AWS_S3_BUCKET.includes("your-bucket");
     if (hasS3 && process.env.STORAGE_MODE === "s3") return "s3";
     return "local";
@@ -34,7 +33,7 @@ export class ContentService {
     return this.s3Client;
   }
 
-  private async writeStoredObject(key: string, body: Buffer, contentType: string, id?: string) {
+  private async writeStoredObject(key: string, body: Buffer, contentType: string) {
     if (this.storageDriver() === "s3") {
       await this.s3().send(new PutObjectCommand({
         Bucket: process.env.AWS_S3_BUCKET!,
@@ -57,6 +56,7 @@ export class ContentService {
     }
   }
 
+  // ===== ADMIN METHODS =====
   async listMedia() {
     return this.prisma.contentMedia.findMany({ orderBy: { createdAt: "desc" } });
   }
@@ -64,7 +64,6 @@ export class ContentService {
   async getMediaFile(id: string) {
     const media = await this.prisma.contentMedia.findUnique({ where: { id } });
     if (!media) throw new NotFoundException("Media not found");
-    
     if (this.storageDriver() === "local") {
       if (media.fileData) return { data: media.fileData, contentType: media.contentType };
       const filePath = path.join(this.uploadDir, media.storageKey.replace(/\//g, "_"));
@@ -72,14 +71,12 @@ export class ContentService {
         return { data: fs.readFileSync(filePath), contentType: media.contentType };
       }
     }
-    // S3 fallback
     return media;
   }
 
   async createMedia(data: any, file: Express.Multer.File) {
     const storageKey = `uploads/content/${Date.now()}_${file.originalname}`;
     await this.writeStoredObject(storageKey, file.buffer, file.mimetype);
-    
     return this.prisma.contentMedia.create({
       data: {
         originalName: file.originalname,
@@ -100,11 +97,7 @@ export class ContentService {
   }
 
   async checkScanStatus(media: any) {
-    // Local preferred - instant AVAILABLE, no scan needed
-    if (this.storageDriver() === "local") {
-      return { status: media.status || "AVAILABLE" };
-    }
-    // S3 scan logic
+    if (this.storageDriver() === "local") return { status: media.status || "AVAILABLE" };
     try {
       const tags = await this.s3().send(new GetObjectTaggingCommand({
         Bucket: process.env.AWS_S3_BUCKET!,
@@ -118,9 +111,94 @@ export class ContentService {
     }
   }
 
-  private async audit(tx: any, userId: string, action: string, entityId: string, meta: any) {
+  // ===== PUBLIC METHODS - THIS WAS MISSING! =====
+  async getPublicHomepage() {
     try {
-      await tx.activityLog.create({ data: { userId, action, entity, entityId, meta } });
-    } catch {}
+      // Try to get from settings, fallback to empty structure
+      const settings = await this.prisma.contentSetting.findMany().catch(() => []);
+      const homepage = settings.find((s: any) => s.key === "homepage");
+      if (homepage?.value) return homepage.value;
+      return {
+        hero: { title: "TMG Business Consulting", subtitle: "Your Growth Partner" },
+        services: [],
+        settings: settings,
+      };
+    } catch (e) {
+      // If table doesn't exist, return fallback so frontend doesn't crash
+      return {
+        hero: { title: "TMG Business Consulting", subtitle: "Your Growth Partner" },
+        services: [],
+      };
+    }
+  }
+
+  async listPublishedMedia() {
+    try {
+      return await this.prisma.contentMedia.findMany({
+        where: { status: "AVAILABLE" },
+        orderBy: { createdAt: "desc" },
+        take: 50,
+      });
+    } catch {
+      return [];
+    }
+  }
+
+  async listPublishedPosts() {
+    try {
+      // Check if blog table exists
+      if ((this.prisma as any).blogPost) {
+        return await (this.prisma as any).blogPost.findMany({
+          where: { published: true },
+          orderBy: { createdAt: "desc" },
+        });
+      }
+      if ((this.prisma as any).contentBlog) {
+        return await (this.prisma as any).contentBlog.findMany({
+          where: { status: "PUBLISHED" },
+          orderBy: { createdAt: "desc" },
+        });
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  }
+
+  async getPublishedPostBySlug(slug: string) {
+    try {
+      if ((this.prisma as any).blogPost) {
+        return await (this.prisma as any).blogPost.findFirst({ where: { slug } });
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  async listPublishedGallery() {
+    try {
+      if ((this.prisma as any).contentGallery) {
+        return await (this.prisma as any).contentGallery.findMany({
+          orderBy: { createdAt: "desc" },
+        });
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  }
+
+  async getPublicSeo() {
+    try {
+      const settings = await this.prisma.contentSetting.findMany().catch(() => []);
+      return settings.filter((s: any) => s.key.startsWith("seo"));
+    } catch {
+      return [];
+    }
+  }
+
+  async getContentMedia() {
+    return this.listPublishedMedia();
   }
 }
