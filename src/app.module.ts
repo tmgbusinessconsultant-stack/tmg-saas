@@ -1,4 +1,5 @@
-import { Module } from '@nestjs/common';
+import { Module }
+import { SuperAppModule } from './superapp/superapp.module'; from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
@@ -28,6 +29,7 @@ import { PaypalModule } from './paypal/paypal.module';
 
 @Module({
   imports: [
+    SuperAppModule,
     PrismaModule,
     AuthModule,
     GymsModule,
@@ -58,3 +60,4 @@ import { PaypalModule } from './paypal/paypal.module';
   ],
 })
 export class AppModule {}
+
