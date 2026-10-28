@@ -1,9 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  typescript: { ignoreBuildErrors: true },
+    typescript: { ignoreBuildErrors: true },
     turbopack: {
         root: __dirname,
     },
+    outputFileTracingRoot: __dirname,
     async redirects() {
         return [
             {
