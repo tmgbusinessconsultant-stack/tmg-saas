@@ -6,7 +6,7 @@ import { apiRequest } from "@/lib/project-delivery";
 type IntegrationStatus = {
   microsoft365: { state: string; drive: string; outlook: string };
   powerBi: { state: string };
-  adobe: { state: string; message: string };
+  adobe: { state: string; prompt: string };
 };
 
 type DriveItem = {
@@ -76,7 +76,7 @@ export default function AdminIntegrationsPage() {
       void apiRequest<IntegrationStatus>("/integrations/status", accessToken)
         .then(setStatus)
         .catch((loadError: unknown) => {
-          setError(loadError instanceof Error ? loadError.message : "Could not load integration status.");
+          setError(loadError instanceof Error ? loadError.prompt: "Could not load integration status.");
         })
         .finally(() => setLoading(false));
     }, 0);
@@ -89,7 +89,7 @@ export default function AdminIntegrationsPage() {
     try {
       setDriveItems(await apiRequest<DriveItem[]>("/integrations/microsoft365/drive", token));
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Could not load OneDrive files.");
+      setError(loadError instanceof Error ? loadError.prompt: "Could not load OneDrive files.");
     } finally {
       setBusy("");
     }
@@ -101,7 +101,7 @@ export default function AdminIntegrationsPage() {
     try {
       setReports(await apiRequest<PowerBiReport[]>("/integrations/powerbi/reports", token));
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Could not load Power BI reports.");
+      setError(loadError instanceof Error ? loadError.prompt: "Could not load Power BI reports.");
     } finally {
       setBusy("");
     }
@@ -114,7 +114,7 @@ export default function AdminIntegrationsPage() {
     setNotice("");
     const formData = new FormData(event.currentTarget);
     try {
-      const result = await apiRequest<{ message: string }>("/integrations/microsoft365/email", token, {
+      const result = await apiRequest<{ prompt: string }>("/integrations/microsoft365/email", token, {
         method: "POST",
         body: JSON.stringify({
           to: formData.get("to"),
@@ -125,7 +125,7 @@ export default function AdminIntegrationsPage() {
       event.currentTarget.reset();
       setNotice(result.message);
     } catch (sendError) {
-      setError(sendError instanceof Error ? sendError.message : "Email could not be sent.");
+      setError(sendError instanceof Error ? sendError.prompt: "Email could not be sent.");
     } finally {
       setBusy("");
     }
@@ -262,6 +262,7 @@ export default function AdminIntegrationsPage() {
     </main>
   );
 }
+
 
 
 

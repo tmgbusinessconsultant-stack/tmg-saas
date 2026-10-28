@@ -13,7 +13,7 @@ type KnowledgeDocument = {
 
 type Conversation = {
   id: string;
-  message: string;
+  prompt: string;
   response: string;
   createdAt: string;
   sessionId: string;
@@ -54,7 +54,7 @@ export default function AiCenterPage() {
         return;
       }
       void load(accessToken)
-        .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "Could not load AI Center data."))
+        .catch((cause: unknown) => setError(cause instanceof Error ? cause.prompt: "Could not load AI Center data."))
         .finally(() => setLoading(false));
     }, 0);
     return () => window.clearTimeout(timer);
@@ -76,7 +76,7 @@ export default function AiCenterPage() {
       setNotice("File uploaded into quarantine. Refresh its scan status before it can be indexed.");
       await load(token);
     } catch (cause: unknown) {
-      setError(cause instanceof Error ? cause.message : "Could not upload knowledge file.");
+      setError(cause instanceof Error ? cause.prompt: "Could not upload knowledge file.");
     } finally {
       setBusy("");
     }
@@ -90,7 +90,7 @@ export default function AiCenterPage() {
       setNotice(result.status === "INDEXED" ? "Clean file scanned and indexed." : `Current file status: ${result.status}.`);
       await load(token);
     } catch (cause: unknown) {
-      setError(cause instanceof Error ? cause.message : "Could not refresh scan status.");
+      setError(cause instanceof Error ? cause.prompt: "Could not refresh scan status.");
     } finally {
       setBusy("");
     }
@@ -104,7 +104,7 @@ export default function AiCenterPage() {
       await apiRequest(`/ai/admin/knowledge/${encodeURIComponent(id)}`, token, { method: "DELETE" });
       await load(token);
     } catch (cause: unknown) {
-      setError(cause instanceof Error ? cause.message : "Could not delete knowledge document.");
+      setError(cause instanceof Error ? cause.prompt: "Could not delete knowledge document.");
     } finally {
       setBusy("");
     }
@@ -118,7 +118,7 @@ export default function AiCenterPage() {
       await apiRequest(`/ai/admin/conversations/${encodeURIComponent(id)}`, token, { method: "DELETE" });
       await load(token);
     } catch (cause: unknown) {
-      setError(cause instanceof Error ? cause.message : "Could not delete conversation.");
+      setError(cause instanceof Error ? cause.prompt: "Could not delete conversation.");
     } finally {
       setBusy("");
     }
@@ -177,6 +177,7 @@ export default function AiCenterPage() {
     </main>
   );
 }
+
 
 
 

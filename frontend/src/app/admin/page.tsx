@@ -109,7 +109,6 @@ export default function AdminDashboardPage() {
   }, []);
 
   useEffect(() => {
-    // FIX: AUTO-CLEAR BAD HEADER DESIGN THAT MADE HEADER WHITE
     try {
       const saved = localStorage.getItem("tmg_colors");
       if (saved) {
@@ -119,7 +118,6 @@ export default function AdminDashboardPage() {
         }
       }
     } catch {}
-    
     const timer = window.setTimeout(() => { void loadDashboard(); }, 0);
     return () => window.clearTimeout(timer);
   }, [loadDashboard]);
@@ -220,13 +218,16 @@ export default function AdminDashboardPage() {
           <p className="mt-3 text-slate-600">Quotes, PayPal, Money Plans — Full Control</p>
         </div>
         <div className="flex flex-wrap gap-2 w-full lg:w-auto">
-          <Link href="/admin/projects" className="rounded-md border px-3 py-2 text-sm font-semibold">Projects</Link>
-          <Link href="/admin/ai-center" className="rounded-md border px-3 py-2 text-sm font-semibold">AI Center</Link>
-          <Link href="/admin/analytics" className="rounded-md border px-3 py-2 text-sm font-semibold">Analytics</Link>
-          <Link href="/admin/users" className="rounded-md border px-3 py-2 text-sm font-semibold">Users</Link>
-          <Link href="/admin/activity" className="rounded-md border px-3 py-2 text-sm font-semibold">Activity</Link>
-          <Link href="/admin/content" className="rounded-md border border-[#D4AF37] bg-[#FFFBEB] px-3 py-2 text-sm font-semibold">Content</Link>
-          <button onClick={() => { setLoading(true); void loadDashboard(); }} className="rounded-md border px-3 py-2 text-sm font-semibold">Refresh</button>
+          <Link href="/admin/superapp" className="rounded-md bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-lg hover:from-purple-700 hover:to-indigo-700">🚀 SuperApp V7</Link>
+          <Link href="/admin/settings" className="rounded-md bg-slate-800 px-4 py-2 text-sm font-bold text-white shadow-lg hover:bg-slate-900">⚙️ System Settings</Link>
+          <Link href="/admin/projects" className="rounded-md border bg-white px-3 py-2 text-sm font-semibold hover:bg-slate-50">📁 Projects</Link>
+          <Link href="/admin/ai-center" className="rounded-md border bg-white px-3 py-2 text-sm font-semibold hover:bg-slate-50">🤖 AI Center</Link>
+          <Link href="/admin/analytics" className="rounded-md border bg-white px-3 py-2 text-sm font-semibold hover:bg-slate-50">📊 Analytics</Link>
+          <Link href="/admin/users" className="rounded-md border bg-white px-3 py-2 text-sm font-semibold hover:bg-slate-50">👥 Users</Link>
+          <Link href="/admin/activity" className="rounded-md border bg-white px-3 py-2 text-sm font-semibold hover:bg-slate-50">📝 Activity</Link>
+          <Link href="/admin/content" className="rounded-md border border-[#D4AF37] bg-[#FFFBEB] px-3 py-2 text-sm font-semibold hover:bg-amber-50">📝 Content</Link>
+          <Link href="/admin/integrations" className="rounded-md border bg-white px-3 py-2 text-sm font-semibold hover:bg-slate-50">🔌 Integrations</Link>
+          <button onClick={() => { setLoading(true); void loadDashboard(); }} className="rounded-md border bg-white px-3 py-2 text-sm font-semibold hover:bg-slate-50">🔄 Refresh</button>
           <button onClick={() => { void logout(); }} className="rounded-md bg-[#0F172A] px-3 py-2 text-sm font-semibold text-white">Sign out</button>
         </div>
       </div>

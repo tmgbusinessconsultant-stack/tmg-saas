@@ -34,8 +34,8 @@ export class PlanGuard implements CanActivate {
       throw new ForbiddenException(`Your ${userPlan.planId} plan is ${userPlan.status}. Please renew at /pricing.`);
     }
 
-    if (userPlan.expiresAt && new Date(userPlan.expiresAt) < new Date() && userPlan.status !== 'FREE') {
-      throw new ForbiddenException(`Your ${userPlan.planId} plan expired on ${userPlan.expiresAt}. Renew at /pricing.`);
+    if (userPlan.endDate && new Date(userPlan.endDate) < new Date() && userPlan.status !== 'FREE') {
+      throw new ForbiddenException(`Your ${userPlan.planId} plan expired on ${userPlan.endDate}. Renew at /pricing.`);
     }
 
     // If allowedTools is empty in DB (old records), fill from PLAN_TOOLS mapping
@@ -66,3 +66,4 @@ export class PlanGuard implements CanActivate {
     return true;
   }
 }
+

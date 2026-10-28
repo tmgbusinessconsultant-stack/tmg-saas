@@ -3,6 +3,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  OnModuleInit,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
@@ -12,41 +13,47 @@ import { OfficeParser, type SupportedFileType } from 'officeparser';
 import { PrismaService } from '../prisma/prisma.service';
 import type { AuthenticatedUser } from '../auth/auth.service';
 
-const MAX_BYTES = 10 * 1024 * 1024;
-const MAX_TEXT_LENGTH = 500_000;
+const MAX_BYTES = 10 * 1024 * 1024; // 10 Megabytes limit ceiling
+const MAX_TEXT_LENGTH = 500_000;    // Maximum text length boundary for cognitive safety
 const ALLOWED_EXTENSIONS = new Set(['pdf', 'docx', 'xlsx', 'csv', 'txt']);
 
 @Injectable()
-export class KnowledgeService implements OnModuleInit  {
+export class KnowledgeService implements OnModuleInit {
   private readonly logger = new Logger(KnowledgeService.name);
-  private storageDir: string;
+  private readonly storageDir: string;
 
   constructor(private readonly prisma: PrismaService) {
-    // Falls back gracefully to standard local dir variable structures if unset
     const rawDir = process.env.LOCAL_STORAGE_DIR?.trim() || 'storage/cms';
     this.storageDir = path.resolve(process.cwd(), rawDir, 'knowledge-base');
   }
 
+  /**
+   * Initializes local storage target boundaries recursively on bootstrap
+   */
   async onModuleInit() {
     try {
-      // Guarantees write targets exist recursively on environment launch boot
       await fs.mkdir(this.storageDir, { recursive: true });
+      this.logger.log(`Local storage engine mounted successfully at: ${this.storageDir}`);
     } catch (err) {
       this.logger.error(`Storage driver allocation directory initialization failed: ${this.storageDir}`, err);
     }
   }
 
+  /**
+   * Safe Multi-Engine File Sourcing Writer
+   */
   async upload(file: Express.Multer.File | undefined, user: AuthenticatedUser) {
     if (!file?.buffer?.length) throw new BadRequestException('Choose a knowledge file to upload.');
     if (file.size > MAX_BYTES) throw new BadRequestException('Knowledge files must be 10 MB or smaller.');
 
     const extension = file.originalname.split('.').at(-1)?.toLowerCase() ?? '';
-    if (!ALLOWED_EXTENSIONS.has(extension)) throw new BadRequestException('Upload PDF, DOCX, XLSX, CSV, or TXT files only.');
+    if (!ALLOWED_EXTENSIONS.has(extension)) {
+      throw new BadRequestException('Upload PDF, DOCX, XLSX, CSV, or TXT files only.');
+    }
 
     const id = randomUUID();
     const fileName = file.originalname.replace(/[^\w.-]+/g, '_').slice(0, 160) || 'knowledge-file';
 
-    // Configures discrete local storage paths instead of remote S3 keys
     const relativePath = path.join(id, fileName);
     const targetPath = path.join(this.storageDir, relativePath);
 
@@ -54,30 +61,27 @@ export class KnowledgeService implements OnModuleInit  {
       await fs.mkdir(path.dirname(targetPath), { recursive: true });
       await fs.writeFile(targetPath, file.buffer);
 
-      const document = await this.prisma.aiKnowledgeDocument.create({
+      return await this.prisma.aiKnowledgeDocument.create({
         data: {
           id,
           fileName,
           contentType: file.mimetype || 'application/octet-stream',
-          storageKey: relativePath, // Stores path offset context parameter safely
+          storageKey: relativePath,
           uploadedById: user.id,
-          status: 'AVAILABLE', // Defaults immediately to active local access state
+          status: 'AVAILABLE',
         },
         select: { id: true, fileName: true, contentType: true, status: true, createdAt: true },
       });
-
-      return document;
-    } catch (error) {
-      try {
-        await fs.unlink(targetPath).catch(() => { });
-        await fs.rmdir(path.dirname(targetPath)).catch(() => { });
-      } catch (cleanupError) {
-        this.logger.error(`Could not clean up failed knowledge upload ${id}.`, cleanupError);
-      }
+    } catch (error: any) {
+      this.logger.error(`Write pipeline failure for file ${fileName}: ${error.message}`);
+      await this.cleanupLocalFile(targetPath);
       throw new ServiceUnavailableException('Storage driver could not complete writing the file asset.');
     }
   }
 
+  /**
+   * Pulls inventory track records for administrative dashboard review
+   */
   async list() {
     return this.prisma.aiKnowledgeDocument.findMany({
       orderBy: { createdAt: 'desc' },
@@ -86,11 +90,12 @@ export class KnowledgeService implements OnModuleInit  {
     });
   }
 
+  /**
+   * Local Parsing Processing Engine Core
+   */
   async refreshScan(id: string) {
     const document = await this.prisma.aiKnowledgeDocument.findUnique({ where: { id } });
     if (!document) throw new NotFoundException('Knowledge document not found.');
-
-    // Local filesystem driver bypasses external threat scanning queues completely
     if (document.status === 'INDEXED') return { id, status: document.status };
 
     const targetPath = path.join(this.storageDir, document.storageKey);
@@ -99,6 +104,7 @@ export class KnowledgeService implements OnModuleInit  {
     try {
       bytes = await fs.readFile(targetPath);
     } catch (err) {
+      this.logger.error(`Target file read fault for key: ${document.storageKey}`);
       throw new ServiceUnavailableException('Target local file storage reference could not be read.');
     }
 
@@ -117,6 +123,7 @@ export class KnowledgeService implements OnModuleInit  {
       throw new BadRequestException('The file could not be parsed. Ensure you upload a text-readable document.');
     }
 
+    // Strip null characters out to prevent PostgreSQL text string field injection validation faults
     const indexedText = text.replace(/\u0000/g, '').trim().slice(0, MAX_TEXT_LENGTH);
     if (!indexedText) {
       await this.prisma.aiKnowledgeDocument.update({ where: { id }, data: { status: 'FAILED' } });
@@ -133,6 +140,9 @@ export class KnowledgeService implements OnModuleInit  {
     return { id, status: 'INDEXED' };
   }
 
+  /**
+   * Complete System Scouring Elimination Vector
+   */
   async delete(id: string) {
     const document = await this.prisma.aiKnowledgeDocument.findUnique({ where: { id } });
     if (!document) throw new NotFoundException('Knowledge document not found.');
@@ -144,15 +154,17 @@ export class KnowledgeService implements OnModuleInit  {
     return { deleted: true };
   }
 
+  /**
+   * Internal Disk Resource Cleanup Driver
+   */
   private async cleanupLocalFile(targetPath: string) {
     try {
+      // Deletes target file reference
       await fs.unlink(targetPath).catch(() => { });
+      // Sweeps empty tracking directory block cleanly
       await fs.rmdir(path.dirname(targetPath)).catch(() => { });
-    } catch (err) {
+    } catch (err: any) {
       this.logger.error(`Disk cleanup intercept failed for path reference: ${targetPath}`, err);
     }
   }
 }
-
-
-

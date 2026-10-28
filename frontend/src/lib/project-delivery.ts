@@ -44,6 +44,8 @@ export async function apiRequest<T>(
 ): Promise<T> {
   const response = await fetch(`${apiBaseUrl()}${path}`, {
     ...init,
+    // Mandated to allow secure cross-origin tmg_ai_session cookies to pass cleanly
+    credentials: "include",
     headers: {
       Authorization: `Bearer ${token}`,
       ...(init?.body && !(init.body instanceof FormData) ? { "Content-Type": "application/json" } : {}),
@@ -51,6 +53,7 @@ export async function apiRequest<T>(
     },
     cache: "no-store",
   });
+
   if (!response.ok) {
     let message = `Request failed (${response.status}).`;
     try {
@@ -89,6 +92,8 @@ export async function uploadProjectFile(
   await new Promise<void>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", `${apiBaseUrl()}/projects/${encodedProjectId}/files/upload`);
+    // Crucial for XMLHttpRequest to carry session cookies cleanly across origins
+    xhr.withCredentials = true;
     xhr.setRequestHeader("Authorization", `Bearer ${token}`);
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
@@ -117,6 +122,7 @@ export async function downloadProjectFile(
 
   const response = await fetch(`${apiBaseUrl()}/projects/${encodedProjectId}/files/${encodedFileId}/download`, {
     headers: { Authorization: `Bearer ${token}` },
+    credentials: "include", // Appended for secure file streaming
     cache: "no-store",
   });
 
@@ -133,7 +139,6 @@ export async function downloadProjectFile(
     if (match) filename = match[1];
   }
 
-  // For PDF/image - open preview, then download
   const isPreviewable = blob.type.includes("pdf") || blob.type.includes("image");
   const url = URL.createObjectURL(blob);
 
@@ -150,7 +155,7 @@ export async function downloadProjectFile(
   setTimeout(() => URL.revokeObjectURL(url), 3000);
 }
 
-// --- NEW: DELETE FILE ---
+// --- DELETE FILE ---
 export async function deleteProjectFile(
   projectId: string,
   fileId: string,
@@ -161,7 +166,7 @@ export async function deleteProjectFile(
   });
 }
 
-// --- NEW: DELETE MESSAGE ---
+// --- DELETE MESSAGE ---
 export async function deleteProjectMessage(
   projectId: string,
   messageId: string,

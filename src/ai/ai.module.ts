@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common';
-import { HttpModule } from '@nestjs/axios'; // Built-in resilience engine for external Groq & Cloudflare calls
+import { Module, Logger } from '@nestjs/common';
+import { HttpModule } from '@nestjs/axios';
 import { PrismaModule } from '../prisma/prisma.module';
-import { UserPlansModule } from '../user-plans/user-plans.module'; // Enforces premium subscription authorization rules
-import { PlansModule } from '../plans/plans.module'; // Resolves functional feature thresholds
+import { UserPlansModule } from '../user-plans/user-plans.module';
+import { PlansModule } from '../plans/plans.module';
 import { AiController } from './ai.controller';
 import { AiService } from './ai.service';
 import { FileAnalysisService } from './file-analysis.service';
@@ -12,9 +12,10 @@ import { TurnstileService } from './turnstile.service';
 @Module({
   imports: [
     PrismaModule,
+    // Upgraded connection engine parameters to comfortably handle high-fidelity multi-engine operations
     HttpModule.register({
-      timeout: 15000, // Safe 15-second cutoff to prevent request hanging on Render
-      maxRedirects: 3,
+      timeout: 25000,        // Raised to 25 seconds to support background rendering pipelines without timing out
+      maxRedirects: 3,        // Restricts network loops during external API queries
     }),
     UserPlansModule,
     PlansModule,
@@ -24,13 +25,19 @@ import { TurnstileService } from './turnstile.service';
     AiService,
     FileAnalysisService,
     KnowledgeService,
-    TurnstileService
+    TurnstileService,
+    // Inject structural application tracking context across core background workers
+    {
+      provide: Logger,
+      useValue: new Logger('AiModuleContext'),
+    },
   ],
   exports: [
     AiService,
     TurnstileService,
     FileAnalysisService,
-    KnowledgeService
+    KnowledgeService,
+    HttpModule, // Export network config loop so adjacent feature modules can share optimized connection timeouts
   ],
 })
 export class AiModule { }

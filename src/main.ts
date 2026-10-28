@@ -1,23 +1,39 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { configureApp } from './configure-app';
+import { ValidationPipe, Logger } from '@nestjs/common';
 
 async function bootstrap() {
+(BigInt.prototype as any).toJSON = function () { return Number(this); };
+
+  const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
+
   configureApp(app);
 
-  // FIX CORS - OVERRIDE WHATEVER configureApp DID
+  // 1. GLOBAL ENFORCEMENT ENGINE - Essential for SuperAppChatDto array checking
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,          // Strips away unmapped malicious fields automatically
+      transform: true,          // Hydrates plain text payloads into structured DTO class objects
+      forbidNonWhitelisted: false, // Set to true in strict mode to explicitly reject bad requests
+    }),
+  );
+
+  // 2. STABILIZED CORS CONFIGURATION 
   app.enableCors({
-    origin: true, // Allow all origins for dev - fixes Request failed
+    origin: true,
     credentials: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type, Authorization, Accept, X-Requested-With',
   });
 
   app.enableShutdownHooks();
+
   const port = Number(process.env.PORT) || 4000;
   await app.listen(port, '0.0.0.0');
-  console.log(`✅ Backend running on http://localhost:${port}/api`);
+
+  logger.log(`🚀 Production Stack Engine Active on http://localhost:${port}/api`);
 }
 
 void bootstrap();

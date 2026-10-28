@@ -25,7 +25,7 @@ export default function SuperAppPage() {
       const res = await fetch(`${API_URL}/admin/superapp/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-        body: JSON.stringify({ message: text, language: 'auto', history: messages.slice(-6) }),
+        body: JSON.stringify({ prompt: text, engine: 'auto', context: messages.slice(-6) }),
       });
       const data = await res.json();
       
@@ -115,3 +115,4 @@ export default function SuperAppPage() {
     </div>
   );
 }
+

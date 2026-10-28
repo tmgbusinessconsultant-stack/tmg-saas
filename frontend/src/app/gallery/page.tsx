@@ -94,7 +94,7 @@ async function GalleryItems() {
   }
 }
 
-function EmptyState({ message }: { message: string }) {
+function EmptyState({ message }: { prompt: string }) {
   return (
     <div className="mt-12 flex flex-col items-center justify-center rounded-2xl border border-dashed py-16 text-center" style={{ borderColor: "var(--border-color)", background: "var(--card-bg)" }}>
       <p className="text-slate-500">{message}</p>
@@ -119,3 +119,4 @@ function GallerySkeleton() {
     </div>
   );
 }
+

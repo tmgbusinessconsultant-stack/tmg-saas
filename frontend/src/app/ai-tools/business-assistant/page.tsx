@@ -49,7 +49,7 @@ export default function BusinessAssistantPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: userMsg.content,
+          prompt: userMsg.content,
           country: selectedCountry.country,
           currency: selectedCountry.currency,
           symbol: selectedCountry.symbol,

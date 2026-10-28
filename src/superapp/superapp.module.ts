@@ -1,17 +1,24 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { SuperAppService } from './superapp.service';
 import { SuperAppController } from './superapp.controller';
 
 @Module({
   imports: [
-    HttpModule.register({
-      timeout: 30000,
-      maxRedirects: 3,
+    HttpModule.registerAsync({
+      useFactory: () => ({
+        timeout: 60000, // 60s for AI image/video gen
+        maxRedirects: 5,
+        maxContentLength: 50 * 1024 * 1024, // 50MB
+        maxBodyLength: 50 * 1024 * 1024,
+        headers: {
+          'User-Agent': 'TMG-SuperApp-V7/7.0',
+        },
+      }),
     }),
   ],
   controllers: [SuperAppController],
   providers: [SuperAppService],
   exports: [SuperAppService],
 })
-export class SuperAppModule {}
+export class SuperAppModule { }
