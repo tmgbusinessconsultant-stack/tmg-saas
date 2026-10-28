@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "prisma generate && nest build",
-    "vercel-build": "prisma generate && nest build",
+    "build": "npx prisma generate && npx nest build",
+    "vercel-build": "npx prisma generate && npx nest build",
     "start": "node dist/src/main.js",
     "start:dev": "nest start --watch",
     "start:prod": "node dist/src/main.js",
-    "prisma:migrate:deploy": "prisma migrate deploy"
+    "prisma:migrate:deploy": "npx prisma migrate deploy"
   },
   "engines": {
     "node": ">=20.9.0"
@@ -80,3 +80,4 @@
   },
   "homepage": "https://github.com/tmgbusinessconsultant-stack/tmg-saas#readme"
 }
+
