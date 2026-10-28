@@ -114,7 +114,7 @@ export default function SiteHeader() {
         <button
           ref={triggerRef}
           type="button"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/30 text-white lg:hidden hover:bg-white/10"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-900 lg:hidden hover:bg-slate-100 shadow-sm"
           aria-label={open ? "Close navigation" : "Open navigation"}
           aria-expanded={open}
           onClick={() => setOpen((c) => !c)}
@@ -147,3 +147,4 @@ export default function SiteHeader() {
     </header>
   );
 }
+
