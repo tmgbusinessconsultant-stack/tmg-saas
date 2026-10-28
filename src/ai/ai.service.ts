@@ -36,7 +36,7 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly prisma: PrismaService,
     private readonly turnstile: TurnstileService,
-  ) {}
+  ) { }
 
   onModuleInit() {
     this.retentionTimer = setInterval(() => {
@@ -135,10 +135,10 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
       role: message.role as 'user' | 'assistant' | 'system',
       content: message.content.trim(),
     }));
-    
+
     const question = messages[messages.length - 1].content;
     const knowledge = await this.findKnowledge(question);
-    
+
     const systemMessage = [
       "You are TMG Business Consulting's AI assistant. Answer business questions about the company's services and business topics.",
       knowledge ? `Approved TMG knowledge excerpts:\n${knowledge}` : 'No matching approved company knowledge was found.'
@@ -208,7 +208,7 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
     const [total, conversations, popular, sessions] = await Promise.all([
       this.prisma.aiConversation.count({ where: { createdAt: { gte: since } } }),
       this.prisma.aiConversation.findMany({ where: { createdAt: { gte: since } }, orderBy: { createdAt: 'desc' }, take: 100 }),
-      this.prisma.$queryRaw<Array<{ message: string; count: bigint }>>`SELECT "message", COUNT() AS "count" FROM "AiConversation" WHERE "createdAt" >= ${since} GROUP BY "message" ORDER BY COUNT() DESC LIMIT 10`,
+      this.prisma.$queryRaw<Array<{ message: string; count: bigint }>>`SELECT "message", COUNT(*) AS "count" FROM "AiConversation" WHERE "createdAt" >= ${since} GROUP BY "message" ORDER BY COUNT(*) DESC LIMIT 10`,
       this.prisma.aiConversation.findMany({ where: { createdAt: { gte: since } }, distinct: ['sessionId'] }),
     ]);
     return { totalConversations: total, activeSessions: sessions.length, popularQuestions: popular.map((item) => ({ question: item.message, count: Number(item.count) })), conversations };
@@ -224,7 +224,7 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
     const [total, failed, popular] = await Promise.all([
       this.prisma.searchQuery.count({ where: { createdAt: { gte: since } } }),
       this.prisma.searchQuery.count({ where: { createdAt: { gte: since }, resultCount: 0 } }),
-      this.prisma.$queryRaw<Array<{ query: string; count: bigint }>>`SELECT "query", COUNT() AS "count" FROM "SearchQuery" WHERE "createdAt" >= ${since} GROUP BY "query" ORDER BY COUNT() DESC LIMIT 10`,
+      this.prisma.$queryRaw<Array<{ query: string; count: bigint }>>`SELECT "query", COUNT(*) AS "count" FROM "SearchQuery" WHERE "createdAt" >= ${since} GROUP BY "query" ORDER BY COUNT(*) DESC LIMIT 10`,
     ]);
     return { totalSearches: total, failedSearches: failed, popularSearches: popular.map((item) => ({ query: item.query, count: Number(item.count) })) };
   }
