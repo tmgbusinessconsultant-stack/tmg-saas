@@ -61,7 +61,7 @@ export class ProjectsService {
           },
           take: 100,
           include: {
-            author: {
+            User: {
               select: {
                 id: true,
                 name: true,
