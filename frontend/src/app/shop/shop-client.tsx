@@ -1,6 +1,6 @@
 "use client";
-
 import { useState } from "react";
+import Link from "next/link";
 import { whatsappNumber } from "@/lib/contact-details";
 
 type Product = {
@@ -57,32 +57,55 @@ export default function ShopClient({ products }: { products: Product[] }) {
                 ))}
             </div>
 
-            <div className="mx-auto px-6 pb-20 grid md:grid-cols-2 xl:grid-cols-3 gap-6" style={{ maxWidth: "var(--container-max)" }}>
-                {filtered.map(product => (
-                    <div key={product.id} className="p-5 shadow-sm hover:shadow-lg transition hover:-translate-y-1 bg-white" style={{ borderRadius: "var(--radius)", borderWidth: "var(--border-width)", borderColor: "var(--border-color)" }}>
-                        {product.bestseller && <div className="inline-block text-xs font-bold px-2 py-1 rounded mb-3 text-black" style={{ background: "var(--gold)" }}>BESTSELLER</div>}
-                        <div className="h-44 bg-slate-100 rounded-lg mb-4 flex items-center justify-center font-bold opacity-50" style={{ borderRadius: "var(--radius)" }}>{product.category}</div>
-                        <div className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--gold)" }}>{product.category}</div>
-                        <h3 className="font-bold text-lg mt-2" style={{ fontSize: "var(--h3-size)" }}>{product.title}</h3>
-                        <p className="text-sm mt-2 opacity-70">{product.description}</p>
-                        <ul className="mt-4 space-y-1 text-xs">
-                            {product.features.map(f => <li key={f} className="flex gap-2"><span style={{ color: "var(--gold)" }}>✓</span> {f}</li>)}
-                        </ul>
-                        <div className="mt-6 flex items-center justify-between">
-                            <div><span className="font-black text-2xl">${product.price} {product.currency}</span></div>
-                        </div>
-                        <div className="mt-4 grid grid-cols-2 gap-2">
-                            <button onClick={() => handlePayPal(product)} className="py-3 font-bold text-sm text-center hover:opacity-90 cursor-pointer" style={{ background: "#FFC439", color: "#003087", borderRadius: "var(--button-radius)" }}>
-                                Pay with PayPal
-                            </button>
-                            <a href={whatsappLink(product)} target="_blank" className="py-3 font-bold text-sm text-center text-white" style={{ background: "#25D366", borderRadius: "var(--button-radius)" }}>
-                                WhatsApp Order
-                            </a>
-                        </div>
-                        <p className="text-[11px] mt-3 opacity-50 text-center">Instant delivery after payment screenshot</p>
-                    </div>
-                ))}
-            </div>
+            {filtered.length === 0 ? (
+              <div className="mx-auto px-6 pb-20" style={{ maxWidth: "var(--container-max)" }}>
+                <div className="rounded-[24px] border border-dashed border-zinc-300 bg-white p-12 text-center">
+                  <div className="mx-auto h-12 w-12 rounded-full bg-zinc-900 text-white grid place-items-center font-bold text-xl">🛒</div>
+                  <h3 className="mt-6 font-semibold text-lg">{activeProducts.length === 0 ? "No products published yet" : "No products in this category"}</h3>
+                  <p className="mt-2 text-sm leading-6 text-zinc-500 max-w-xl mx-auto">
+                    {activeProducts.length === 0 
+                      ? "This shop is 100% admin-controlled. Go to Admin → Content → Shop Products → Click + Add Product → Fill real product details → Check Active → Save. Even empty is allowed, you control everything."
+                      : "Try another category or clear filter."}
+                  </p>
+                  <div className="mt-6 flex justify-center gap-3">
+                    {activeProducts.length === 0 ? (
+                      <Link href="/admin/content/shop" className="rounded-full bg-zinc-900 px-6 py-2.5 text-sm font-bold text-white hover:bg-black">Go to Shop Admin</Link>
+                    ) : (
+                      <button onClick={()=>setFilter("All")} className="rounded-full bg-zinc-900 px-6 py-2.5 text-sm font-bold text-white">Show All</button>
+                    )}
+                    <Link href="/" className="rounded-full border border-zinc-200 bg-white px-6 py-2.5 text-sm font-bold">Back Home</Link>
+                  </div>
+                  <p className="mt-4 text-xs text-zinc-400">{activeProducts.length} active products • Admin can edit/approve/delete anytime</p>
+                </div>
+              </div>
+            ) : (
+              <div className="mx-auto px-6 pb-20 grid md:grid-cols-2 xl:grid-cols-3 gap-6" style={{ maxWidth: "var(--container-max)" }}>
+                  {filtered.map(product => (
+                      <div key={product.id} className="p-5 shadow-sm hover:shadow-lg transition hover:-translate-y-1 bg-white" style={{ borderRadius: "var(--radius)", borderWidth: "var(--border-width)", borderColor: "var(--border-color)" }}>
+                          {product.bestseller && <div className="inline-block text-xs font-bold px-2 py-1 rounded mb-3 text-black" style={{ background: "var(--gold)" }}>BESTSELLER</div>}
+                          <div className="h-44 bg-slate-100 rounded-lg mb-4 flex items-center justify-center font-bold opacity-50" style={{ borderRadius: "var(--radius)" }}>{product.category}</div>
+                          <div className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--gold)"}}>{product.category}</div>
+                          <h3 className="font-bold text-lg mt-2" style={{ fontSize: "var(--h3-size)" }}>{product.title}</h3>
+                          <p className="text-sm mt-2 opacity-70">{product.description}</p>
+                          <ul className="mt-4 space-y-1 text-xs">
+                              {product.features.map(f => <li key={f} className="flex gap-2"><span style={{ color: "var(--gold)" }}>✓</span> {f}</li>)}
+                          </ul>
+                          <div className="mt-6 flex items-center justify-between">
+                              <div><span className="font-black text-2xl">${product.price} {product.currency}</span></div>
+                          </div>
+                          <div className="mt-4 grid grid-cols-2 gap-2">
+                              <button onClick={() => handlePayPal(product)} className="py-3 font-bold text-sm text-center hover:opacity-90 cursor-pointer" style={{ background: "#FFC439", color: "#003087", borderRadius: "var(--button-radius)" }}>
+                                  Pay with PayPal
+                              </button>
+                              <a href={whatsappLink(product)} target="_blank" className="py-3 font-bold text-sm text-center text-white" style={{ background: "#25D366", borderRadius: "var(--button-radius)" }}>
+                                  WhatsApp Order
+                              </a>
+                          </div>
+                          <p className="text-[11px] mt-3 opacity-50 text-center">Instant delivery after payment screenshot</p>
+                      </div>
+                  ))}
+              </div>
+            )}
         </div>
     );
 }
