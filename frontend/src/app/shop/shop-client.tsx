@@ -19,8 +19,6 @@ type Product = {
 export default function ShopClient({ products }: { products: Product[] }) {
     const [filter, setFilter] = useState("All");
     const categories = ["All", "Excel Template", "Power BI", "Bundle", "Service", "Consulting Kit"];
-
-    // Only show active products
     const activeProducts = products.filter(p => p.active !== false);
     const filtered = filter === "All" ? activeProducts : activeProducts.filter(p => p.category === filter);
 
@@ -39,7 +37,6 @@ export default function ShopClient({ products }: { products: Product[] }) {
 
     return (
         <div className="w-full" style={{ background: "var(--background)" }}>
-            {/* HEADER */}
             <section className="text-white py-16" style={{ background: "var(--header-bg)" }}>
                 <div className="mx-auto px-6" style={{ maxWidth: "var(--container-max)" }}>
                     <p className="uppercase tracking-[0.2em] text-xs font-semibold" style={{ color: "var(--gold)" }}>TMG Shop</p>
@@ -50,7 +47,6 @@ export default function ShopClient({ products }: { products: Product[] }) {
                 </div>
             </section>
 
-            {/* FILTERS */}
             <div className="mx-auto px-6 py-8 flex flex-wrap gap-2" style={{ maxWidth: "var(--container-max)" }}>
                 {categories.map(c => (
                     <button key={c} onClick={() => setFilter(c)}
@@ -61,7 +57,6 @@ export default function ShopClient({ products }: { products: Product[] }) {
                 ))}
             </div>
 
-            {/* GRID */}
             <div className="mx-auto px-6 pb-20 grid md:grid-cols-2 xl:grid-cols-3 gap-6" style={{ maxWidth: "var(--container-max)" }}>
                 {filtered.map(product => (
                     <div key={product.id} className="p-5 shadow-sm hover:shadow-lg transition hover:-translate-y-1 bg-white" style={{ borderRadius: "var(--radius)", borderWidth: "var(--border-width)", borderColor: "var(--border-color)" }}>
@@ -70,15 +65,12 @@ export default function ShopClient({ products }: { products: Product[] }) {
                         <div className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--gold)" }}>{product.category}</div>
                         <h3 className="font-bold text-lg mt-2" style={{ fontSize: "var(--h3-size)" }}>{product.title}</h3>
                         <p className="text-sm mt-2 opacity-70">{product.description}</p>
-
                         <ul className="mt-4 space-y-1 text-xs">
                             {product.features.map(f => <li key={f} className="flex gap-2"><span style={{ color: "var(--gold)" }}>✓</span> {f}</li>)}
                         </ul>
-
                         <div className="mt-6 flex items-center justify-between">
                             <div><span className="font-black text-2xl">${product.price} {product.currency}</span></div>
                         </div>
-
                         <div className="mt-4 grid grid-cols-2 gap-2">
                             <button onClick={() => handlePayPal(product)} className="py-3 font-bold text-sm text-center hover:opacity-90 cursor-pointer" style={{ background: "#FFC439", color: "#003087", borderRadius: "var(--button-radius)" }}>
                                 Pay with PayPal
