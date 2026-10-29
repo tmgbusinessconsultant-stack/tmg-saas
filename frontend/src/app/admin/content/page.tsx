@@ -6,6 +6,7 @@ const modules = [
   { title: "Categories", description: "Organize blog articles into public categories.", href: "/admin/content/categories" },
   { title: "SEO Settings", description: "Set site-wide search and social sharing metadata.", href: "/admin/content/seo" },
   { title: "Homepage Content", description: "Edit the homepage hero, services, testimonials, and calls to action.", href: "/admin/content/homepage" },
+  { title: "Shop Products", description: "Add, edit, approve, delete Excel templates and services.", href: "/admin/content/shop" },
   { title: "Website Gallery", description: "Manage public portfolio images and their display order.", href: "/admin/content/gallery" },
 ];
 
@@ -35,6 +36,8 @@ export default function ContentManagementPage() {
     </main>
   );
 }
+
+
 
 
 
