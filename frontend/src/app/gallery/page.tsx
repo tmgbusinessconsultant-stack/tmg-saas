@@ -4,6 +4,8 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { contentApiUrl, type CmsGalleryItem } from "@/lib/content-management";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Gallery | TMG Business Consulting",
   description: "Selected public work and visual stories from TMG Business Consulting — branding, strategy, and digital transformations for SMEs in Qatar.",
@@ -42,7 +44,6 @@ async function GalleryItems() {
   try {
     const response = await fetch(contentApiUrl("/gallery"), { cache: "no-store", next: { revalidate: 0 } });
     if (!response.ok) {
-      // Don't throw — show empty state instead of 500
       console.error(`Gallery API ${response.status}`);
       return <EmptyState message="Could not load gallery right now. Please try again later." />;
     }
@@ -94,7 +95,7 @@ async function GalleryItems() {
   }
 }
 
-function EmptyState({ message }: { prompt: string }) {
+function EmptyState({ message }: { message: string }) {
   return (
     <div className="mt-12 flex flex-col items-center justify-center rounded-2xl border border-dashed py-16 text-center" style={{ borderColor: "var(--border-color)", background: "var(--card-bg)" }}>
       <p className="text-slate-500">{message}</p>
@@ -119,4 +120,3 @@ function GallerySkeleton() {
     </div>
   );
 }
-
