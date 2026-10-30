@@ -11,18 +11,14 @@ const MAX_UPLOAD_LIMIT_MB = 2048;
 export class SettingsService {
   private cache = new Map<string, { value: string; expires: number }>();
   private TTL = 30_000;
+  constructor(private readonly prisma: PrismaService) {}
 
-  constructor(private readonly prisma: PrismaService) { }
-
-  // === YOUR EXISTING CODE - UNCHANGED ===
   async getProjectUploadLimit() {
     const setting = await this.prisma.cmsSetting.findUnique({
       where: { key: UPLOAD_LIMIT_SETTING },
       select: { value: true },
     });
-    const maximumMegabytes = setting
-      ? this.parseConfiguredLimit(setting.value)
-      : this.environmentDefault();
+    const maximumMegabytes = setting ? this.parseConfiguredLimit(setting.value) : this.environmentDefault();
     return { maximumMegabytes };
   }
 
@@ -66,7 +62,6 @@ export class SettingsService {
     return megabytes;
   }
 
-  // === NEW TAB 1 HYBRID - ADDITION ONLY ===
   async get(key: string): Promise<string | null> {
     const cached = this.cache.get(key);
     if (cached && cached.expires > Date.now()) return cached.value;
@@ -76,7 +71,7 @@ export class SettingsService {
         this.cache.set(key, { value: row.value, expires: Date.now() + this.TTL });
         return row.value;
       }
-    } catch { }
+    } catch {}
     const envVal = process.env[key] || null;
     if (envVal) this.cache.set(key, { value: envVal, expires: Date.now() + this.TTL });
     return envVal;
@@ -93,7 +88,7 @@ export class SettingsService {
         updatedAt = row.updatedAt;
         updatedBy = row.updatedBy;
       }
-    } catch { }
+    } catch {}
     const envValue = process.env[key] || null;
     const effective = dbValue ?? envValue ?? null;
     return {
@@ -115,8 +110,11 @@ export class SettingsService {
       'MAX_PROJECT_UPLOAD_SIZE_MB',
       'PAYPAL_ENV',
       'NEXT_PUBLIC_PAYPAL_CLIENT_ID',
-      'AWS_REGION',
-      'AWS_S3_BUCKET',
+      'shop_products_json',
+      'tmg_shop_products',
+      'contactEmail',
+      'whatsappNumber',
+      'phoneNumber',
     ];
     return Promise.all(keys.map((k) => this.getEffective(k)));
   }
@@ -129,8 +127,11 @@ export class SettingsService {
       'MAX_PROJECT_UPLOAD_SIZE_MB',
       'PAYPAL_ENV',
       'NEXT_PUBLIC_PAYPAL_CLIENT_ID',
-      'AWS_REGION',
-      'AWS_S3_BUCKET',
+      'shop_products_json',
+      'tmg_shop_products',
+      'contactEmail',
+      'whatsappNumber',
+      'phoneNumber',
     ];
     if (!allowedTab1.includes(key)) {
       throw new BadRequestException(`Key ${key} not allowed in Tab 1`);
@@ -141,7 +142,7 @@ export class SettingsService {
       .create({
         data: { key, oldValue: existing?.value || null, newValue: value, changedBy: user.email },
       })
-      .catch(() => { });
+      .catch(() => {});
     return this.prisma.setting.upsert({
       where: { key },
       update: { value, isPublic: true, updatedBy: user.email },

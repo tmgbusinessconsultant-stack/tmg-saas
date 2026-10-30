@@ -27,7 +27,7 @@ export default function PreviewPanel({ asset, onSendEmail, onActionTrigger, comp
     const trimmedEmail = email.trim();
     // Strict production regex verification
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
+
     if (!emailRegex.test(trimmedEmail)) {
       setEmailStatus("invalid");
       return;
@@ -41,7 +41,7 @@ export default function PreviewPanel({ asset, onSendEmail, onActionTrigger, comp
   const handleClipboardCopy = async () => {
     let copyText = asset?.url || asset?.code || asset?.answer || "";
     if (typeof copyText === "object") copyText = JSON.stringify(copyText, null, 2);
-    
+
     try {
       await navigator.clipboard.writeText(copyText);
       onActionTrigger?.("copy");
@@ -181,19 +181,20 @@ export default function PreviewPanel({ asset, onSendEmail, onActionTrigger, comp
             ✨ Variations
           </button>
         </div>
-        
+
         {/* Core Distribution Router Console */}
         <div className="bg-white border border-slate-200 rounded-xl p-2.5 shadow-sm">
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Omni Distribution Core</p>
           <div className="flex gap-1.5">
-            <input 
-              value={email} 
+            <input
+              value={email}
               onChange={(e) => setEmail(e.target.value)}
-              type="email" 
+              type="email"
               placeholder="Enter email..."
-              className={`flex-1 text-xs px-3 py-2 rounded-xl border ${emailStatus === "invalid" ? "border-rose-500" : "border-slate-200"} focus:outline-none focus:ring-2 focus:ring-[#0A3D62]/30`}
+              className={`flex-1 text-xs px-3 py-2 rounded-xl border ${emailStatus === "invalid" ? "border-red-500" : "border-slate-200"}`}
             />
-            <button 
+
+            <button
               onClick={handleEmailDispatch}
               className="bg-[#0A3D62] text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-[#0d4d7a] transition-all shadow-sm active:scale-[0.98]"
             >

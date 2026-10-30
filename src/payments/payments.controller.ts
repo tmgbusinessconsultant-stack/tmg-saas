@@ -22,6 +22,19 @@ export class PaymentsController {
     return this.payments.captureOrder(body.orderID, userId, body.planId, body.billingCycle);
   }
 
+  // SHOP — create order (can be guest or auth)
+  @Post('shop/orders')
+  async createShopOrder(@Body() body: any, @Req() req: any) {
+    const userId = req?.user?.id || req?.user?.sub || body.userId || undefined;
+    return this.payments.createShopOrder(body.product, userId);
+  }
+
+  @Post('shop/capture')
+  async captureShopOrder(@Body() body: any, @Req() req: any) {
+    const userId = req?.user?.id || req?.user?.sub || body.userId || undefined;
+    return this.payments.captureShopOrder(body.orderID, body.product, userId);
+  }
+
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPER_ADMIN','ADMIN')
@@ -32,11 +45,8 @@ export class PaymentsController {
   @Roles('SUPER_ADMIN','ADMIN')
   async stats() { return this.payments.getStats(); }
 
-  // === PAYPAL WEBHOOK — PUBLIC, NO AUTH ===
   @Post('webhook/paypal')
   async paypalWebhook(@Body() body: any, @Headers() headers: any) {
-    // TODO: Verify webhook signature with PayPal API in production
-    // For now accept all (PayPal sends verification header)
     console.log('Headers:', headers['paypal-transmission-id']);
     return this.payments.handlePaypalWebhook(body);
   }

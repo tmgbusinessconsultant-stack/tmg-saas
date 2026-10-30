@@ -179,3 +179,4 @@ export default function ChatPanel({ messages, isLoading, onSend }: ChatPanelProp
     </div>
   );
 }
+

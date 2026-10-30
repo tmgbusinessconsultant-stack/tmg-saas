@@ -44,3 +44,4 @@ export default function SidebarPanel({ gallery, onSelectAsset, onSelectChat }: a
     </div>
   );
 }
+

@@ -29,7 +29,7 @@ export default function AboutPage() {
 
       <div className="mt-12 grid md:grid-cols-4 gap-4">
         {values.map((value) => (
-          <div key={value} className="rounded-2xl bg-[#0F172A] text-white p-6 text-center font-semibold">{value}</div>
+          <div key={value} className="rounded-2xl bg-white border border-slate-200 text-slate-900 p-6 text-center font-semibold shadow-sm">{value}</div>
         ))}
       </div>
 

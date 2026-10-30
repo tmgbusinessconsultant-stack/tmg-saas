@@ -1,0 +1,25 @@
+import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import { ProjectsService } from './projects.service';
+import { CurrentUser } from '../auth/current-user.decorator';
+import { Permissions } from '../auth/permissions.decorator';
+import type { AuthenticatedUser } from '../auth/auth.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Controller('projects')
+export class ProjectsController {
+  constructor(private readonly projectsService: ProjectsService) {}
+  @Get() @Permissions('projects:read') list(@CurrentUser() user: AuthenticatedUser) { return this.projectsService.list(user); }
+  @Get('staff') @Permissions('projects:read') listStaff() { return this.projectsService.listStaff(); }
+  @Post() @Permissions('projects:create') create(@CurrentUser() user: AuthenticatedUser, @Body() body: any) { return this.projectsService.create(user, body); }
+  @Patch(':id/status') @Permissions('projects:update') updateStatus(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { status: string }) { return this.projectsService.updateStatus(user, id, body.status); }
+  @Patch(':id/assign') @Permissions('projects:update') assign(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { assigneeId: string | null }) { return this.projectsService.assign(user, id, body.assigneeId); }
+  @Post(':id/messages') @Permissions('projects:write') sendMessage(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { body: string }) { return this.projectsService.sendMessage(user, id, body.body); }
+  @Post(':id/files/initiate') @Permissions('projects:write') initiateUpload(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: any) { return this.projectsService.initiateUpload(user, id, body); }
+  @Post(':id/files/:fileId/presign-part') @Permissions('projects:write') presignPart(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string, @Param('fileId') fileId: string, @Body() body: { partNumber: number }) { return this.projectsService.presignPart(user, id, fileId, body.partNumber); }
+  @Post(':id/files/:fileId/complete') @Permissions('projects:write') completeUpload(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string, @Param('fileId') fileId: string, @Body() body: { parts: any }) { return this.projectsService.completeUpload(user, id, fileId, body.parts); }
+  @Delete(':id/files/:fileId') @Permissions('projects:write') abortUpload(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string, @Param('fileId') fileId: string) { return this.projectsService.abortUpload(user, id, fileId); }
+  @Get(':id/files/:fileId/scan') @Permissions('projects:read') scanStatus(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string, @Param('fileId') fileId: string) { return this.projectsService.scanStatus(user, id, fileId); }
+  @Get(':id/files/:fileId/download') @Permissions('projects:read') download(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string, @Param('fileId') fileId: string) { return this.projectsService.download(user, id, fileId); }
+}

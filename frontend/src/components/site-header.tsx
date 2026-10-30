@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 const desktopLinks = [
   ["Home", "/"],
   ["Services", "/services"],
+  ["Shop", "/shop"],
   ["CV Builder", "/cv-builder"],
   ["AI Assistant", "/business-assistant"],
   ["Documents", "/documents"],
@@ -19,6 +20,7 @@ const desktopLinks = [
 const mobileLinks = [
   ["Home", "/"],
   ["Services", "/services"],
+  ["Shop Templates", "/shop"],
   ["CV Builder Pro", "/cv-builder"],
   ["AI Assistant Console", "/business-assistant"],
   ["My Documents Vault", "/documents"],
@@ -77,16 +79,18 @@ export default function SiteHeader() {
           </span>
         </Link>
 
-        {/* FIXED: Desktop nav - readable */}
         <nav aria-label="Main navigation" className="hidden items-center gap-1.5 text-[13px] lg:flex font-semibold">
           {desktopLinks.map(([label, href]) => {
             const active = isActive(href);
+            const isShop = href === "/shop";
             return (
               <Link
                 key={href}
                 href={href}
                 className={`rounded-full px-3.5 py-2 transition-all duration-200 border ${active
-                    ? "bg-white text-[#0F172A] border-white shadow-sm"
+                  ? "bg-white text-[#0F172A] border-white shadow-sm"
+                  : isShop
+                    ? "bg-[#D4AF37] text-black border-[#D4AF37] hover:bg-[#C9A227] font-black"
                     : "bg-slate-100 text-[#0F172A] border-slate-200 hover:bg-white hover:shadow-sm"
                   }`}
               >
@@ -96,7 +100,6 @@ export default function SiteHeader() {
           })}
         </nav>
 
-        {/* Actions */}
         <div className="hidden items-center gap-2 lg:flex">
           <Link href="/dashboard" className="rounded-full bg-white px-4 py-2 text-sm font-bold text-[#0F172A] hover:bg-slate-100 shadow-sm border border-slate-200">
             Client Portal
@@ -123,7 +126,6 @@ export default function SiteHeader() {
         </button>
       </div>
 
-      {/* Mobile drawer */}
       <div className={`fixed inset-0 z-50 lg:hidden ${open ? "visible" : "invisible pointer-events-none"}`}>
         <button className={`absolute inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity ${open ? "opacity-100" : "opacity-0"}`} onClick={() => setOpen(false)} />
         <div ref={menuRef} className={`absolute inset-y-0 right-0 flex w-[min(22rem,85vw)] flex-col bg-[#0F172A] p-6 shadow-2xl transition-transform ${open ? "translate-x-0" : "translate-x-full"}`}>
@@ -134,9 +136,10 @@ export default function SiteHeader() {
           <nav className="mt-5 flex flex-col gap-2">
             {mobileLinks.map(([label, href]) => {
               const isQuote = href === "/quote";
+              const isShop = href === "/shop";
               const active = isActive(href);
               return (
-                <Link key={href} href={href} onClick={() => setOpen(false)} className={`rounded-xl px-4 py-3 text-sm font-semibold ${isQuote ? "bg-[#D4AF37] text-black font-black text-center" : active ? "bg-white text-black" : "bg-slate-100 text-black hover:bg-white"}`}>
+                <Link key={href} href={href} onClick={() => setOpen(false)} className={`rounded-xl px-4 py-3 text-sm font-semibold ${isQuote ? "bg-[#D4AF37] text-black font-black text-center" : isShop ? "bg-[#D4AF37] text-black font-black" : active ? "bg-white text-black" : "bg-slate-100 text-black hover:bg-white"}`}>
                   {label}
                 </Link>
               );
@@ -147,4 +150,3 @@ export default function SiteHeader() {
     </header>
   );
 }
-

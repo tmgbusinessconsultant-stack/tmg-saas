@@ -7,7 +7,7 @@ async function loadContent(): Promise<HomepageContent> {
   try {
     const base = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
     if (!base) return defaultHomepageContent;
-    const res = await fetch(${base}/content/homepage, { cache: "no-store" });
+    const res = await fetch(`${base}/content/homepage`, { cache: "no-store" });
     if (!res.ok) return defaultHomepageContent;
     const data = await res.json();
     return {
@@ -86,3 +86,4 @@ export default async function TestimonialsPage() {
     </div>
   );
 }
+

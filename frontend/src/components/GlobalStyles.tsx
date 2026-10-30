@@ -153,3 +153,4 @@ export function triggerDesignUpdate(colors: any) {
         window.dispatchEvent(new CustomEvent("tmg_colors_updated", { detail: colors }));
     }
 }
+

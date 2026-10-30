@@ -17,3 +17,4 @@ export default function UpgradeModal({ isOpen, onClose, plan }) {
     </div>
   );
 }
+

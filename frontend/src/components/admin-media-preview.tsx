@@ -78,3 +78,4 @@ export default function AdminMediaPreview({ url, token, contentType, alt, classN
   }
   return <a href={objectUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold hover:border-zinc-900">Preview document</a>;
 }
+

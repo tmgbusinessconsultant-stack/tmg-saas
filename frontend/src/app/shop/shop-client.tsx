@@ -1,107 +1,61 @@
 "use client";
 import { useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { whatsappNumber } from "@/lib/contact-details";
 
-type Product = {
-    id: string;
-    title: string;
-    description: string;
-    price: number;
-    currency: string;
-    category: string;
-    features: string[];
-    downloadUrl: string | null;
-    bestseller?: boolean;
-    active?: boolean;
-};
+type Product = { id: string; title: string; description: string; price: number; currency: string; category: string; features: string[]; downloadUrl: string | null; imageUrl?: string | null; mediaId?: string | null; type?: "PRODUCT" | "SERVICE"; bestseller?: boolean; active?: boolean; };
 
-export default function ShopClient({ products }: { products: Product[] }) {
+export default function ShopClient({ products, title, subtitle }: { products: Product[], title: string, subtitle: string }) {
     const [filter, setFilter] = useState("All");
-    const categories = ["All", "Excel Template", "Power BI", "Bundle", "Service", "Consulting Kit"];
-    const activeProducts = products.filter(p => p.active !== false);
-    const filtered = filter === "All" ? activeProducts : activeProducts.filter(p => p.category === filter);
-
-    const whatsappLink = (p: Product) =>
-        `https://wa.me/${whatsappNumber}?text=Hi TMG, I want to buy: ${p.title} - $${p.price} USD`;
-
-    const handlePayPal = (product: Product) => {
-        if (!product.downloadUrl) {
-            window.open(whatsappLink(product), "_blank");
-            return;
-        }
-        const paypalMe = `https://www.paypal.com/paypalme/tmgbusiness/${product.price}`;
-        window.open(paypalMe, "_blank");
-        alert(`After PayPal payment of $${product.price} USD, send screenshot to WhatsApp and you get instant download link.`);
+    const [buying, setBuying] = useState<string | null>(null);
+    const router = useRouter();
+    const categories = ["All", ...Array.from(new Set(products.map(p=>p.category).filter(Boolean)))];
+    const filtered = filter==="All" ? products : products.filter(p=>p.category===filter);
+    const whatsappLink = (p: Product) => `https://wa.me/${whatsappNumber}?text=Hi TMG, I want to buy: ${p.title} - $${p.price} ${p.currency || 'USD'}`;
+    const handleBuyProduct = async (product: Product) => {
+      try {
+        setBuying(product.id);
+        const apiBase = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "") || "http://localhost:3001";
+        const base = apiBase.endsWith("/api") ? apiBase : `${apiBase}/api`;
+        const orderRes = await fetch(`${base}/payments/shop/orders`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ product }) });
+        const order = await orderRes.json();
+        const captureRes = await fetch(`${base}/payments/shop/capture`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orderID: order.id, product }) });
+        const capture = await captureRes.json();
+        if (capture.success) {
+          if (product.downloadUrl) window.open(product.downloadUrl, "_blank");
+          else if (product.mediaId) window.open(`${base}/content/media/${product.mediaId}/download?token=${capture.downloadToken}`, "_blank");
+          router.push(`/shop/success?productId=${product.id}&token=${capture.downloadToken}`);
+        } else throw new Error("Capture failed");
+      } catch (e) {
+        window.open(whatsappLink(product), "_blank");
+      } finally { setBuying(null); }
     };
-
     return (
-        <div className="w-full" style={{ background: "var(--background)" }}>
+        <div className="w-full">
             <section className="text-white py-16" style={{ background: "var(--header-bg)" }}>
                 <div className="mx-auto px-6" style={{ maxWidth: "var(--container-max)" }}>
-                    <p className="uppercase tracking-[0.2em] text-xs font-semibold" style={{ color: "var(--gold)" }}>TMG Shop</p>
-                    <h1 className="font-black text-4xl mt-3" style={{ fontFamily: "var(--font-family)" }}>
-                        Templates That <span style={{ color: "var(--gold)" }}>Make Money</span>
-                    </h1>
-                    <p className="mt-4 opacity-70 max-w-2xl">Buy once, use forever. Instant delivery via WhatsApp after payment. All prices in USD.</p>
+                    <p className="uppercase tracking-[0.2em] text-xs font-semibold" style={{ color: "var(--gold)" }}>TMG SHOP</p>
+                    <h1 className="font-black text-4xl mt-3">{title}</h1>
+                    <p className="mt-4 opacity-70 max-w-2xl">{subtitle}</p>
                 </div>
             </section>
-
             <div className="mx-auto px-6 py-8 flex flex-wrap gap-2" style={{ maxWidth: "var(--container-max)" }}>
-                {categories.map(c => (
-                    <button key={c} onClick={() => setFilter(c)}
-                        className={`px-4 py-2 rounded-full text-sm font-semibold border transition ${filter === c ? 'text-black' : 'bg-white hover:bg-slate-50'}`}
-                        style={{ background: filter === c ? "var(--gold)" : "var(--card-bg)", borderColor: "var(--border-color)", borderRadius: "var(--button-radius)" }}>
-                        {c}
-                    </button>
-                ))}
+                {categories.map(c => (<button key={c} onClick={() => setFilter(c)} className={`px-4 py-2 rounded-full text-sm font-semibold border ${filter===c?'text-black':'bg-white'}`} style={{ background: filter===c?"var(--gold)":"var(--card-bg)" }}>{c}</button>))}
             </div>
-
-            {filtered.length === 0 ? (
-              <div className="mx-auto px-6 pb-20" style={{ maxWidth: "var(--container-max)" }}>
-                <div className="rounded-[24px] border border-dashed border-zinc-300 bg-white p-12 text-center">
-                  <div className="mx-auto h-12 w-12 rounded-full bg-zinc-900 text-white grid place-items-center font-bold text-xl">🛒</div>
-                  <h3 className="mt-6 font-semibold text-lg">{activeProducts.length === 0 ? "No products published yet" : "No products in this category"}</h3>
-                  <p className="mt-2 text-sm leading-6 text-zinc-500 max-w-xl mx-auto">
-                    {activeProducts.length === 0 
-                      ? "This shop is 100% admin-controlled. Go to Admin → Content → Shop Products → Click + Add Product → Fill real product details → Check Active → Save. Even empty is allowed, you control everything."
-                      : "Try another category or clear filter."}
-                  </p>
-                  <div className="mt-6 flex justify-center gap-3">
-                    {activeProducts.length === 0 ? (
-                      <Link href="/admin/content/shop" className="rounded-full bg-zinc-900 px-6 py-2.5 text-sm font-bold text-white hover:bg-black">Go to Shop Admin</Link>
-                    ) : (
-                      <button onClick={()=>setFilter("All")} className="rounded-full bg-zinc-900 px-6 py-2.5 text-sm font-bold text-white">Show All</button>
-                    )}
-                    <Link href="/" className="rounded-full border border-zinc-200 bg-white px-6 py-2.5 text-sm font-bold">Back Home</Link>
-                  </div>
-                  <p className="mt-4 text-xs text-zinc-400">{activeProducts.length} active products • Admin can edit/approve/delete anytime</p>
-                </div>
-              </div>
-            ) : (
+            {filtered.length===0 ? (<div className="mx-auto px-6 pb-20 text-center">No products in this category</div>) : (
               <div className="mx-auto px-6 pb-20 grid md:grid-cols-2 xl:grid-cols-3 gap-6" style={{ maxWidth: "var(--container-max)" }}>
                   {filtered.map(product => (
-                      <div key={product.id} className="p-5 shadow-sm hover:shadow-lg transition hover:-translate-y-1 bg-white" style={{ borderRadius: "var(--radius)", borderWidth: "var(--border-width)", borderColor: "var(--border-color)" }}>
+                      <div key={product.id} className="p-5 bg-white shadow-sm" style={{ borderRadius: "var(--radius)", border: "1px solid var(--border-color)" }}>
                           {product.bestseller && <div className="inline-block text-xs font-bold px-2 py-1 rounded mb-3 text-black" style={{ background: "var(--gold)" }}>BESTSELLER</div>}
-                          <div className="h-44 bg-slate-100 rounded-lg mb-4 flex items-center justify-center font-bold opacity-50" style={{ borderRadius: "var(--radius)" }}>{product.category}</div>
-                          <div className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--gold)"}}>{product.category}</div>
-                          <h3 className="font-bold text-lg mt-2" style={{ fontSize: "var(--h3-size)" }}>{product.title}</h3>
+                          {product.imageUrl ? (<img src={product.imageUrl} alt={product.title} className="h-44 w-full object-cover rounded-lg mb-4" />) : (<div className="h-44 bg-slate-100 rounded-lg mb-4 flex items-center justify-center font-bold opacity-50">{product.category}</div>)}
+                          <div className="text-xs font-bold uppercase" style={{ color: "var(--gold)"}}>{product.category} • Instant Download</div>
+                          <h3 className="font-bold text-lg mt-2">{product.title}</h3>
                           <p className="text-sm mt-2 opacity-70">{product.description}</p>
-                          <ul className="mt-4 space-y-1 text-xs">
-                              {product.features.map(f => <li key={f} className="flex gap-2"><span style={{ color: "var(--gold)" }}>✓</span> {f}</li>)}
-                          </ul>
-                          <div className="mt-6 flex items-center justify-between">
-                              <div><span className="font-black text-2xl">${product.price} {product.currency}</span></div>
-                          </div>
+                          <div className="mt-6 flex items-center justify-between"><span className="font-black text-2xl">${product.price} {product.currency}</span></div>
                           <div className="mt-4 grid grid-cols-2 gap-2">
-                              <button onClick={() => handlePayPal(product)} className="py-3 font-bold text-sm text-center hover:opacity-90 cursor-pointer" style={{ background: "#FFC439", color: "#003087", borderRadius: "var(--button-radius)" }}>
-                                  Pay with PayPal
-                              </button>
-                              <a href={whatsappLink(product)} target="_blank" className="py-3 font-bold text-sm text-center text-white" style={{ background: "#25D366", borderRadius: "var(--button-radius)" }}>
-                                  WhatsApp Order
-                              </a>
+                              <button disabled={buying===product.id} onClick={() => handleBuyProduct(product)} className="py-3 font-bold text-sm" style={{ background: "#FFC439", color: "#003087", borderRadius: "var(--button-radius)" }}>{buying===product.id ? "..." : "Buy Now"}</button>
+                              <a href={whatsappLink(product)} target="_blank" className="py-3 font-bold text-sm text-center text-white" style={{ background: "#25D366", borderRadius: "var(--button-radius)" }}>WhatsApp</a>
                           </div>
-                          <p className="text-[11px] mt-3 opacity-50 text-center">Instant delivery after payment screenshot</p>
                       </div>
                   ))}
               </div>

@@ -1,9 +1,9 @@
-import { Injectable, ForbiddenException } from "@nestjs/common";
+import * as common from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { AiService } from "../ai/ai.service";
 import { UserPlansService } from "../user-plans/user-plans.service";
 
-@Injectable()
+@common.Injectable()
 export class RiskAssessmentsService {
   constructor(private prisma: PrismaService, private ai: AiService, private userPlans: UserPlansService) {}
 

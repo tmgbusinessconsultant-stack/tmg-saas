@@ -2,12 +2,17 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { configureApp } from './configure-app';
 import { ValidationPipe, Logger } from '@nestjs/common';
+import { json, urlencoded } from 'express';
 
 async function bootstrap() {
-(BigInt.prototype as any).toJSON = function () { return Number(this); };
+  (BigInt.prototype as any).toJSON = function () { return Number(this); };
 
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
+
+  // FIX: Increase payload limit to 50mb - fixes request entity too large
+  app.use(json({ limit: '50mb' }));
+  app.use(urlencoded({ limit: '50mb', extended: true }));
 
   configureApp(app);
 
