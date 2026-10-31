@@ -1,0 +1,2 @@
+"use client";import { useEffect,useState } from "react";import { API_URL } from "@/lib/api";export default function Page(){const [data,setData]=useState([]);useEffect(()=>{fetch(`${API_URL}/productivity-plans`,{headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}}).then(r=>r.json()).then(setData).catch(()=>{});},[]);return <div className="p-6"><h1 className="text-2xl font-bold">Productivity Plans</h1><p>Advanced table: productivity_plans exists</p><pre className="mt-4 bg-gray-100 p-2 text-xs">{JSON.stringify(data,null,2).slice(0,500)}</pre></div>}
+

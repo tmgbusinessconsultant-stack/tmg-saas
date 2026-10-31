@@ -65,6 +65,136 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
     return p.trim();
   }
 
+  // === UPGRADE ADDED: GENERATE LAYOUT FOR BUILDER — BEST SAAS ===
+  async generateLayout(dto: {
+    companyName: string;
+    industry: string;
+    tone: string;
+    componentType: 'hero' | 'features' | 'full';
+    prompt?: string;
+    targetAudience?: string;
+    siteId?: string;
+  }) {
+    const company = dto.companyName?.trim() || 'Your Company';
+    const industry = dto.industry || 'Corporate Consulting';
+    const tone = dto.tone || 'Professional';
+    const type = dto.componentType || 'hero';
+    const userPrompt = dto.prompt || '';
+
+    // Helper to build Qatar-optimized copy
+    const buildCopy = (base: string) => {
+      if (tone === 'Luxury') return `${base} — Exclusive excellence in Doha`;
+      if (tone === 'Bold') return `${base} — We deliver results, fast`;
+      if (tone === 'Friendly') return `${base} — Your trusted partner in Qatar`;
+      return `${base} — Professional ${industry} solutions in Qatar`;
+    };
+
+    if (type === 'hero') {
+      const heading = userPrompt ? `${company} — ${userPrompt.slice(0, 60)}` : `${company} — Leading ${industry} in Qatar`;
+      const subtext = buildCopy(`Trusted by 500+ businesses in Doha for company formation, licensing, and growth strategy`);
+      return {
+        heading,
+        title: heading,
+        subtext,
+        description: subtext,
+        ctaText: `Start with ${company}`,
+        type: 'hero',
+        companyName: company,
+        industry,
+        tone,
+        blocks: [
+          { type: "Hero", props: { id: `hero_${Date.now()}`, title: heading, subtitle: subtext, ctaText: "Get Free Consultation", ctaLink: "/contact", bg: "#0a2540" } }
+        ],
+        content: [
+          { type: "Hero", props: { id: `hero_${Date.now()}`, title: heading, subtitle: subtext, ctaText: "Get Free Consultation", ctaLink: "/contact", bg: "#0a2540" } }
+        ]
+      };
+    }
+
+    if (type === 'features') {
+      const features = [
+        { title: `${industry} Formation`, desc: `End-to-end company setup, CR, and licensing in Qatar — fast track`, icon: "🏢" },
+        { title: "PRO & Government", desc: `MOCI, MOI, MOTC approvals, visas, WPS, and compliance handled`, icon: "📑" },
+        { title: "Growth & Local Partner", desc: `Market entry strategy, Qatari sponsor, and business network`, icon: "🚀" }
+      ];
+      return {
+        features,
+        items: features,
+        type: 'features',
+        blocks: [
+          { type: "CardGrid", props: { id: `feat_${Date.now()}`, title: `Why Choose ${company}`, itemsJson: JSON.stringify(features, null, 2) } }
+        ],
+        content: [
+          { type: "CardGrid", props: { id: `feat_${Date.now()}`, title: `Why Choose ${company}`, itemsJson: JSON.stringify(features, null, 2) } }
+        ]
+      };
+    }
+
+    // FULL PAGE — BEST UPGRADE
+    const fullFeatures = [
+      { title: `${industry} Setup`, desc: `Complete formation in Qatar — 48h fast track`, icon: "🏢" },
+      { title: "Legal & Compliance", desc: "MOCI, MOI, Ministry approvals + legal structure", icon: "⚖️" },
+      { title: "Visas & PRO", desc: "Work permits, family visas, and document clearing", icon: "🛂" },
+      { title: "Bank & Finance", desc: "Corporate bank account, accounting, tax support", icon: "🏦" },
+      { title: "Growth Strategy", desc: "Market entry, partnerships, and scaling in GCC", icon: "📈" },
+      { title: "Local Sponsor", desc: "Trusted Qatari partner network for mainland LLC", icon: "🤝" }
+    ];
+
+    const heroTitle = `${company} — Your Partner for ${industry} in Qatar`;
+    const heroSub = `Helping ambitious companies build, launch, and scale in Doha with ${tone.toLowerCase()} ${industry} expertise. Trusted, compliant, and fast.`;
+
+    return {
+      heading: heroTitle,
+      subtext: heroSub,
+      features: fullFeatures,
+      type: 'full',
+      companyName: company,
+      industry,
+      tone,
+      blocks: [
+        { type: "Hero", props: { id: `hero_full_${Date.now()}`, title: heroTitle, subtitle: heroSub, ctaText: "Book Free Consultation", ctaLink: "/contact", bg: "#0a2540" } },
+        { type: "CardGrid", props: { id: `grid_full_${Date.now()}`, title: `Why Businesses Choose ${company}`, itemsJson: JSON.stringify(fullFeatures.slice(0, 3), null, 2) } },
+        { type: "Text", props: { id: `txt_${Date.now()}`, text: `${company} has helped 500+ companies establish in Qatar. From startup to enterprise, we handle formation, legal, and growth — so you focus on business.`, align: "center" } },
+        { type: "CardGrid", props: { id: `grid2_${Date.now()}`, title: "Complete Business Support", itemsJson: JSON.stringify(fullFeatures.slice(3, 6), null, 2) } },
+        { type: "Spacer", props: { id: `spacer_${Date.now()}`, height: "h-16" } }
+      ],
+      content: [
+        { type: "Hero", props: { id: `hero_full_${Date.now()}`, title: heroTitle, subtitle: heroSub, ctaText: "Book Free Consultation", ctaLink: "/contact", bg: "#0a2540" } },
+        { type: "CardGrid", props: { id: `grid_full_${Date.now()}`, title: `Why Businesses Choose ${company}`, itemsJson: JSON.stringify(fullFeatures.slice(0, 3), null, 2) } },
+        { type: "Text", props: { id: `txt_${Date.now()}`, text: `${company} has helped 500+ companies establish in Qatar. From startup to enterprise, we handle formation, legal, and growth — so you focus on business.`, align: "center" } },
+        { type: "CardGrid", props: { id: `grid2_${Date.now()}`, title: "Complete Business Support", itemsJson: JSON.stringify(fullFeatures.slice(3, 6), null, 2) } },
+        { type: "Spacer", props: { id: `spacer_${Date.now()}`, height: "h-16" } }
+      ]
+    };
+  }
+
+  // === UPGRADE ADDED: SCAFFOLD FOR SITES PAGE (AI CREATE) ===
+  async generateSiteScaffold(dto: { name: string; industry?: string; tone?: string; description?: string }) {
+    const layout = await this.generateLayout({
+      companyName: dto.name,
+      industry: dto.industry || 'Corporate Consulting',
+      tone: dto.tone || 'Professional',
+      componentType: 'full',
+      prompt: dto.description || ''
+    });
+    return {
+      name: dto.name,
+      industry: dto.industry,
+      tone: dto.tone,
+      aiGenerated: true,
+      schemaVersion: 2,
+      seoTitle: `${dto.name} | Best ${dto.industry || 'Business'} in Qatar`,
+      seoDesc: layout.subtext,
+      initialBlocks: layout.blocks,
+      settings: {
+        initialHero: layout,
+        aiGenerated: true,
+        industry: dto.industry,
+        tone: dto.tone
+      }
+    };
+  }
+
   createSessionCookie(cookieHeader?: string) {
     const supplied = this.readCookie(cookieHeader, 'tmg_ai_session');
     const sessionId = supplied ? this.verifySession(supplied) : null;

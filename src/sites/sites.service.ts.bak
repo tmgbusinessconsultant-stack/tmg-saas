@@ -1,0 +1,110 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+
+@Injectable()
+export class SitesService {
+  constructor(private prisma: PrismaService) { }
+
+  async createSite(userId: string, dto: any) {
+    const subdomain = dto.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 20) + '-' + Date.now().toString().slice(-4);
+    const site = await (this.prisma as any).site.create({
+      data: {
+        userId,
+        name: dto.name,
+        subdomain,
+        domain: subdomain + '.tmgbusinessconsulting.com',
+        status: 'DRAFT',
+        settings: dto.settings || {},
+      },
+    });
+    await (this.prisma as any).sitePage.create({
+      data: {
+        siteId: site.id,
+        slug: 'home',
+        title: 'Home',
+        description: 'Home page',
+        seoTitle: dto.name,
+        seoDesc: dto.settings?.initialHero?.subtext || 'Helping businesses grow in Qatar',
+        content: dto.settings?.initialHero ? {
+          content: [
+            { type: "Heading", props: { id: "hero_h", text: dto.settings.initialHero.heading, level: "h1" } },
+            { type: "Text", props: { id: "hero_t", text: dto.settings.initialHero.subtext } }
+          ],
+          root: { props: { siteName: dto.name } }
+        } : { content: [], root: { props: { siteName: dto.name } } },
+        schemaVersion: 2,
+        isHome: true,
+        order: 0,
+      },
+    });
+    return site;
+  }
+
+  async listSites(userId: string) {
+    return (this.prisma as any).site.findMany({ where: { userId }, include: { pages: true }, orderBy: { createdAt: 'desc' } });
+  }
+
+  async getSite(id: string) {
+    const site = await (this.prisma as any).site.findUnique({ where: { id }, include: { pages: { orderBy: { order: 'asc' } } } });
+    if (!site) throw new NotFoundException('Site not found');
+    return site;
+  }
+
+  async getSiteByDomain(domain: string) {
+    return (this.prisma as any).site.findFirst({ where: { OR: [{ domain }, { subdomain: domain }] }, include: { pages: { orderBy: { order: 'asc' } } } });
+  }
+
+  async getSiteBySubdomain(subdomain: string) {
+    return (this.prisma as any).site.findFirst({ where: { subdomain }, include: { pages: { orderBy: { order: 'asc' } } } });
+  }
+
+  async updatePage(siteId: string, slug: string, payload: any) {
+    return this.savePageLayout(siteId, slug, payload);
+  }
+
+  async savePageLayout(siteId: string, slug: string, payload: any) {
+    let finalContent: any = payload?.data || payload?.content || payload;
+    if (typeof finalContent === 'string') {
+      try { finalContent = JSON.parse(finalContent); } catch { finalContent = { content: [], root: { props: {} } }; }
+    }
+    if (!finalContent.content && !finalContent.root) {
+      finalContent = { content: Array.isArray(finalContent) ? finalContent : [], root: { props: {} } };
+    }
+    const meta = payload?.meta || {};
+    const title = meta.title || finalContent?.root?.props?.siteName || finalContent?.title || slug;
+    const description = meta.description || '';
+
+    return (this.prisma as any).sitePage.upsert({
+      where: { siteId_slug: { siteId, slug } },
+      update: {
+        content: finalContent,
+        title,
+        description,
+        seoTitle: meta.title || title,
+        seoDesc: description,
+        schemaVersion: 2,
+      },
+      create: {
+        siteId,
+        slug,
+        title: title || 'Untitled',
+        description,
+        content: finalContent,
+        seoTitle: meta.title,
+        seoDesc: description,
+        schemaVersion: 2,
+        isHome: slug === 'home',
+        order: slug === 'home' ? 0 : 1,
+      },
+    });
+  }
+
+  async deletePage(siteId: string, slug: string) {
+    if (slug === 'home') throw new NotFoundException('Cannot delete home');
+    return (this.prisma as any).sitePage.delete({ where: { siteId_slug: { siteId, slug } } });
+  }
+
+  async publish(siteId: string) {
+    return (this.prisma as any).site.update({ where: { id: siteId }, data: { status: 'PUBLISHED', publishedAt: new Date() } });
+  }
+}

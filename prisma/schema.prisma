@@ -502,3 +502,64 @@ enum UserRole {
   STAFF
   CLIENT
 }
+
+// === WIX BUILDER - UPDATED SAFE TABLES ===
+model Site {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  domain    String?  @unique
+  subdomain String?  @unique
+  templateId String?
+  status    String   @default("DRAFT")
+  publishedAt DateTime?
+  settings  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  pages     SitePage[]
+  logoUrl    String?
+  headerData Json?
+  footerData Json?
+  @@index([userId, status])
+  @@index([subdomain])
+}
+
+model SitePage {
+  id        String   @id @default(uuid())
+  siteId    String
+  slug      String
+  title     String
+  description String?
+  content   Json     @default("[]")
+  seoTitle  String?
+  seoDesc   String?
+  schemaVersion Int  @default(1)
+  isHome    Boolean  @default(false)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  @@unique([siteId, slug])
+  @@index([siteId, order])
+  @@index([siteId, slug])
+}
+
+model Template {
+  id          String   @id @default(uuid())
+  name        String
+  category    String
+  thumbnail   String
+  content     Json
+  isPremium   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model SiteDomain {
+  id          String   @id @default(uuid())
+  siteId      String
+  domain      String   @unique
+  status      String   @default("PENDING")
+  sslStatus   String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  verifiedAt  DateTime?
+}

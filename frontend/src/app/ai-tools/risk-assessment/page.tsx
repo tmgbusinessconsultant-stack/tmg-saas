@@ -24,11 +24,19 @@ export default function RiskAssessmentPage() {
   const [country, setCountry] = useState<(typeof COUNTRIES)[number]>(COUNTRIES[0]);
   const [form, setForm] = useState({ businessType: '', industry: 'Technology', location: 'Doha', investmentAmount: 50000, teamSize: 5, concerns: '', currency: 'QAR' });
 
-  useEffect(() => { setToken(sessionStorage.getItem('accessToken') || localStorage.getItem('accessToken') || ''); }, []);
+  useEffect(() => {
+    // Fixed: checks both storages as you had
+    const t = sessionStorage.getItem('accessToken') || localStorage.getItem('accessToken') || localStorage.getItem('token') || '';
+    setToken(t);
+  }, []);
+
   useEffect(() => { if (token) loadHistory(); }, [token]);
 
   const loadHistory = async () => {
-    try { const data = await apiRequest<Assessment[]>('/risk-assessments', token); setHistory(data); } catch { }
+    try {
+      const data = await apiRequest<Assessment[]>('/risk-assessments', token);
+      setHistory(Array.isArray(data) ? data : []);
+    } catch { }
   };
 
   const submit = async () => {
@@ -37,8 +45,9 @@ export default function RiskAssessmentPage() {
     try {
       const payload = { ...form, country: country.code, currency: country.currency, teamSize: Number(form.teamSize), investmentAmount: Number(form.investmentAmount) };
       const data = await apiRequest<Assessment>('/risk-assessments', token, { method: 'POST', body: JSON.stringify(payload) });
-      setResult(data); void loadHistory();
-    } catch (e: any) { console.error(e); } finally { setLoading(false); }
+      setResult(data);
+      await loadHistory();
+    } catch (e: any) { console.error(e); alert(e.message || 'Failed'); } finally { setLoading(false); }
   };
 
   const color = (score?: string) => score?.includes('High') ? 'bg-red-500' : score?.includes('Medium') ? 'bg-amber-500' : 'bg-emerald-500';
@@ -120,7 +129,7 @@ export default function RiskAssessmentPage() {
                   <span className={`text-white text-xs px-3 py-1 rounded-full font-semibold ${color(result.overallScore)}`}>{result.overallScore || 'Analysis'}</span>
                 </div>
                 <div className="mt-5 space-y-3">
-                  {(result.riskMatrix || result.recommendations?.riskMatrix || []).map((r: any, i: number) => (
+                  {(result.riskMatrix || (result.recommendations as any)?.riskMatrix || []).map((r: any, i: number) => (
                     <div key={i} className="flex gap-3 rounded-[12px] border border-zinc-100 bg-zinc-50 p-3">
                       <span className={`w-1.5 rounded-full ${color(r.score)}`} />
                       <div className="flex-1">
@@ -134,7 +143,7 @@ export default function RiskAssessmentPage() {
                   ))}
                 </div>
                 <div className="mt-5 rounded-[12px] bg-zinc-50 border border-zinc-100 p-3 text-sm text-zinc-700">
-                  <span className="font-semibold text-zinc-900">Executive:</span> {result.recommendations?.executiveSummary || result.recommendations?.goNoGo || 'Mitigation required'}<br />
+                  <span className="font-semibold text-zinc-900">Executive:</span> {result.recommendations?.executiveSummary || (result.recommendations as any)?.goNoGo || 'Mitigation required'}<br />
                   <span className="text-xs text-zinc-500">{country.law}</span>
                 </div>
                 <div className="mt-3 text-xs text-zinc-400">Investment: {result.investmentAmount} {result.currency} • Team: {result.teamSize} • {result.country}</div>
@@ -146,4 +155,3 @@ export default function RiskAssessmentPage() {
     </div>
   );
 }
-

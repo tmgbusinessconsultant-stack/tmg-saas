@@ -17,6 +17,7 @@ import { QuoteRequestsModule } from './quote-requests/quote-requests.module';
 import { PaymentsModule } from './payments/payments.module';
 import { ProjectsModule } from './projects/projects.module';
 import { ContentModule } from './content/content.module';
+import { SitesModule } from './sites/sites.module';
 import { IntegrationsModule } from './integrations/integrations.module';
 import { SettingsModule } from './settings/settings.module';
 import { AiModule } from './ai/ai.module';
@@ -42,6 +43,7 @@ import { PaypalModule } from './paypal/paypal.module';
     PaymentsModule,
     ProjectsModule,
     ContentModule,
+    SitesModule,
     IntegrationsModule,
     SettingsModule,
     AiModule,
@@ -60,5 +62,6 @@ import { PaypalModule } from './paypal/paypal.module';
   ],
 })
 export class AppModule {}
+
 
 

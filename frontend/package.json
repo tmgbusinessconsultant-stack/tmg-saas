@@ -12,6 +12,7 @@
   "dependencies": {
     "@ai-sdk/openai": "^4.0.96",
     "@marsidev/react-turnstile": "^1.6.3",
+    "@measured/puck": "^0.20.2",
     "@paypal/paypal-js": "^11.3.0",
     "@paypal/react-paypal-js": "^10.6.1",
     "@tiptap/extension-image": "^3.0.0",
