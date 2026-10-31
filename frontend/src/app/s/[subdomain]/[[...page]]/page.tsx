@@ -84,7 +84,7 @@ export default function PublicSite({ params }: { params: Promise<{ subdomain: st
                     {site.domain && <span className="ml-2 text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full">🌐 {site.domain}</span>}
                 </div>
                 <div className="hidden md:flex gap-6">
-                    {(customMenu || site.pages?.sort((a: any, b: any) => a.order - b.order)).map((p: any) => {
+                    {(customMenu || (site.pages || []).sort((a: any, b: any) => a.order - b.order)).map((p: any) => {
                         const isCustom = !!customMenu;
                         const href = isCustom ? p.href : `/s/${subdomain}${p.slug === "home" ? "" : "/" + p.slug}`;
                         const label = isCustom ? p.label : (p.seoTitle || p.title || p.slug);
@@ -136,3 +136,4 @@ export default function PublicSite({ params }: { params: Promise<{ subdomain: st
         </div>
     );
 }
+
