@@ -1,5 +1,16 @@
 "use client";
-export default function SidebarPanel({ gallery, onSelectAsset, onSelectChat }: any) {
+import Image from "next/image";
+import type { AssetPayload } from "./PreviewPanel";
+
+type GalleryAsset = { url: string; prompt: string; createdAt: Date };
+
+export default function SidebarPanel({
+  gallery,
+  onSelectAsset,
+}: {
+  gallery: GalleryAsset[];
+  onSelectAsset: (asset: AssetPayload) => void;
+}) {
   return (
     <div className="flex flex-col h-full">
       <div className="p-3">
@@ -29,11 +40,11 @@ export default function SidebarPanel({ gallery, onSelectAsset, onSelectChat }: a
         {gallery.length === 0 ? (
           <p className="text-xs text-gray-400 px-3">No assets yet. Generate a logo!</p>
         ) : (
-          gallery.map((g:any, i:number)=>(
-            <div key={i} onClick={()=>onSelectAsset({ type: 'image', url: g.url, prompt: g.prompt })} className="cursor-pointer rounded-lg border overflow-hidden hover:shadow-md transition">
-              <img src={g.url} alt={g.prompt} className="w-full h-24 object-cover" />
+          gallery.map(g => (
+            <button type="button" key={`${g.createdAt.getTime()}-${g.prompt}`} onClick={() => onSelectAsset({ type: 'image', url: g.url, prompt: g.prompt })} className="w-full text-left cursor-pointer rounded-lg border overflow-hidden hover:shadow-md transition">
+              <Image src={g.url} alt={g.prompt} width={480} height={180} unoptimized className="w-full h-24 object-cover" />
               <p className="text-[10px] p-1 truncate">{g.prompt?.substring(0,30)}</p>
-            </div>
+            </button>
           ))
         )}
       </div>
@@ -44,4 +55,3 @@ export default function SidebarPanel({ gallery, onSelectAsset, onSelectChat }: a
     </div>
   );
 }
-

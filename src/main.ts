@@ -1,3 +1,4 @@
+﻿import './common/sentry';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { configureApp } from './configure-app';
@@ -15,7 +16,9 @@ async function bootstrap() {
   app.use(json({ limit: '50mb' }));
   app.use(urlencoded({ limit: '50mb', extended: true }));
 
-  // === STEP 4: Serve uploaded logos ===
+  app.use('/uploads/projects', (_req, res) => res.sendStatus(404));
+
+  // === STEP 4: Serve public uploaded assets ===
   app.use('/uploads', express.static(join(process.cwd(), 'uploads')));
 
   configureApp(app);
@@ -40,8 +43,8 @@ async function bootstrap() {
   const port = Number(process.env.PORT) || 4000;
   await app.listen(port, '0.0.0.0');
 
-  logger.log(`🚀 Production Stack Engine Active on http://localhost:${port}/api`);
-  logger.log(`📁 Uploads served at http://localhost:${port}/uploads`);
+  logger.log(`ðŸš€ Production Stack Engine Active on http://localhost:${port}/api`);
+  logger.log(`ðŸ“ Uploads served at http://localhost:${port}/uploads`);
 }
 
 void bootstrap();

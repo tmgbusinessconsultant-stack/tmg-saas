@@ -34,6 +34,10 @@ type PaymentStats = {
 
 const quoteStatuses = ["PENDING", "REVIEWING", "QUOTED", "ACCEPTED", "DECLINED", "CLOSED"];
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function getToken() {
   if (typeof window === "undefined") return "";
   return (
@@ -149,7 +153,7 @@ export default function AdminDashboardPage() {
       });
       if (!response.ok) {
         const body: unknown = await response.json().catch(() => ({}));
-        const message = typeof body === "object" && body !== null && "message" in body && typeof (body as any).message=== "string" ? (body as any).message : `Could not update (${response.status})`;
+        const message = isRecord(body) && typeof body.message === "string" ? body.message : `Could not update (${response.status})`;
         throw new Error(message);
       }
       setQuotes((current) => current.map((quote) => quote.id === id ? { ...quote, status } : quote));
@@ -168,7 +172,7 @@ export default function AdminDashboardPage() {
       });
       if (!res.ok) throw new Error(`Delete failed ${res.status}`);
       setQuotes((c) => c.filter(q => q.id !== id));
-    } catch (e: any) { setError(e.message); }
+    } catch (error: unknown) { setError(error instanceof Error ? error.message : "Could not delete quote request."); }
   }
 
   async function logout() {
@@ -306,4 +310,3 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
-

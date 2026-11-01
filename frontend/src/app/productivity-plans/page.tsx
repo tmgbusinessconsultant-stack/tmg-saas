@@ -3,8 +3,22 @@ import { useEffect, useState } from "react";
 import { API_URL, getToken } from "@/lib/api";
 import Link from "next/link";
 
+type PlanRecord = { id?: string; title?: string; name?: string; createdAt?: string };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isPlanRecord(value: unknown): value is PlanRecord {
+  return isRecord(value) &&
+    (value.id === undefined || typeof value.id === "string") &&
+    (value.title === undefined || typeof value.title === "string") &&
+    (value.name === undefined || typeof value.name === "string") &&
+    (value.createdAt === undefined || typeof value.createdAt === "string");
+}
+
 export default function Page() {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<PlanRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,8 +29,8 @@ export default function Page() {
     })
       .then((r) => r.json())
       .then((j) => {
-        const arr = Array.isArray(j) ? j : j.data || j.documents || [];
-        setData(arr);
+        const arr = Array.isArray(j) ? j : isRecord(j) && Array.isArray(j.data) ? j.data : isRecord(j) && Array.isArray(j.documents) ? j.documents : [];
+        setData(arr.filter(isPlanRecord));
       })
       .catch(() => { })
       .finally(() => setLoading(false));
@@ -26,7 +40,7 @@ export default function Page() {
     <div className="p-6 max-w-5xl mx-auto">
       <h1 className="text-2xl font-black">Productivity Plans</h1>
       <p className="text-sm text-slate-500">
-        Advanced table: productivity_plans exists — {loading ? "loading" : `${data.length} records`}
+        {loading ? "Loading your saved plans…" : `${data.length} saved plans`}
       </p>
 
       {loading ? (
@@ -38,7 +52,7 @@ export default function Page() {
           <p className="text-3xl">⚡</p>
           <p className="font-black mt-2">No productivity plans yet</p>
           <p className="text-sm text-slate-500 mt-1">
-            Your table is empty — this was showing [] before. Create your first one.
+            Create a productivity plan with the planner and it will appear here.
           </p>
           <Link
             href="/ai-tools/productivity-planner"
@@ -47,17 +61,15 @@ export default function Page() {
             + Create Productivity Plan →
           </Link>
           <p className="mt-4 text-[11px] text-slate-400">
-            Old data was: [] — now replaced with BEST empty state
+            Plans created with your account appear in this library.
           </p>
         </div>
       ) : (
         <div className="mt-6 grid gap-2">
-          {data.map((d: any, i: number) => (
+          {data.map((d, i) => (
             <div key={d.id || i} className="border p-3 rounded-xl bg-white">
               <b className="text-sm">{d.title || d.name || `Plan ${i + 1}`}</b>
-              <pre className="mt-1 bg-gray-50 p-2 text-[11px] overflow-auto">
-                {JSON.stringify(d, null, 2).slice(0, 400)}
-              </pre>
+              {d.createdAt && <p className="mt-1 text-xs text-slate-500">Created {new Date(d.createdAt).toLocaleDateString()}</p>}
             </div>
           ))}
         </div>

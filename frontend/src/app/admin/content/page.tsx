@@ -1,6 +1,14 @@
 import Link from "next/link";
 
-const modules = [
+type ContentModule = {
+  title: string;
+  description: string;
+  href: string;
+  badge?: string;
+  highlight?: boolean;
+};
+
+const modules: ContentModule[] = [
   { title: "Website Builder", description: "AI layout generator, SEO, pages, publish — TMG Builder Pro v2 BEST", href: "/builder", badge: "✨ AI BEST", highlight: true },
   { title: "Blog Posts", description: "Write, schedule, publish, and optimize articles.", href: "/admin/content/blog" },
   { title: "Media Library", description: "Upload, scan, organize, preview, and publish media.", href: "/admin/content/media" },
@@ -24,7 +32,7 @@ export default function ContentManagementPage() {
         <Link href="/admin" className="rounded-xl border border-slate-300 px-5 py-2.5 font-bold hover:bg-slate-50">Admin dashboard</Link>
       </div>
       <nav aria-label="Content management modules" className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-        {modules.map((item: any) => (
+        {modules.map(item => (
           <Link key={item.href} href={item.href} className={`rounded-2xl border bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-md relative ${item.highlight ? 'border-blue-300 bg-gradient-to-br from-blue-50 to-white ring-1 ring-blue-100' : 'border-slate-200'}`}>
             {item.badge && <span className={`absolute top-4 right-4 text-[10px] font-black px-2.5 py-1 rounded-full ${item.highlight ? 'bg-blue-600 text-white' : 'bg-slate-900 text-white'}`}>{item.badge}</span>}
             <h2 className="text-xl font-black tracking-tight">{item.title}</h2>

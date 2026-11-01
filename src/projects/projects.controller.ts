@@ -28,7 +28,7 @@ export class ProjectsController {
   // --- NEW: Real upload that frontend project-delivery.ts expects ---
   @Post(':id/files/upload')
   @Permissions('projects:write')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 100 * 1024 * 1024 } }))
   async uploadFile(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id') id: string,

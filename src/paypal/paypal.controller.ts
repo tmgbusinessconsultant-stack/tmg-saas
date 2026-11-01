@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, Req, Headers, UseGuards } from '@nestjs/common';
 import { PaypalService } from './paypal.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Public } from '../auth/public.decorator';
@@ -9,7 +9,7 @@ export class PaypalController {
 
   @Public()
   @Get('webhook')
-  health() { return { status: 'TMG PayPal Webhook LIVE', time: new Date().toISOString() }; }
+  health() { return { status: 'PayPal webhook endpoint ready', time: new Date().toISOString() }; }
 
   @UseGuards(JwtAuthGuard)
   @Post('verify')
@@ -21,7 +21,10 @@ export class PaypalController {
 
   @Public()
   @Post('webhook')
-  async handleWebhook(@Body() event: any) {
-    return this.paypalService.handleWebhookEvent(event);
+  async handleWebhook(
+    @Body() event: unknown,
+    @Headers() headers: Record<string, string | string[] | undefined>,
+  ) {
+    return this.paypalService.handleWebhookEvent(event, headers);
   }
 }

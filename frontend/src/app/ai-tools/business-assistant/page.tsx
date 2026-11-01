@@ -61,7 +61,7 @@ export default function BusinessAssistantPage() {
       const data = await res.json();
       const assistantContent = data.message || `Guidance compiled for ${selectedCountry.country} under ${selectedCountry.law}.`;
       setMessages(prev => [...prev, { role: 'assistant', content: assistantContent, country: selectedCountry.country, currency: selectedCountry.currency }]);
-    } catch (e) {
+    } catch {
       setMessages(prev => [...prev, { role: 'assistant', content: 'Connection issue encountered. Please try your request again shortly.', country: selectedCountry.country, currency: selectedCountry.currency }]);
     } finally { setLoading(false); }
   };
@@ -116,4 +116,3 @@ export default function BusinessAssistantPage() {
     </div>
   );
 }
-

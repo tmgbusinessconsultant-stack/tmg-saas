@@ -28,7 +28,54 @@ const DEFAULTS = {
     borderWidth: "1px",
 } as const;
 
-type DesignColors = typeof DEFAULTS & Record<string, any>;
+type DesignKey = keyof typeof DEFAULTS;
+type DesignColors = Record<DesignKey, string>;
+
+type SettingRow = { key: string; effectiveValue?: unknown };
+
+function isSafeCssValue(value: string): boolean {
+    return value.length <= 100 &&
+        !/[;{}<>]/.test(value) &&
+        !/(?:url|expression)\s*\(/i.test(value);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
+}
+
+function parseColors(value: unknown): Partial<DesignColors> | null {
+    let parsed = value;
+    if (typeof value === "string") {
+        try {
+            parsed = JSON.parse(value);
+        } catch {
+            return null;
+        }
+    }
+    if (!isRecord(parsed)) return null;
+
+    const colors: Partial<DesignColors> = {};
+    for (const key of Object.keys(DEFAULTS) as DesignKey[]) {
+        const color = parsed[key];
+        if (
+            typeof color === "string" &&
+            isSafeCssValue(color)
+        ) {
+            colors[key] = color;
+        }
+    }
+    return colors;
+}
+
+function isSettingRows(value: unknown): value is SettingRow[] {
+    return Array.isArray(value) && value.every(
+        (row): row is SettingRow => isRecord(row) && typeof row.key === "string",
+    );
+}
+
+function isDesignKey(value: string): value is DesignKey {
+    return Object.prototype.hasOwnProperty.call(DEFAULTS, value);
+}
 
 function normalizeKey(key: string): string {
     let k = key.replace(/^design_/, "").replace(/^design-/, "");
@@ -80,8 +127,11 @@ export function GlobalStyles() {
 
         try {
             const saved = localStorage.getItem("tmg_colors");
-            if (saved) applyThemeProperties(JSON.parse(saved));
-        } catch { }
+            const colors = parseColors(saved);
+            if (colors) applyThemeProperties({ ...DEFAULTS, ...colors });
+        } catch (error: unknown) {
+            console.error("Could not load saved theme settings.", error);
+        }
 
         // Secure formatting to protect cross-origin network operations
         const rawUrl = process.env.NEXT_PUBLIC_API_URL || "";
@@ -92,65 +142,64 @@ export function GlobalStyles() {
             const targetEndpoint = apiUrl.endsWith("/api") ? `${apiUrl}/settings/public` : `${apiUrl}/api/settings/public`;
 
             fetch(targetEndpoint, { cache: "no-store" })
-                .then((res) => (res.ok ? res.json() : null))
-                .then((rows: any[] | null) => {
-                    if (!rows || !Array.isArray(rows)) return;
+                .then(async (res) => (res.ok ? await res.json() as unknown : null))
+                .then((data: unknown) => {
+                    if (!isSettingRows(data)) return;
+                    const rows = data;
 
-                    const jsonRow = rows.find((r) => ["tmg_colors", "design_tmg_colors", "tmg_colors_json"].includes(r.key));
+                    const jsonRow = rows.find((row) => ["tmg_colors", "design_tmg_colors", "tmg_colors_json"].includes(row.key));
                     if (jsonRow?.effectiveValue) {
-                        try {
-                            const colors = typeof jsonRow.effectiveValue === "string" ? JSON.parse(jsonRow.effectiveValue) : jsonRow.effectiveValue;
-                            if (colors?.primary || colors?.bg) {
-                                applyThemeProperties({ ...DEFAULTS, ...colors });
-                                localStorage.setItem("tmg_colors", JSON.stringify(colors));
-                                return;
-                            }
-                        } catch { }
+                        const colors = parseColors(jsonRow.effectiveValue);
+                        if (colors && (colors.primary || colors.bg)) {
+                            const merged = { ...DEFAULTS, ...colors };
+                            applyThemeProperties(merged);
+                            localStorage.setItem("tmg_colors", JSON.stringify(merged));
+                            return;
+                        }
                     }
 
-                    const designRows = rows.filter((r) => r.key.startsWith("design_"));
+                    const designRows = rows.filter((row) => row.key.startsWith("design_"));
                     if (designRows.length >= 3) {
-                        try {
-                            const saved = localStorage.getItem("tmg_colors");
-                            const base: DesignColors = saved ? { ...DEFAULTS, ...JSON.parse(saved) } : { ...DEFAULTS };
-                            designRows.forEach((row) => {
-                                const normalized = normalizeKey(row.key);
-                                if (normalized in DEFAULTS || normalized in base) {
-                                    (base as any)[normalized] = row.effectiveValue;
-                                }
-                            });
-                            applyThemeProperties(base);
-                            localStorage.setItem("tmg_colors", JSON.stringify(base));
-                        } catch { }
+                        const savedColors = parseColors(localStorage.getItem("tmg_colors"));
+                        const base: DesignColors = { ...DEFAULTS, ...savedColors };
+                        designRows.forEach((row) => {
+                            const normalized = normalizeKey(row.key);
+                            if (isDesignKey(normalized) && typeof row.effectiveValue === "string" && isSafeCssValue(row.effectiveValue)) {
+                                base[normalized] = row.effectiveValue;
+                            }
+                        });
+                        applyThemeProperties(base);
+                        localStorage.setItem("tmg_colors", JSON.stringify(base));
                     }
                 })
-                .catch(() => { });
+                .catch((error: unknown) => console.error("Could not load public design settings.", error));
         }
 
         const onStorage = (e: StorageEvent) => {
             if (e.key === "tmg_colors" && e.newValue) {
-                try { applyThemeProperties({ ...DEFAULTS, ...JSON.parse(e.newValue) }); } catch { }
+                const colors = parseColors(e.newValue);
+                if (colors) applyThemeProperties({ ...DEFAULTS, ...colors });
             }
         };
         const onCustom = (e: Event) => {
-            const detail = (e as CustomEvent).detail;
-            if (detail) applyThemeProperties({ ...DEFAULTS, ...detail });
+            const colors = parseColors((e as CustomEvent<unknown>).detail);
+            if (colors) applyThemeProperties({ ...DEFAULTS, ...colors });
         };
 
         window.addEventListener("storage", onStorage);
-        window.addEventListener("tmg_colors_updated" as any, onCustom);
+        window.addEventListener("tmg_colors_updated", onCustom);
         return () => {
             window.removeEventListener("storage", onStorage);
-            window.removeEventListener("tmg_colors_updated" as any, onCustom);
+            window.removeEventListener("tmg_colors_updated", onCustom);
         };
     }, []);
 
     return null;
 }
 
-export function triggerDesignUpdate(colors: any) {
+export function triggerDesignUpdate(colors: unknown) {
     if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("tmg_colors_updated", { detail: colors }));
+        const parsedColors = parseColors(colors);
+        if (parsedColors) window.dispatchEvent(new CustomEvent("tmg_colors_updated", { detail: parsedColors }));
     }
 }
-

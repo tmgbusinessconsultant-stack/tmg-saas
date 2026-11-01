@@ -16,18 +16,50 @@ const TOOLS = [
   { id: "productivity-planner", name: "Productivity Planner", desc: "Daily and weekly plans for greater focus.", href: "/ai-tools/productivity-planner" },
 ];
 
+type PlanSummary = {
+  allowedTools?: string[];
+  planId?: string;
+  usageCount?: number;
+  usageLimit?: number;
+  daysLeft?: number;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isPlanSummary(value: unknown): value is PlanSummary {
+  return isRecord(value)
+    && (value.allowedTools === undefined || (Array.isArray(value.allowedTools) && value.allowedTools.every((tool: unknown) => typeof tool === "string")))
+    && (value.planId === undefined || typeof value.planId === "string")
+    && (value.usageCount === undefined || typeof value.usageCount === "number")
+    && (value.usageLimit === undefined || typeof value.usageLimit === "number")
+    && (value.daysLeft === undefined || typeof value.daysLeft === "number");
+}
+
 export default function AiToolsPage() {
-  const [plan, setPlan] = useState<any>(null);
+  const [plan, setPlan] = useState<PlanSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
+    const timer = window.setTimeout(() => {
     const token = sessionStorage.getItem("accessToken") || localStorage.getItem("accessToken");
     if (!token) { setLoading(false); return; }
     const apiUrl = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/+$/, "");
     fetch(`${apiUrl}/user-plans/current`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.ok ? r.json() : null)
-      .then(p => { setPlan(p); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then((result: unknown) => {
+        if (result === null || isPlanSummary(result)) setPlan(result);
+        else setError("The current plan API returned an invalid response.");
+        setLoading(false);
+      })
+      .catch((loadError: unknown) => {
+        setError(loadError instanceof Error ? loadError.message : "Could not load the current plan.");
+        setLoading(false);
+      });
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   function canAccess(toolId: string) {
@@ -66,6 +98,7 @@ export default function AiToolsPage() {
               </div>
             )}
           </div>
+          {error && <p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
         </div>
 
         <div className="mt-14 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -105,4 +138,3 @@ export default function AiToolsPage() {
     </div>
   );
 }
-

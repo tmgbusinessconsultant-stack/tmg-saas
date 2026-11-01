@@ -40,20 +40,41 @@ export default function GalleryPage() {
   );
 }
 
-async function GalleryItems() {
+type PublicGalleryItem = Pick<CmsGalleryItem, "id" | "title" | "description" | "category"> & { image: string };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isPublicGalleryItem(value: unknown): value is PublicGalleryItem {
+  return isRecord(value)
+    && typeof value.id === "string"
+    && typeof value.title === "string"
+    && typeof value.description === "string"
+    && typeof value.category === "string"
+    && typeof value.image === "string";
+}
+
+async function loadGalleryItems(): Promise<{ items: PublicGalleryItem[]; error: string | null }> {
   try {
     const response = await fetch(contentApiUrl("/gallery"), { cache: "no-store", next: { revalidate: 0 } });
-    if (!response.ok) {
-      console.error(`Gallery API ${response.status}`);
-      return <EmptyState message="Could not load gallery right now. Please try again later." />;
+    if (!response.ok) return { items: [], error: `Gallery request failed (${response.status}).` };
+    const data: unknown = await response.json();
+    if (!Array.isArray(data) || !data.every(isPublicGalleryItem)) {
+      return { items: [], error: "Gallery response has an invalid format." };
     }
-    const items = (await response.json()) as Array<CmsGalleryItem & { image: string }>;
+    return { items: data, error: null };
+  } catch (error: unknown) {
+    console.error("Gallery load failed", error);
+    return { items: [], error: "Gallery temporarily unavailable." };
+  }
+}
 
-    if (items.length === 0) {
-      return <EmptyState message="Gallery items will be added soon." />;
-    }
-
-    return (
+async function GalleryItems() {
+  const { items, error } = await loadGalleryItems();
+  if (error) return <EmptyState message="Could not load gallery right now. Please try again later." />;
+  if (items.length === 0) return <EmptyState message="Gallery items will be added soon." />;
+  return (
       <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((item) => (
           <article
@@ -88,11 +109,7 @@ async function GalleryItems() {
           </article>
         ))}
       </div>
-    );
-  } catch (err) {
-    console.error("Gallery load failed", err);
-    return <EmptyState message="Gallery temporarily unavailable." />;
-  }
+  );
 }
 
 function EmptyState({ message }: { message: string }) {

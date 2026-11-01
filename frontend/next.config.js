@@ -1,14 +1,9 @@
-/** @type {import('next').NextConfig} */
+﻿/** @type {import('next').NextConfig} */
 const nextConfig = {
-  typescript: { ignoreBuildErrors: true },
   outputFileTracingRoot: __dirname,
   async redirects() {
     return [
-      {
-        source: "/public-projects",
-        destination: "/gallery",
-        permanent: true,
-      },
+      { source: "/public-projects", destination: "/gallery", permanent: true },
     ];
   },
   async headers() {
@@ -23,5 +18,4 @@ const nextConfig = {
     ];
   },
 };
-
 module.exports = nextConfig;

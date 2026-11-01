@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import NextImage from "next/image";
+import { type ChangeEvent, useCallback, useEffect, useState, useMemo } from "react";
 
 type Product = {
   id: string;
@@ -16,6 +17,40 @@ type Product = {
   active: boolean;
   bestseller: boolean;
 };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isProduct(value: unknown): value is Product {
+  return isRecord(value)
+    && typeof value.id === "string"
+    && typeof value.title === "string"
+    && typeof value.description === "string"
+    && typeof value.price === "number"
+    && typeof value.currency === "string"
+    && typeof value.category === "string"
+    && Array.isArray(value.features)
+    && value.features.every((feature: unknown) => typeof feature === "string")
+    && typeof value.downloadUrl === "string"
+    && typeof value.imageUrl === "string"
+    && (value.mediaId === undefined || value.mediaId === null || typeof value.mediaId === "string")
+    && typeof value.type === "string"
+    && typeof value.active === "boolean"
+    && typeof value.bestseller === "boolean";
+}
+
+function uploadedMedia(value: unknown): { url: string; id: string | null } {
+  if (!isRecord(value)) throw new Error("The media upload returned an invalid response.");
+  const url = [value.url, value.fileUrl, value.location, value.secureUrl].find(candidate => typeof candidate === "string");
+  if (typeof url !== "string" || !url) throw new Error("The media upload response did not include a file URL.");
+  const id = typeof value.id === "string" ? value.id : typeof value.mediaId === "string" ? value.mediaId : null;
+  return { url, id };
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "An unexpected error occurred.";
+}
 
 const CATS = ["Excel Template", "Bundle", "Template", "Course", "Tool", "Power BI", "Design", "Consulting Pack", "Legal Form", "Business Plan"];
 
@@ -47,19 +82,30 @@ export default function ShopAdminFinalV3BestMatched() {
   const base = apiBase.endsWith("/api") ? apiBase : `${apiBase}/api`;
   const getToken = () => typeof window !== 'undefined' ? (localStorage.getItem("access_token") || localStorage.getItem("token") || localStorage.getItem("admin_token") || "") : "";
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       const r = await fetch(`${base}/settings/public`, { cache: "no-store" });
-      const j = await r.json();
-      const rows = Array.isArray(j) ? j : j.settings || [];
-      const row = rows.find((x: any) => x.key === "shop_products_json");
-      const raw = row?.effectiveValue || row?.dbValue || row?.value || "[]";
-      const list = JSON.parse(raw);
-      setProducts(Array.isArray(list) ? list : []);
-    } catch { setProducts([]); }
-    setLoading(false);
-  };
-  useEffect(() => { load(); }, []);
+      if (!r.ok) throw new Error(`Could not load products (${r.status}).`);
+      const response: unknown = await r.json();
+      const rows = Array.isArray(response) ? response : isRecord(response) && Array.isArray(response.settings) ? response.settings : [];
+      const row = rows.find((candidate: unknown) => isRecord(candidate) && candidate.key === "shop_products_json");
+      const raw = isRecord(row) ? row.effectiveValue ?? row.dbValue ?? row.value : null;
+      if (typeof raw !== "string") throw new Error("The product settings are missing or have an invalid format.");
+      const list: unknown = JSON.parse(raw);
+      if (!Array.isArray(list) || !list.every(isProduct)) throw new Error("The saved shop products have an invalid format.");
+      setProducts(list);
+      setMsg("");
+    } catch (error: unknown) {
+      setMsg(`Could not load shop products: ${errorMessage(error)}`);
+    } finally {
+      setLoading(false);
+    }
+  }, [base]);
+  useEffect(() => {
+    let active = true;
+    const timer = window.setTimeout(() => { if (active) void load(); }, 0);
+    return () => { active = false; window.clearTimeout(timer); };
+  }, [load]);
 
   const filteredAdmin = useMemo(() => {
     if (!searchAdmin) return products;
@@ -70,11 +116,15 @@ export default function ShopAdminFinalV3BestMatched() {
     const c = [...products]; c[i] = { ...c[i], ...patch }; setProducts(c);
   };
 
-  const onImage = async (e: any, i: number) => {
+  const onImage = async (e: ChangeEvent<HTMLInputElement>, i: number) => {
     const file = e.target.files?.[0]; if (!file) return;
     const reader = new FileReader();
     reader.onload = async () => {
-      const raw = reader.result as string;
+      if (typeof reader.result !== "string") {
+        setMsg("Could not read the selected image.");
+        return;
+      }
+      const raw = reader.result;
       update(i, { imageUrl: raw });
       const compressed = await compressImage(raw, 800, 0.7);
       update(i, { imageUrl: compressed });
@@ -82,27 +132,30 @@ export default function ShopAdminFinalV3BestMatched() {
         const token = getToken();
         const fd = new FormData(); fd.append("file", file);
         const resp = await fetch(`${base}/media/upload`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: fd });
-        if (resp.ok) {
-          const dj = await resp.json();
-          const url = dj.url || dj.fileUrl || dj.location || dj.secureUrl;
-          if (url) update(i, { imageUrl: url });
-        }
-      } catch { }
+        if (!resp.ok) throw new Error(`Image upload failed (${resp.status}).`);
+        const uploaded = uploadedMedia(await resp.json());
+        update(i, { imageUrl: uploaded.url });
+      } catch (error: unknown) {
+        setMsg(`Image upload failed: ${errorMessage(error)}`);
+      }
     };
     reader.readAsDataURL(file);
   };
 
-  const onFile = async (e: any, i: number) => {
+  const onFile = async (e: ChangeEvent<HTMLInputElement>, i: number) => {
     const file = e.target.files?.[0]; if (!file) return;
     update(i, { downloadUrl: "Uploading " + file.name + "..." });
     try {
       const token = getToken();
       const fd = new FormData(); fd.append("file", file);
       const resp = await fetch(`${base}/media/upload`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: fd });
-      const dj = await resp.json();
-      const url = dj.url || dj.fileUrl || dj.location || dj.secureUrl;
-      update(i, { downloadUrl: url || "", mediaId: dj.id || dj.mediaId || null });
-    } catch { update(i, { downloadUrl: "" }); }
+      if (!resp.ok) throw new Error(`File upload failed (${resp.status}).`);
+      const uploaded = uploadedMedia(await resp.json());
+      update(i, { downloadUrl: uploaded.url, mediaId: uploaded.id });
+    } catch (error: unknown) {
+      update(i, { downloadUrl: "" });
+      setMsg(`File upload failed: ${errorMessage(error)}`);
+    }
   };
 
   const saveAll = async () => {
@@ -140,8 +193,8 @@ export default function ShopAdminFinalV3BestMatched() {
       if (!res.ok) throw new Error(await res.text());
       setMsg(`✅ Saved! ${cleaned.length} live — ${cleaned.filter(p => p.active).length} active — Refresh /shop`);
       setProducts(cleaned);
-    } catch (err: any) { setMsg("❌ Save failed: " + (err.message || "Unknown").slice(0, 400)); }
-    setSaving(false);
+    } catch (error: unknown) { setMsg("❌ Save failed: " + errorMessage(error).slice(0, 400)); }
+    finally { setSaving(false); }
   };
 
   if (loading) return <div className="p-10 text-sm animate-pulse">Loading shop products — TMG Engine v2 BEST...</div>;
@@ -163,7 +216,7 @@ export default function ShopAdminFinalV3BestMatched() {
         <button onClick={() => { const np: Product = { id: Date.now().toString(), title: "New Excel Template", description: "Qatar compliant template with instant download", price: 49, currency: "USD", category: "Excel Template", features: ["Instant download", "Qatar compliant", "Excel + PDF"], downloadUrl: "", imageUrl: "", type: "PRODUCT", active: true, bestseller: false }; setProducts([np, ...products]); }} className="px-4 py-2 bg-black text-white rounded-xl text-sm font-bold hover:bg-gray-800">+ Add Product</button>
         <button onClick={saveAll} disabled={saving} className="px-8 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-black disabled:opacity-50 shadow-lg">{saving ? "Saving..." : `Save ${products.length} → Live Shop 🚀`}</button>
         <button onClick={() => { if (confirm("Clear ALL shop? Empty OK")) { setProducts([]); } }} className="px-4 py-2 bg-white border rounded-xl text-sm font-bold">Clear Shop (Empty OK)</button>
-        <button onClick={load} className="px-4 py-2 bg-slate-100 rounded-xl text-sm font-bold">Reload</button>
+        <button onClick={() => void load()} className="px-4 py-2 bg-slate-100 rounded-xl text-sm font-bold">Reload</button>
         <a href="/shop" target="_blank" className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-black">View /shop →</a>
       </div>
 
@@ -191,7 +244,7 @@ export default function ShopAdminFinalV3BestMatched() {
                 <div className="border rounded-xl p-3 bg-slate-50">
                   <label className="text-[11px] font-black">IMAGE — preview = /shop card</label>
                   <div className="mt-2 h-52 bg-white border rounded-xl overflow-hidden flex items-center justify-center relative">
-                    {p.imageUrl ? <img src={p.imageUrl} alt="preview" className="w-full h-full object-contain" /> : <span className="text-xs text-slate-400">No image — /shop shows placeholder</span>}
+                    {p.imageUrl ? <NextImage src={p.imageUrl} alt="preview" fill unoptimized sizes="(max-width: 768px) 100vw, 50vw" className="object-contain" /> : <span className="text-xs text-slate-400">No image — /shop shows placeholder</span>}
                     {p.bestseller && <div className="absolute top-2 left-2 bg-amber-400 text-[10px] font-black px-2 py-1 rounded">🔥 Bestseller</div>}
                   </div>
                   <input type="file" accept="image/*" onChange={e => onImage(e, i)} className="mt-3 w-full text-xs" />

@@ -21,12 +21,14 @@ export default function AdminMediaPreview({ url, token, contentType, alt, classN
   useEffect(() => {
     if (isExternal || !token || !url) return;
 
-    setLoading(true);
-    setError(false);
     let blobUrl: string | undefined;
     const controller = new AbortController();
 
-    (async () => {
+    void Promise.resolve().then(async () => {
+      if (controller.signal.aborted) return;
+      setLoading(true);
+      setError(false);
+      setObjectUrl(null);
       try {
         const res = await fetch(contentApiUrl(url), {
           headers: { Authorization: `Bearer ${token}` },
@@ -35,14 +37,15 @@ export default function AdminMediaPreview({ url, token, contentType, alt, classN
         });
         if (!res.ok) throw new Error(`Preview ${res.status}`);
         const blob = await res.blob();
+        if (controller.signal.aborted) return;
         blobUrl = URL.createObjectURL(blob);
         setObjectUrl(blobUrl);
-      } catch (e) {
+      } catch {
         if (!controller.signal.aborted) setError(true);
       } finally {
         if (!controller.signal.aborted) setLoading(false);
       }
-    })();
+    });
 
     return () => {
       controller.abort();
@@ -78,4 +81,3 @@ export default function AdminMediaPreview({ url, token, contentType, alt, classN
   }
   return <a href={objectUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold hover:border-zinc-900">Preview document</a>;
 }
-

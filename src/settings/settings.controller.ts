@@ -22,7 +22,7 @@ export class SettingsController {
   }
 
   @Patch('project-upload-limit')
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Roles('SUPER_ADMIN')
   @Permissions('settings:manage')
   async updateProjectUploadLimit(
     @CurrentUser() user: AuthenticatedUser,
@@ -43,14 +43,14 @@ export class SettingsController {
   }
 
   @Get('effective/:key')
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Roles('SUPER_ADMIN')
   @Permissions('settings:manage')
   async getOne(@Param('key') key: string) {
     return this.settings.getEffective(key);
   }
 
   @Put(':key')
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Roles('SUPER_ADMIN')
   @Permissions('settings:manage')
   async setPublic(
     @Param('key') key: string,
@@ -61,7 +61,7 @@ export class SettingsController {
   }
 
   @Delete(':key')
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Roles('SUPER_ADMIN')
   @Permissions('settings:manage')
   async del(@Param('key') key: string) {
     return this.settings.deletePublic(key);

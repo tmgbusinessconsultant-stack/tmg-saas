@@ -1,28 +1,64 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 
+type Site = {
+  id: string;
+  name: string;
+  status: string;
+  subdomain: string;
+  userId?: string;
+  user?: { email: string };
+  pages?: unknown[];
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isSite(value: unknown): value is Site {
+  return isRecord(value)
+    && typeof value.id === 'string'
+    && typeof value.name === 'string'
+    && typeof value.status === 'string'
+    && typeof value.subdomain === 'string'
+    && (value.userId === undefined || typeof value.userId === 'string')
+    && (value.user === undefined || (isRecord(value.user) && typeof value.user.email === 'string'))
+    && (value.pages === undefined || Array.isArray(value.pages));
+}
+
 export default function AdminSitesPage() {
-  const [sites, setSites] = useState<any[]>([]);
+  const [sites, setSites] = useState<Site[]>([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState('');
+  const [error, setError] = useState('');
   const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
   const getToken = () => typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
+    setError('');
     try {
       const res = await fetch(`${API}/sites/admin/all`, {
         headers: { Authorization: `Bearer ${getToken()}` }
       });
-      const data = await res.json();
-      if(Array.isArray(data)) setSites(data);
-    } catch(e){ console.error(e); }
-    setLoading(false);
-  };
+      const data: unknown = await res.json();
+      if (!res.ok) throw new Error(`Could not load sites (${res.status}).`);
+      if (!Array.isArray(data) || !data.every(isSite)) throw new Error('The sites API returned an invalid response.');
+      setSites(data);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'Could not load sites.');
+    } finally {
+      setLoading(false);
+    }
+  }, [API]);
 
-  useEffect(()=>{ load(); }, []);
+  useEffect(() => {
+    let active = true;
+    const timer = window.setTimeout(() => { if (active) void load(); }, 0);
+    return () => { active = false; window.clearTimeout(timer); };
+  }, [load]);
 
   const createSite = async () => {
     if(!newName) return;
@@ -32,7 +68,7 @@ export default function AdminSitesPage() {
       body: JSON.stringify({ name: newName, settings: {} })
     });
     setNewName('');
-    load();
+    void load();
   };
 
   if(loading) return <div className="p-10">Loading all sites...</div>;
@@ -41,6 +77,7 @@ export default function AdminSitesPage() {
     <div className="p-8 max-w-6xl mx-auto">
       <h1 className="text-3xl font-bold mb-2">TMG Admin — All Client Sites</h1>
       <p className="text-gray-500 mb-6">Best Flow: Admin sees all, Client edits at /builder/[id], Live at /s/[subdomain]</p>
+      {error && <p role="alert" className="mb-4 rounded bg-red-50 p-3 text-red-800">{error}</p>}
       
       <div className="flex gap-2 mb-8">
         <input value={newName} onChange={e=>setNewName(e.target.value)} placeholder="Client company name e.g. Al Rayyan Trading" className="border p-3 rounded w-96" />
@@ -49,7 +86,7 @@ export default function AdminSitesPage() {
       </div>
 
       <div className="grid gap-3">
-        {sites.map((s:any)=>(
+        {sites.map(s => (
           <div key={s.id} className="border p-4 rounded flex justify-between items-center bg-white shadow-sm">
             <div>
               <div className="font-bold text-lg">{s.name} <span className="text-xs bg-gray-100 px-2 py-1 rounded ml-2">{s.status}</span></div>

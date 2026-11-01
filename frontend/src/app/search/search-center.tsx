@@ -33,7 +33,7 @@ export default function SearchCenter() {
       if (Array.isArray(saved)) {
         const clean = saved.filter((i: unknown): i is string => typeof i === "string").slice(0, 5);
         recentRef.current = clean;
-        setRecentSearches(clean);
+        void Promise.resolve().then(() => setRecentSearches(clean));
       }
     } catch { localStorage.removeItem("tmg-recent-searches"); }
 
@@ -47,7 +47,6 @@ export default function SearchCenter() {
   // Search effect
   useEffect(() => {
     if (submittedQuery.length < 2) {
-      setResults([]);
       return;
     }
     const ctrl = new AbortController();
@@ -78,6 +77,7 @@ export default function SearchCenter() {
     e.preventDefault();
     const trimmed = query.trim().slice(0, 120);
     setSubmittedQuery(trimmed);
+    if (trimmed.length < 2) setResults([]);
     setError("");
     router.replace(trimmed ? `/search?q=${encodeURIComponent(trimmed)}` : "/search", { scroll: false });
   }
@@ -85,6 +85,7 @@ export default function SearchCenter() {
   function pickSuggestion(s: string) {
     setQuery(s);
     setSubmittedQuery(s);
+    if (s.length < 2) setResults([]);
     router.replace(`/search?q=${encodeURIComponent(s)}`, { scroll: false });
   }
 
@@ -178,4 +179,3 @@ export default function SearchCenter() {
     </main>
   );
 }
-

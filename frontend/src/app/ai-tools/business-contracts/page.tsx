@@ -27,7 +27,7 @@ export default function BusinessContractsPage() {
   const [error, setError] = useState('');
   const [savedDoc, setSavedDoc] = useState<SavedDoc | null>(null);
   const [pdfBlobUrl, setPdfBlobUrl] = useState('');
-  const [selectedCountry, setSelectedCountry] = useState<any>(COUNTRIES[0]);
+  const [selectedCountry, setSelectedCountry] = useState<(typeof COUNTRIES)[number]>(COUNTRIES[0]);
   const [form, setForm] = useState({ 
     companyName: '', 
     clientName: '', 
@@ -42,17 +42,25 @@ export default function BusinessContractsPage() {
     governingLaw: ''
   });
 
-  useEffect(() => { setToken(sessionStorage.getItem('accessToken') ?? ''); }, []);
+  useEffect(() => {
+    let active = true;
+    void Promise.resolve().then(() => {
+      if (active) setToken(sessionStorage.getItem('accessToken') ?? '');
+    });
+    return () => { active = false; };
+  }, []);
   useEffect(() => {
     if (!savedDoc?.id || !token) return;
     (async () => {
       try {
         const base = process.env.NEXT_PUBLIC_API_URL || '/api';
         const res = await fetch(`${base}/cv-documents/file/${savedDoc.id}`, { headers: { Authorization: `Bearer ${token}` } });
-        if (!res.ok) return;
+        if (!res.ok) throw new Error(`Could not download the generated document (${res.status}).`);
         const blob = await res.blob();
         setPdfBlobUrl(URL.createObjectURL(blob));
-      } catch {}
+      } catch (requestError: unknown) {
+        setError(requestError instanceof Error ? requestError.message : "Could not open the generated document.");
+      }
     })();
   }, [savedDoc?.id, token]);
 
@@ -92,7 +100,9 @@ export default function BusinessContractsPage() {
       };
       const result = await apiRequest<SavedDoc>('/cv-documents', token, { method: 'POST', body: JSON.stringify(payload) });
       setSavedDoc(result);
-    } catch (e: any) { setError(e.message); } finally { setLoading(false); }
+    } catch (requestError: unknown) {
+      setError(requestError instanceof Error ? requestError.message : "Could not generate the contract.");
+    } finally { setLoading(false); }
   };
 
   return (
@@ -129,7 +139,5 @@ export default function BusinessContractsPage() {
     </div>
   );
 }
-
-
 
 

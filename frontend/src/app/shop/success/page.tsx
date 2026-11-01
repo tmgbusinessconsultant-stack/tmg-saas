@@ -1,5 +1,5 @@
 "use client";
-import { Suspense, useState, useEffect } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -8,23 +8,14 @@ function SuccessContent() {
   const productId = params.get("productId") || "Asset";
   const token = params.get("token");
   const [copied, setCopied] = useState(false);
-  const [autoTried, setAutoTried] = useState(false);
 
   const apiBase = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "") || "http://localhost:4000";
   const base = apiBase.endsWith("/api") ? apiBase : `${apiBase}/api`;
 
   // BEST: Use same endpoint as ShopClient + fallback
-  const primaryUrl = token ? `${base}/content/media/download?token=${token}&productId=${productId}` : null;
-  const fallbackUrl = token ? `${base}/content/media/${productId}/download?token=${token}` : null;
+  const primaryUrl = token ? `${base}/content/media/download?${new URLSearchParams({ token, productId })}` : null;
+  const fallbackUrl = token ? `${base}/content/media/${encodeURIComponent(productId)}/download?token=${encodeURIComponent(token)}` : null;
   const downloadUrl = primaryUrl || fallbackUrl;
-
-  useEffect(() => {
-    if (downloadUrl && !autoTried) {
-      setAutoTried(true);
-      // Optional: auto-trigger after 1s for best UX
-      // window.open(downloadUrl, "_blank");
-    }
-  }, [downloadUrl, autoTried]);
 
   const copyLink = () => {
     if (downloadUrl) {
@@ -47,7 +38,7 @@ function SuccessContent() {
         </p>
         <div className="mt-3 flex items-center gap-2 text-[11px] text-slate-500 bg-white border rounded-lg p-2.5">
           <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-          Token verified • {token ? token.substring(0, 16) + "..." : "no token"} • Encrypted
+          Token verified • {token ? `${token.substring(0, 4)}…` : "no token"} • Encrypted
         </div>
       </div>
 

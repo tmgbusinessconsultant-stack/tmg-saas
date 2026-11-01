@@ -1,8 +1,15 @@
 "use client";
-import { useState } from "react";
 import PayPalSubscribe from "./PayPalSubscribe";
 
-export default function UpgradeModal({ isOpen, onClose, plan }) {
+type UpgradePlan = { name?: string; paypalPlanId?: string };
+
+type UpgradeModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  plan?: UpgradePlan | null;
+};
+
+export default function UpgradeModal({ isOpen, onClose, plan }: UpgradeModalProps) {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -17,4 +24,3 @@ export default function UpgradeModal({ isOpen, onClose, plan }) {
     </div>
   );
 }
-

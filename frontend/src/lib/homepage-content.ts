@@ -182,6 +182,17 @@ export function mergeHomepageContent(partial: Partial<HomepageContent> | null): 
   };
 }
 
-export function isHomepageContentValid(data: any): data is HomepageContent {
-  return !!(data && typeof data.hero?.title === "string" && Array.isArray(data.services?.cards));
+export function isHomepageContentValid(data: unknown): data is HomepageContent {
+  if (typeof data !== "object" || data === null || Array.isArray(data)) return false;
+  const record = data as Record<string, unknown>;
+  const hero = record.hero;
+  const services = record.services;
+  return typeof hero === "object"
+    && hero !== null
+    && !Array.isArray(hero)
+    && typeof (hero as Record<string, unknown>).title === "string"
+    && typeof services === "object"
+    && services !== null
+    && !Array.isArray(services)
+    && Array.isArray((services as Record<string, unknown>).cards);
 }

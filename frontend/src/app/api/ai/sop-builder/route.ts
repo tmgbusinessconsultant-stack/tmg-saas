@@ -1,3 +1,4 @@
+import type { NextRequest } from "next/server";
 import { requireAuthAndPlan } from "@/lib/auth-guard";
 export async function POST(req: NextRequest) {
   try {
@@ -46,5 +47,4 @@ export async function POST(req: NextRequest) {
     return Response.json({ message: `Server Error: ${message}` }, { status: 500 });
   }
 }
-
 

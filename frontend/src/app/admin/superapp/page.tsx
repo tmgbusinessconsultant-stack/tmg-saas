@@ -1,23 +1,31 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import ChatPanel from "@/components/superapp/ChatPanel";
+import type { ChatMessage } from "@/components/superapp/ChatPanel";
 import PreviewPanel from "@/components/superapp/PreviewPanel";
+import type { AssetPayload } from "@/components/superapp/PreviewPanel";
 import SidebarPanel from "@/components/superapp/SidebarPanel";
 
+type GalleryAsset = { url: string; prompt: string; createdAt: Date };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 export default function SuperAppPage() {
-  const [messages, setMessages] = useState<any[]>([
+  const [messages, setMessages] = useState<ChatMessage[]>([
     { role: 'assistant', content: '🌟 TMG Super App V4 - Omnipotent OS\n\nI can generate ANYTHING:\n🎨 Images/Logos (DALL-E 3)\n🎥 Videos (Runway)\n📄 PDFs/DOCX\n📊 PPTX Presentations\n💻 Landing Pages (React code)\n📈 Forex Signals + Bot Code\n🚢 Boat/Shipping Docs\n🔊 Voiceovers\n\nAnd SEND ANYWHERE: Email, WhatsApp, Project, Drive\n\nTry: "Generate luxury logo for TMG, blue gold" or "Create landing page for gym Doha" or "Forex signal EURUSD"\n\nAny language - Arabic, English', engine: 'welcome', timestamp: new Date() }
   ]);
-  const [currentAsset, setCurrentAsset] = useState<any>(null);
+  const [currentAsset, setCurrentAsset] = useState<AssetPayload | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [gallery, setGallery] = useState<any[]>([]);
+  const [gallery, setGallery] = useState<GalleryAsset[]>([]);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tmg-saas.onrender.com/api';
 
   const sendMessage = async (text: string) => {
     if (!text.trim()) return;
     
-    const userMsg = { role: 'user', content: text, timestamp: new Date() };
+    const userMsg: ChatMessage = { role: 'user', content: text, timestamp: new Date() };
     setMessages(prev => [...prev, userMsg]);
     setIsLoading(true);
 
@@ -27,44 +35,52 @@ export default function SuperAppPage() {
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
         body: JSON.stringify({ prompt: text, engine: 'auto', context: messages.slice(-6) }),
       });
-      const data = await res.json();
+      const response: unknown = await res.json();
+      if (!res.ok) throw new Error(`The assistant request failed (${res.status}).`);
+      if (!isRecord(response)) throw new Error("The assistant returned an invalid response.");
+      const responseData = isRecord(response.data) ? response.data : null;
+      const engine = typeof response.engine === "string" ? response.engine : "general";
+      const answer = typeof response.answer === "string" ? response.answer
+        : typeof response.answer_en === "string" ? response.answer_en
+          : JSON.stringify(response, null, 2);
       
-      const assistantMsg = {
+      const assistantMsg: ChatMessage = {
         role: 'assistant',
-        content: data.answer || data.answer_en || JSON.stringify(data, null, 2),
-        data: data.data,
-        engine: data.engine,
-        version: data.version,
+        content: answer,
+        data: responseData && typeof responseData.imageUrl === "string" ? { imageUrl: responseData.imageUrl } : undefined,
+        engine,
+        version: typeof response.version === "string" ? response.version : undefined,
         timestamp: new Date(),
-        raw: data,
       };
       
       setMessages(prev => [...prev, assistantMsg]);
       
       // Update preview panel if asset generated
-      if (data.data?.imageUrl || data.data?.professionalPrompt || data.engine === 'image') {
+      if (responseData?.imageUrl || responseData?.professionalPrompt || engine === 'image') {
         setCurrentAsset({
           type: 'image',
-          url: data.data?.imageUrl,
-          prompt: data.data?.professionalPrompt || data.data?.prompt,
-          original: text,
-          ...data.data,
+          url: typeof responseData?.imageUrl === "string" ? responseData.imageUrl : undefined,
+          prompt: typeof responseData?.professionalPrompt === "string" ? responseData.professionalPrompt
+            : typeof responseData?.prompt === "string" ? responseData.prompt : undefined,
+          data: responseData,
         });
-      } else if (data.engine === 'code' || data.data?.code) {
-        setCurrentAsset({ type: 'code', code: data.data?.code || data.answer, prompt: text });
-      } else if (data.engine === 'trading' || data.engine === 'forex') {
-        setCurrentAsset({ type: 'trading', data: data.data, prompt: text });
-      } else if (data.data) {
-        setCurrentAsset({ type: data.engine || 'general', data: data.data, prompt: text, answer: data.answer });
+      } else if (engine === 'code' || typeof responseData?.code === "string") {
+        setCurrentAsset({ type: 'code', code: typeof responseData?.code === "string" ? responseData.code : answer, prompt: text });
+      } else if (engine === 'trading' || engine === 'forex') {
+        setCurrentAsset({ type: 'trading', data: responseData, prompt: text });
+      } else if (responseData) {
+        setCurrentAsset({ type: engine, data: responseData, prompt: text, answer });
       }
 
       // Refresh gallery if new asset
-      if (data.data?.imageUrl) {
-        setGallery(prev => [{ url: data.data.imageUrl, prompt: text, createdAt: new Date() }, ...prev]);
+      const generatedImageUrl = typeof responseData?.imageUrl === "string" ? responseData.imageUrl : null;
+      if (generatedImageUrl) {
+        setGallery(prev => [{ url: generatedImageUrl, prompt: text, createdAt: new Date() }, ...prev]);
       }
 
-    } catch (e:any) {
-      setMessages(prev => [...prev, { role: 'assistant', content: `❌ Error: ${e.message}\nCheck backend is live: ${API_URL}`, timestamp: new Date() }]);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unexpected error";
+      setMessages(prev => [...prev, { role: 'assistant', content: `❌ Error: ${message}\nCheck backend is live: ${API_URL}`, timestamp: new Date() }]);
     }
     setIsLoading(false);
   };
@@ -90,7 +106,7 @@ export default function SuperAppPage() {
       <div className="flex-1 flex overflow-hidden">
         {/* LEFT - SIDEBAR */}
         <div className="w-64 bg-white border-r hidden md:flex flex-col">
-          <SidebarPanel onSelectChat={(m)=>{}} gallery={gallery} onSelectAsset={setCurrentAsset} />
+          <SidebarPanel gallery={gallery} onSelectAsset={setCurrentAsset} />
         </div>
 
         {/* CENTER - CHAT */}
@@ -115,5 +131,3 @@ export default function SuperAppPage() {
     </div>
   );
 }
-
-

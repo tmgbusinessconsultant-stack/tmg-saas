@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { apiRequest } from "@/lib/project-delivery";
 
 type Template = "International Investor" | "Qatar Investor" | "US SBA" | "UK Bank";
@@ -16,6 +16,12 @@ const STEPS = [
     { id: 6, name: "Operations", pct: 85 },
     { id: 7, name: "Financials", pct: 100 },
 ];
+
+const COMPETITORS = [
+    { name: "competitor1Name", strengths: "competitor1Strengths" },
+    { name: "competitor2Name", strengths: "competitor2Strengths" },
+    { name: "competitor3Name", strengths: "competitor3Strengths" },
+] as const;
 
 const COUNTRIES = [
     { name: "Qatar", currency: "QAR", symbol: "QAR" },
@@ -67,14 +73,28 @@ export default function BusinessPlanForm() {
     const selected = COUNTRIES.find(c => c.name === form.country) || COUNTRIES[0];
     const legalOptions = LEGAL[form.country] || LEGAL.Default;
 
-    useEffect(() => { setToken(sessionStorage.getItem("accessToken") || localStorage.getItem("accessToken") || ""); }, []);
-    useEffect(() => { if (token) load(); }, [token]);
+    const load = useCallback(async (accessToken: string) => {
+        try {
+            setPlans(await apiRequest<PlanDoc[]>("/business-plans", accessToken));
+        } catch (loadError: unknown) {
+            setError(loadError instanceof Error ? loadError.message : "Could not load saved business plans.");
+        }
+    }, []);
 
-    const load = async () => {
-        try { const d = await apiRequest<PlanDoc[]>("/business-plans", token); setPlans(d); } catch { }
+    useEffect(() => {
+        let active = true;
+        void Promise.resolve().then(async () => {
+            const accessToken = sessionStorage.getItem("accessToken") || localStorage.getItem("accessToken") || "";
+            if (!active) return;
+            setToken(accessToken);
+            if (accessToken) await load(accessToken);
+        });
+        return () => { active = false; };
+    }, [load]);
+
+    const set = <K extends keyof typeof initialForm>(key: K, value: (typeof initialForm)[K]) => {
+        setForm(current => ({ ...current, [key]: value }));
     };
-
-    const set = (k: string, v: any) => setForm(p => ({ ...p, [k]: v }));
 
     const validate = () => {
         if (step === 1 && !form.businessName.trim()) { setError("Business name required"); return false; }
@@ -99,7 +119,9 @@ export default function BusinessPlanForm() {
             };
             const res = await apiRequest<PlanDoc>("/business-plans", token, { method: "POST", body: JSON.stringify(payload) });
             setPlans([res, ...plans]); setSuccess(`${template} — ${form.country} (${selected.currency}) generated`);
-        } catch (e: any) { setError(e.message); } finally { setLoading(false); }
+        } catch (submitError: unknown) {
+            setError(submitError instanceof Error ? submitError.message : "Could not generate the business plan.");
+        } finally { setLoading(false); }
     };
 
     const pct = STEPS.find(s => s.id === step)?.pct || 10;
@@ -125,7 +147,7 @@ export default function BusinessPlanForm() {
                         <div className="rounded-[12px] border border-zinc-100 bg-zinc-50 px-3 py-3 text-xs text-zinc-600">
                             {template} • {form.country} • {selected.currency}
                         </div>
-                        <select value={form.country} onChange={e => set(e, set("country", e.target.value))} className={inputCls}><option value="">Country</option>{COUNTRIES.map(c => <option key={c.name} value={c.name}>{c.name} — {c.currency}</option>)}</select>
+                        <select value={form.country} onChange={e => set("country", e.target.value)} className={inputCls}><option value="">Country</option>{COUNTRIES.map(c => <option key={c.name} value={c.name}>{c.name} — {c.currency}</option>)}</select>
                         <div className="hidden md:flex items-center gap-2 text-[10px] text-zinc-400">{STEPS.map(s => <div key={s.id} className={`flex items-center gap-1 ${step >= s.id ? "text-zinc-900 font-semibold" : ""}`}><span className={`h-5 w-5 grid place-items-center rounded-full border ${step >= s.id ? "bg-zinc-900 text-white border-zinc-900" : "border-zinc-200"}`}>{step > s.id ? "✓" : s.id}</span>{s.name}</div>)}</div>
                     </div>
                     <div className="mt-5 h-1.5 w-full rounded-full bg-zinc-100 overflow-hidden"><div className="h-full bg-[#D4AF37] transition-all" style={{ width: `${pct}%` }} /></div>
@@ -166,7 +188,7 @@ export default function BusinessPlanForm() {
                             <div className="space-y-4"><h2 className="font-semibold">Market & Competition</h2>
                                 <div className="grid grid-cols-2 gap-3"><input placeholder={`Target Customers`} value={form.targetCustomers} onChange={e => set("targetCustomers", e.target.value)} className={inputCls} /><input placeholder={`Market Size ${selected.symbol}`} value={form.marketSize} onChange={e => set("marketSize", e.target.value)} className={inputCls} /></div>
                                 <textarea placeholder="Pain Points" value={form.painPoints} onChange={e => set("painPoints", e.target.value)} rows={2} className={inputCls} />
-                                <div className="grid grid-cols-3 gap-3">{[1, 2, 3].map(n => <div key={n} className="rounded-[12px] border border-zinc-100 bg-zinc-50 p-3"><p className="text-[10px] font-bold">Competitor {n}</p><input placeholder="Name" value={(form as any)[`competitor${n}Name`]} onChange={e => set(`competitor${n}Name`, e.target.value)} className="mt-2 w-full rounded-[8px] border border-zinc-200 p-2 text-xs" /><input placeholder="Strengths" value={(form as any)[`competitor${n}Strengths`]} onChange={e => set(`competitor${n}Strengths`, e.target.value)} className="mt-2 w-full rounded-[8px] border border-zinc-200 p-2 text-xs" /></div>)}</div>
+                                <div className="grid grid-cols-3 gap-3">{COMPETITORS.map(({ name, strengths }, index) => <div key={name} className="rounded-[12px] border border-zinc-100 bg-zinc-50 p-3"><p className="text-[10px] font-bold">Competitor {index + 1}</p><input placeholder="Name" value={form[name]} onChange={e => set(name, e.target.value)} className="mt-2 w-full rounded-[8px] border border-zinc-200 p-2 text-xs" /><input placeholder="Strengths" value={form[strengths]} onChange={e => set(strengths, e.target.value)} className="mt-2 w-full rounded-[8px] border border-zinc-200 p-2 text-xs" /></div>)}</div>
                             </div>
                         )}
                         {step === 5 && (
@@ -210,4 +232,3 @@ export default function BusinessPlanForm() {
         </div>
     );
 }
-

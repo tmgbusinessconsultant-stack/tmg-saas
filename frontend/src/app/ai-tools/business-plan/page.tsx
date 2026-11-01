@@ -10,7 +10,7 @@ export default function BusinessPlanPage() {
     try{
       const res=await fetch(`${process.env.NEXT_PUBLIC_API_URL||"http://localhost:4000"}/api/ai/business-plan`,{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${localStorage.getItem("token")}`},body:JSON.stringify({idea})});
       const data=await res.json(); setResult(data.data||data.result||JSON.stringify(data));
-    }catch(e){ setResult("Error generating - check backend on 4000"); } setLoading(false);
+    }catch{ setResult("Error generating - check backend on 4000"); } setLoading(false);
   };
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -23,4 +23,3 @@ export default function BusinessPlanPage() {
     </div>
   );
 }
-

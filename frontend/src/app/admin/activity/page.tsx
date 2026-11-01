@@ -11,6 +11,22 @@ type ActivityItem = {
   actor: { id: string; name: string; email: string };
 };
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isActivityItem(value: unknown): value is ActivityItem {
+  return isRecord(value)
+    && typeof value.id === "string"
+    && typeof value.action === "string"
+    && (typeof value.targetId === "string" || value.targetId === null)
+    && typeof value.createdAt === "string"
+    && isRecord(value.actor)
+    && typeof value.actor.id === "string"
+    && typeof value.actor.name === "string"
+    && typeof value.actor.email === "string";
+}
+
 export default function AdminActivityPage() {
   const [items, setItems] = useState<ActivityItem[]>([]);
   const [error, setError] = useState("");
@@ -22,11 +38,17 @@ export default function AdminActivityPage() {
         setError("Sign in with the Super Admin account to view the activity log.");
         return;
       }
-      void apiRequest<any>("/admin/activity", token)
-        .then((res) => {
-          // Handle: array OR {data: []} OR {items: []} OR {activity: []}
-          const list = Array.isArray(res) ? res : res.data || res.items || res.activity || [];
-          setItems(Array.isArray(list) ? list : []);
+      void apiRequest<unknown>("/admin/activity", token)
+        .then((response) => {
+          const list = Array.isArray(response)
+            ? response
+            : isRecord(response)
+              ? response.data ?? response.items ?? response.activity
+              : null;
+          if (!Array.isArray(list) || !list.every(isActivityItem)) {
+            throw new Error("The activity API returned an invalid response.");
+          }
+          setItems(list);
         })
         .catch((requestError: unknown) => setError(requestError instanceof Error ? requestError.message : "Could not load activity."));
     }, 0);

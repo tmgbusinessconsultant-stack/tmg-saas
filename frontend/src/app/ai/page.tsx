@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import BusinessAssistant from "../ai-tools/business-assistant/page";
+import { serializeJsonLd } from "@/lib/json-ld";
 
 export const metadata: Metadata = {
   title: "Ask TMG AI",
@@ -22,7 +23,7 @@ export default function AiPage() {
   };
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(serviceSchema) }} />
       <main className="mx-auto max-w-5xl px-6 py-12">
         <header className="mx-auto mb-8 max-w-3xl text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8A6A00]">TMG AI</p>
@@ -37,4 +38,3 @@ export default function AiPage() {
     </>
   );
 }
-

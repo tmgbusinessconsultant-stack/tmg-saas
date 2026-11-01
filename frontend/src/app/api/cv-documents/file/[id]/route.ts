@@ -5,12 +5,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const searchParams = req.nextUrl.searchParams;
   const isDownload = searchParams.get("download");
   const clientAuth = req.headers.get("authorization");
-  let forwardHeaders: any = {};
+  const forwardHeaders = new Headers();
   if (clientAuth) {
-    forwardHeaders["Authorization"] = clientAuth;
+    forwardHeaders.set("Authorization", clientAuth);
   }
-  const backendUrl = `http://localhost:4000/api/cv-documents/file/${id}${isDownload ? `?download=${isDownload}` : ""}`;
-  console.log(`[PDF Proxy] -> ${backendUrl} auth:${forwardHeaders["Authorization"] ? "YES" : "NO"}`);
+  const apiBase = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "") || "http://localhost:4000/api";
+  const downloadQuery = isDownload ? `?${new URLSearchParams({ download: isDownload })}` : "";
+  const backendUrl = `${apiBase}/cv-documents/file/${encodeURIComponent(id)}${downloadQuery}`;
+  console.log(`[PDF Proxy] -> ${backendUrl} auth:${forwardHeaders.has("Authorization") ? "YES" : "NO"}`);
   try {
     const res = await fetch(backendUrl, { headers: forwardHeaders, cache: "no-store" });
     if (!res.ok) {
@@ -26,7 +28,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         "Cache-Control": "no-cache",
       },
     });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "The document service is unavailable.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

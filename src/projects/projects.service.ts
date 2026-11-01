@@ -1,4 +1,11 @@
-import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import type { AuthenticatedUser } from '../auth/auth.service';
 import * as fs from 'fs';
@@ -22,6 +29,14 @@ export class ProjectsService {
     if (project.ownerId === user.id) return project;
     if (project.assigneeId === user.id) return project;
     throw new ForbiddenException('No access');
+  }
+
+  private async getProjectFile(projectId: string, fileId: string) {
+    const file = await (this.prisma as any).projectFile.findFirst({
+      where: { id: fileId, projectId },
+    });
+    if (!file) throw new NotFoundException('File not found');
+    return file;
   }
 
   async list(user: AuthenticatedUser) {
@@ -117,31 +132,51 @@ export class ProjectsService {
 
   async deleteMessage(user: AuthenticatedUser, projectId: string, messageId: string) {
     await this.assertAccess(user, projectId);
-    await (this.prisma as any).projectMessage.delete({ where: { id: messageId } });
+    const message = await (this.prisma as any).projectMessage.findFirst({
+      where: { id: messageId, projectId },
+      select: { id: true },
+    });
+    if (!message) throw new NotFoundException('Message not found');
+    await (this.prisma as any).projectMessage.delete({ where: { id: message.id } });
     return { success: true };
   }
 
   async deleteFile(user: AuthenticatedUser, projectId: string, fileId: string) {
     await this.assertAccess(user, projectId);
+    await this.getProjectFile(projectId, fileId);
     await (this.prisma as any).projectFile.delete({ where: { id: fileId } });
     return { success: true };
   }
 
   async handleFileUpload(user: AuthenticatedUser, projectId: string, file: any, kind: string) {
-    await this.assertAccess(user, projectId);
+    const project = await this.assertAccess(user, projectId);
     if (!file) throw new NotFoundException('No file');
-    const dir = path.join(process.cwd(), 'uploads', 'projects', projectId);
+    if (!Buffer.isBuffer(file.buffer) || file.size !== file.buffer.byteLength) {
+      throw new BadRequestException('The uploaded file is invalid.');
+    }
+    if (file.size > 100 * 1024 * 1024) {
+      throw new BadRequestException('Project files must not exceed 100 MB.');
+    }
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    const allowedExtensions = new Set([
+      '.doc', '.docx', '.pdf', '.xls', '.xlsx', '.csv', '.pptx', '.txt',
+      '.json', '.xml', '.zip', '.png', '.jpg', '.jpeg', '.webp',
+    ]);
+    if (!allowedExtensions.has(ext)) {
+      throw new BadRequestException('This file type is not supported.');
+    }
+
+    const dir = path.join(process.cwd(), 'private-uploads', 'projects', project.id);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    const ext = path.extname(file.originalname || '');
     const stored = `${randomUUID()}${ext}`;
     fs.writeFileSync(path.join(dir, stored), file.buffer);
 
-    const storageKey = `projects/${projectId}/${stored}`;
+    const storageKey = `projects/${project.id}/${stored}`;
     const familyKey = `${file.originalname || stored}-${Date.now()}`;
 
     return (this.prisma as any).projectFile.create({
       data: {
-        projectId,
+        projectId: project.id,
         uploadedById: user.id,
         name: stored,
         originalName: file.originalname || 'file',
@@ -150,43 +185,56 @@ export class ProjectsService {
         storageKey,
         familyKey,
         kind: (kind === 'DELIVERABLE' ? 'DELIVERABLE' : 'CLIENT_UPLOAD') as any,
-        status: 'AVAILABLE',
+        status: 'SCANNING',
         version: 1,
       },
     });
   }
 
   async handleFileDownload(user: AuthenticatedUser, projectId: string, fileId: string) {
-    await this.assertAccess(user, projectId);
-    const file = await (this.prisma as any).projectFile.findUnique({ where: { id: fileId } });
-    if (!file) throw new NotFoundException('File not found');
-    const filePath = path.join(process.cwd(), 'uploads', 'projects', projectId, file.name);
+    const project = await this.assertAccess(user, projectId);
+    const file = await this.getProjectFile(project.id, fileId);
+    if (file.status !== 'AVAILABLE') {
+      throw new ForbiddenException('This file is unavailable until malware scanning is complete.');
+    }
+    if (typeof file.name !== 'string' || path.basename(file.name) !== file.name) {
+      throw new ForbiddenException('The stored file path is invalid.');
+    }
+    const privateRoot = path.resolve(process.cwd(), 'private-uploads', 'projects', project.id);
+    const filePath = path.resolve(privateRoot, file.name);
+    if (!filePath.startsWith(`${privateRoot}${path.sep}`)) {
+      throw new ForbiddenException('The stored file path is invalid.');
+    }
     if (!fs.existsSync(filePath)) throw new NotFoundException('File missing on disk - old uploads may be gone after reinstall');
     return { path: filePath, originalName: file.originalName, contentType: file.contentType };
   }
 
-  // Legacy stubs for compatibility
-  async initiateUpload(user: AuthenticatedUser, projectId: string, body: any) {
+  async initiateUpload(user: AuthenticatedUser, projectId: string, _body: any) {
     await this.assertAccess(user, projectId);
-    return (this.prisma as any).projectFile.create({
-      data: {
-        projectId,
-        uploadedById: user.id,
-        name: body.name || 'file',
-        originalName: body.name || 'file',
-        contentType: body.contentType || 'application/octet-stream',
-        size: BigInt(body.size || 0),
-        storageKey: `projects/${projectId}/${randomUUID()}`,
-        familyKey: `${body.name || 'file'}-${Date.now()}`,
-        kind: 'CLIENT_UPLOAD',
-        status: 'UPLOADING',
-        version: 1,
-      },
+    throw new ServiceUnavailableException('Multipart uploads are unavailable until private storage and malware scanning are configured.');
+  }
+  async presignPart(user: AuthenticatedUser, projectId: string, fileId: string, _partNumber: number) {
+    await this.assertAccess(user, projectId);
+    await this.getProjectFile(projectId, fileId);
+    throw new ServiceUnavailableException('Multipart uploads are unavailable until private storage and malware scanning are configured.');
+  }
+  async completeUpload(user: AuthenticatedUser, projectId: string, fileId: string, _parts: any) {
+    await this.assertAccess(user, projectId);
+    await this.getProjectFile(projectId, fileId);
+    throw new ServiceUnavailableException('Uploads cannot be made available without a verified malware scan.');
+  }
+  async abortUpload(user: AuthenticatedUser, projectId: string, fileId: string) {
+    await this.assertAccess(user, projectId);
+    await this.getProjectFile(projectId, fileId);
+    return (this.prisma as any).projectFile.update({
+      where: { id: fileId },
+      data: { status: 'FAILED' },
     });
   }
-  async presignPart(user: AuthenticatedUser, projectId: string, fileId: string, partNumber: number) { return { fileId, partNumber, url: '' }; }
-  async completeUpload(user: AuthenticatedUser, projectId: string, fileId: string, parts: any){ return (this.prisma as any).projectFile.update({ where: { id: fileId }, data: { status: 'AVAILABLE' } }); }
-  async abortUpload(user: AuthenticatedUser, projectId: string, fileId: string) { return (this.prisma as any).projectFile.update({ where: { id: fileId }, data: { status: 'FAILED' } }); }
-  async scanStatus(user: AuthenticatedUser, projectId: string, fileId: string) { const f = await (this.prisma as any).projectFile.findUnique({ where: { id: fileId } }); return { status: f?.status || 'AVAILABLE', scanResult: 'CLEAN' }; }
+  async scanStatus(user: AuthenticatedUser, projectId: string, fileId: string) {
+    await this.assertAccess(user, projectId);
+    const file = await this.getProjectFile(projectId, fileId);
+    return { status: file.status, scanResult: null, scanned: false };
+  }
   async download(user: AuthenticatedUser, projectId: string, fileId: string) { return this.handleFileDownload(user, projectId, fileId); }
 }

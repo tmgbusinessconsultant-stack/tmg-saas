@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { apiRequest } from '@/lib/project-delivery';
 
@@ -14,40 +14,81 @@ const COUNTRIES = [
 
 const INDUSTRIES = ['Technology', 'Logistics', 'E-commerce', 'Consulting', 'Real Estate', 'Healthcare', 'Education', 'F&B', 'Construction', 'Manufacturing', 'Finance', 'Import/Export', 'Energy', 'Marketing Agency', 'Other'];
 
-type Assessment = { id: string; businessType: string; country: string; currency: string; investmentAmount: number; teamSize: number; location: string; createdAt: string; overallScore?: string; riskMatrix?: any[]; recommendations?: any; };
+type RiskItem = { risk: string; category: string; score: string; likelihood: number; impact: number; mitigation: string };
+type Assessment = { id: string; businessType: string; country: string; currency: string; investmentAmount: number; teamSize: number; location: string; createdAt: string; overallScore?: string; riskMatrix?: unknown; recommendations?: unknown; };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isRiskItem(value: unknown): value is RiskItem {
+  return isRecord(value)
+    && typeof value.risk === 'string'
+    && typeof value.category === 'string'
+    && typeof value.score === 'string'
+    && typeof value.likelihood === 'number'
+    && typeof value.impact === 'number'
+    && typeof value.mitigation === 'string';
+}
+
+function getRiskItems(assessment: Assessment): RiskItem[] {
+  if (Array.isArray(assessment.riskMatrix) && assessment.riskMatrix.every(isRiskItem)) return assessment.riskMatrix;
+  const recommendations = assessment.recommendations;
+  if (isRecord(recommendations) && Array.isArray(recommendations.riskMatrix) && recommendations.riskMatrix.every(isRiskItem)) {
+    return recommendations.riskMatrix;
+  }
+  return [];
+}
+
+function getExecutiveSummary(recommendations: unknown): string {
+  if (!isRecord(recommendations)) return 'Mitigation required';
+  if (typeof recommendations.executiveSummary === 'string') return recommendations.executiveSummary;
+  if (typeof recommendations.goNoGo === 'string') return recommendations.goNoGo;
+  return 'Mitigation required';
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'An unexpected error occurred.';
+}
 
 export default function RiskAssessmentPage() {
   const [token, setToken] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<Assessment | null>(null);
   const [history, setHistory] = useState<Assessment[]>([]);
+  const [error, setError] = useState('');
   const [country, setCountry] = useState<(typeof COUNTRIES)[number]>(COUNTRIES[0]);
   const [form, setForm] = useState({ businessType: '', industry: 'Technology', location: 'Doha', investmentAmount: 50000, teamSize: 5, concerns: '', currency: 'QAR' });
 
-  useEffect(() => {
-    // Fixed: checks both storages as you had
-    const t = sessionStorage.getItem('accessToken') || localStorage.getItem('accessToken') || localStorage.getItem('token') || '';
-    setToken(t);
+  const loadHistory = useCallback(async (accessToken: string) => {
+    try {
+      const data = await apiRequest<Assessment[]>('/risk-assessments', accessToken);
+      setHistory(Array.isArray(data) ? data : []);
+    } catch (loadError: unknown) {
+      setError(errorMessage(loadError));
+    }
   }, []);
 
-  useEffect(() => { if (token) loadHistory(); }, [token]);
-
-  const loadHistory = async () => {
-    try {
-      const data = await apiRequest<Assessment[]>('/risk-assessments', token);
-      setHistory(Array.isArray(data) ? data : []);
-    } catch { }
-  };
+  useEffect(() => {
+    let active = true;
+    void Promise.resolve().then(async () => {
+      const accessToken = sessionStorage.getItem('accessToken') || localStorage.getItem('accessToken') || localStorage.getItem('token') || '';
+      if (!active) return;
+      setToken(accessToken);
+      if (accessToken) await loadHistory(accessToken);
+    });
+    return () => { active = false; };
+  }, [loadHistory]);
 
   const submit = async () => {
     if (!form.businessType.trim() || !form.concerns.trim()) return;
-    setLoading(true);
+    setLoading(true); setError('');
     try {
       const payload = { ...form, country: country.code, currency: country.currency, teamSize: Number(form.teamSize), investmentAmount: Number(form.investmentAmount) };
       const data = await apiRequest<Assessment>('/risk-assessments', token, { method: 'POST', body: JSON.stringify(payload) });
       setResult(data);
-      await loadHistory();
-    } catch (e: any) { console.error(e); alert(e.message || 'Failed'); } finally { setLoading(false); }
+      await loadHistory(token);
+    } catch (submitError: unknown) { setError(errorMessage(submitError)); } finally { setLoading(false); }
   };
 
   const color = (score?: string) => score?.includes('High') ? 'bg-red-500' : score?.includes('Medium') ? 'bg-amber-500' : 'bg-emerald-500';
@@ -98,6 +139,7 @@ export default function RiskAssessmentPage() {
             <button onClick={submit} disabled={loading} className="w-full rounded-full bg-zinc-900 text-white py-3.5 text-sm font-semibold hover:bg-black disabled:opacity-50">
               {loading ? 'Analyzing Risks...' : `Generate ${country.code} Risk Matrix`}
             </button>
+            {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{error}</p>}
 
             {history.length > 0 && (
               <div className="pt-5 border-t border-zinc-100">
@@ -129,8 +171,8 @@ export default function RiskAssessmentPage() {
                   <span className={`text-white text-xs px-3 py-1 rounded-full font-semibold ${color(result.overallScore)}`}>{result.overallScore || 'Analysis'}</span>
                 </div>
                 <div className="mt-5 space-y-3">
-                  {(result.riskMatrix || (result.recommendations as any)?.riskMatrix || []).map((r: any, i: number) => (
-                    <div key={i} className="flex gap-3 rounded-[12px] border border-zinc-100 bg-zinc-50 p-3">
+                  {getRiskItems(result).map((r, i) => (
+                    <div key={`${r.risk}-${i}`} className="flex gap-3 rounded-[12px] border border-zinc-100 bg-zinc-50 p-3">
                       <span className={`w-1.5 rounded-full ${color(r.score)}`} />
                       <div className="flex-1">
                         <div className="flex justify-between gap-2">
@@ -143,7 +185,7 @@ export default function RiskAssessmentPage() {
                   ))}
                 </div>
                 <div className="mt-5 rounded-[12px] bg-zinc-50 border border-zinc-100 p-3 text-sm text-zinc-700">
-                  <span className="font-semibold text-zinc-900">Executive:</span> {result.recommendations?.executiveSummary || (result.recommendations as any)?.goNoGo || 'Mitigation required'}<br />
+                  <span className="font-semibold text-zinc-900">Executive:</span> {getExecutiveSummary(result.recommendations)}<br />
                   <span className="text-xs text-zinc-500">{country.law}</span>
                 </div>
                 <div className="mt-3 text-xs text-zinc-400">Investment: {result.investmentAmount} {result.currency} • Team: {result.teamSize} • {result.country}</div>

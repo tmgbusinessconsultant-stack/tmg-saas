@@ -1,7 +1,6 @@
 export const dynamic = 'force-dynamic';
 import Link from "next/link";
 import { defaultHomepageContent, type HomepageContent } from "@/lib/homepage-content";
-import { mediaUrl } from "@/lib/content-management";
 
 async function loadContent(): Promise<HomepageContent> {
   try {
@@ -26,7 +25,7 @@ async function loadContent(): Promise<HomepageContent> {
 
 export default async function TestimonialsPage() {
   const content = await loadContent();
-  const approved = (content.testimonials.items || []).filter((t: any) => t.approved !== false);
+  const approved = (content.testimonials.items || []).filter(t => t.approved !== false);
 
   return (
     <div className="min-h-screen bg-[#FCFCF9]">
@@ -66,7 +65,7 @@ export default async function TestimonialsPage() {
               {approved.map((t) => (
                 <article key={t.id} className="flex flex-col rounded-[24px] border border-zinc-200 bg-white p-7 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
                   <div className="flex gap-1 text-[#D4AF37] text-[18px]">{"★".repeat(t.rating || 5)}</div>
-                  <p className="mt-4 text-[14px] leading-7 text-zinc-700">"{t.quote}"</p>
+                  <p className="mt-4 text-[14px] leading-7 text-zinc-700">&quot;{t.quote}&quot;</p>
                   <div className="mt-auto pt-6 flex items-center gap-3 border-t border-zinc-100">
                     <div className="h-10 w-10 rounded-full bg-zinc-900 text-white grid place-items-center font-bold">{t.clientName.charAt(0).toUpperCase()}</div>
                     <div>
@@ -86,4 +85,3 @@ export default async function TestimonialsPage() {
     </div>
   );
 }
-

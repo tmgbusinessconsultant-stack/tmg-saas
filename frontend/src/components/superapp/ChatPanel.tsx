@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 
 export interface MessageData {
@@ -8,6 +9,7 @@ export interface MessageData {
 export interface ChatMessage {
   role: "user" | "assistant" | "system";
   content: string;
+  timestamp?: Date;
   engine?: string;
   version?: string;
   data?: MessageData;
@@ -18,6 +20,27 @@ interface ChatPanelProps {
   isLoading: boolean;
   onSend: (text: string) => void;
 }
+
+interface SpeechRecognitionResultEvent extends Event {
+  results: ArrayLike<ArrayLike<{ transcript: string }>>;
+}
+
+interface SpeechRecognitionInstance {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  onstart: (() => void) | null;
+  onend: (() => void) | null;
+  onresult: ((event: SpeechRecognitionResultEvent) => void) | null;
+  onerror: (() => void) | null;
+  start(): void;
+}
+
+type SpeechRecognitionConstructor = new () => SpeechRecognitionInstance;
+type SpeechRecognitionWindow = Window & {
+  SpeechRecognition?: SpeechRecognitionConstructor;
+  webkitSpeechRecognition?: SpeechRecognitionConstructor;
+};
 
 export default function ChatPanel({ messages, isLoading, onSend }: ChatPanelProps) {
   const [input, setInput] = useState("");
@@ -37,8 +60,8 @@ export default function ChatPanel({ messages, isLoading, onSend }: ChatPanelProp
   };
 
   const startVoice = () => {
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const speechWindow = window as SpeechRecognitionWindow;
+    const SpeechRecognition = speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       alert("Voice input is not supported in this browser. Please switch to Google Chrome.");
       return;
@@ -51,8 +74,8 @@ export default function ChatPanel({ messages, isLoading, onSend }: ChatPanelProp
 
     rec.onstart = () => setIsListening(true);
     rec.onend = () => setIsListening(false);
-    rec.onresult = (e: any) => {
-      const text = e.results[0][0].transcript;
+    rec.onresult = (event) => {
+      const text = event.results[0]?.[0]?.transcript;
       if (text?.trim()) {
         onSend(text.trim());
       }
@@ -97,10 +120,12 @@ export default function ChatPanel({ messages, isLoading, onSend }: ChatPanelProp
               {/* Dynamic Engine Visual Media Rendering Asset Output */}
               {m.data?.imageUrl && (
                 <div className="mt-3 overflow-hidden rounded-xl border bg-slate-100">
-                  <img
+                  <Image
                     src={m.data.imageUrl}
                     alt="AI Synthesized Output"
-                    loading="lazy"
+                    width={800}
+                    height={600}
+                    unoptimized
                     className="max-h-72 w-auto object-contain mx-auto"
                   />
                 </div>
@@ -179,4 +204,3 @@ export default function ChatPanel({ messages, isLoading, onSend }: ChatPanelProp
     </div>
   );
 }
-

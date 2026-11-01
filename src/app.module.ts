@@ -18,6 +18,8 @@ import { PaymentsModule } from './payments/payments.module';
 import { ProjectsModule } from './projects/projects.module';
 import { ContentModule } from './content/content.module';
 import { SitesModule } from './sites/sites.module';
+import { AnalyticsModule } from './analytics/analytics.module';
+import { FormsModule } from './forms/forms.module';
 import { IntegrationsModule } from './integrations/integrations.module';
 import { SettingsModule } from './settings/settings.module';
 import { AiModule } from './ai/ai.module';
@@ -29,8 +31,7 @@ import { ProductivityPlansModule } from './productivity-plans/productivity-plans
 import { PaypalModule } from './paypal/paypal.module';
 
 @Module({
-  imports: [
-    SuperAppModule,
+  imports: [SuperAppModule,
     PrismaModule,
     AuthModule,
     GymsModule,
@@ -44,6 +45,8 @@ import { PaypalModule } from './paypal/paypal.module';
     ProjectsModule,
     ContentModule,
     SitesModule,
+    AnalyticsModule,
+    FormsModule,
     IntegrationsModule,
     SettingsModule,
     AiModule,
@@ -62,6 +65,3 @@ import { PaypalModule } from './paypal/paypal.module';
   ],
 })
 export class AppModule {}
-
-
-

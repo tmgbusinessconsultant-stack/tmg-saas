@@ -30,6 +30,26 @@ const availablePermissions = [
   ["integrations:manage", "Manage integrations"],
 ] as const;
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isManagedUser(value: unknown): value is ManagedUser {
+  return isRecord(value)
+    && typeof value.id === "string"
+    && typeof value.name === "string"
+    && typeof value.email === "string"
+    && typeof value.role === "string"
+    && Array.isArray(value.permissions)
+    && value.permissions.every((permission: unknown) => typeof permission === "string")
+    && typeof value.isActive === "boolean"
+    && typeof value.createdAt === "string";
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
+
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<ManagedUser[]>([]);
   const [selectedId, setSelectedId] = useState("");
@@ -48,12 +68,16 @@ export default function AdminUsersPage() {
       return;
     }
     try {
-      const result = await apiRequest<any>("/admin/users", token);
-      // FIX: backend may return { users: [] } or { data: [] }
-      const list: ManagedUser[] = Array.isArray(result) ? result : result.users || result.data || result.items || [];
-      setUsers(Array.isArray(list) ? list : []);
-      setSelectedId((current) => current && list.some((user: any) => user.id === current) ? current : list[0]?.id ?? "");
-    } catch (loadError) {
+      const result: unknown = await apiRequest<unknown>("/admin/users", token);
+      const list = Array.isArray(result)
+        ? result
+        : isRecord(result)
+          ? result.users ?? result.data ?? result.items
+          : null;
+      if (!Array.isArray(list) || !list.every(isManagedUser)) throw new Error("The users API returned an invalid response.");
+      setUsers(list);
+      setSelectedId((current) => current && list.some((user) => user.id === current) ? current : list[0]?.id ?? "");
+    } catch (loadError: unknown) {
       setError(loadError instanceof Error ? loadError.message : "Could not load users.");
     } finally {
       setLoading(false);
@@ -106,7 +130,7 @@ export default function AdminUsersPage() {
       });
       setUsers((c) => c.map(u => u.id === updated.id ? updated : u));
       setMessage(updated.isActive ? "User activated" : "User suspended");
-    } catch (e: any) {
+    } catch (error: unknown) {
       try {
         const updated = await apiRequest<ManagedUser>(`/admin/users/${encodeURIComponent(selectedUser.id)}/access`, token, {
           method: "PATCH",
@@ -114,7 +138,9 @@ export default function AdminUsersPage() {
         });
         setUsers((c) => c.map(u => u.id === updated.id ? updated : u));
         setMessage("Status updated");
-      } catch (err: any) { setError(e.message || err.message); }
+      } catch (fallbackError: unknown) {
+        setError(`${getErrorMessage(error, "Status update failed.")} ${getErrorMessage(fallbackError, "Fallback update failed.")}`);
+      }
     } finally { setSaving(false); }
   }
 
@@ -130,7 +156,7 @@ export default function AdminUsersPage() {
       await apiRequest(`/admin/users/${encodeURIComponent(selectedUser.id)}`, token, { method: "DELETE" });
       setUsers((c) => c.filter(u => u.id !== selectedUser.id));
       setSelectedId(""); setMessage("User deleted");
-    } catch (e: any) { setError(e.message); } finally { setSaving(false); }
+    } catch (error: unknown) { setError(getErrorMessage(error, "Could not delete user.")); } finally { setSaving(false); }
   }
 
   return (

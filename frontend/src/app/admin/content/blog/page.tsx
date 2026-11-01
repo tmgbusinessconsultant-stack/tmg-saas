@@ -39,6 +39,15 @@ function toForm(post: CmsPost): PostForm {
 const csv = (v: string) => [...new Set(v.split(",").map(i => i.trim()).filter(Boolean))];
 const slugify = (v: string) => v.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const escapeHtml = (v: string) => v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+const postStatuses: CmsPost["status"][] = ["DRAFT", "PUBLISHED", "SCHEDULED"];
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
+
+function isPostStatus(value: string): value is CmsPost["status"] {
+  return postStatuses.some(status => status === value);
+}
 
 function articleHtml(article: (typeof articles)[number]): string {
   const sections = article.sections.map(s => {
@@ -70,14 +79,21 @@ export default function BlogManagementPage() {
       apiRequest<CmsMedia[]>("/admin/content/media?type=image/", accessToken),
     ]);
     setPosts(nextPosts); setCategories(nextCategories); setMedia(nextMedia);
-    if (!form.categoryId && nextCategories[0]) setForm(f => ({ ...f, categoryId: nextCategories[0].id }));
-  }, [form.categoryId]);
+    if (nextCategories[0]) setForm(current => current.categoryId ? current : { ...current, categoryId: nextCategories[0].id });
+  }, []);
 
   useEffect(() => {
-    const accessToken = sessionStorage.getItem("accessToken") || localStorage.getItem("token") || "";
-    if (!accessToken) { setError("Sign in with admin account. Go to /admin login first."); return; }
-    setToken(accessToken);
-    void refresh(accessToken).catch((e: any) => setError(e?.message || "Could not load blog content."));
+    let active = true;
+    const initialize = async () => {
+      const accessToken = sessionStorage.getItem("accessToken") || localStorage.getItem("token") || "";
+      if (!accessToken) throw new Error("Sign in with admin account. Go to /admin login first.");
+      setToken(accessToken);
+      await refresh(accessToken);
+    };
+    void Promise.resolve()
+      .then(initialize)
+      .catch((error: unknown) => { if (active) setError(getErrorMessage(error, "Could not load blog content.")); });
+    return () => { active = false; };
   }, [refresh]);
 
   function editPost(post: CmsPost) {
@@ -99,13 +115,13 @@ export default function BlogManagementPage() {
     try {
       await apiRequest(editingId ? `/admin/content/blog/${encodeURIComponent(editingId)}` : "/admin/content/blog", token, { method: editingId ? "PUT" : "POST", body: JSON.stringify(body) });
       await refresh(token); setNotice(editingId ? "Article updated." : "Article created."); newPost();
-    } catch (cause: any) { setError(cause?.message || "Could not save."); } finally { setBusy(false); }
+    } catch (cause: unknown) { setError(getErrorMessage(cause, "Could not save.")); } finally { setBusy(false); }
   }
 
   async function removePost(post: CmsPost) {
     if (!confirm(`Delete "${post.title}"?`)) return;
     try { await apiRequest(`/admin/content/blog/${encodeURIComponent(post.id)}`, token, { method: "DELETE" }); await refresh(token); if (editingId === post.id) newPost(); setNotice("Article deleted."); }
-    catch (cause: any) { setError(cause?.message || "Could not delete."); }
+    catch (cause: unknown) { setError(getErrorMessage(cause, "Could not delete.")); }
   }
 
   async function importFallbackArticles() {
@@ -133,7 +149,7 @@ export default function BlogManagementPage() {
         });
       }
       await refresh(token); setNotice(`Imported ${pending.length} articles.`);
-    } catch (cause: any) { setError(cause?.message || "Import failed."); }
+    } catch (cause: unknown) { setError(getErrorMessage(cause, "Import failed.")); }
     finally { setImporting(false); }
   }
 
@@ -161,7 +177,7 @@ export default function BlogManagementPage() {
             <label className="text-sm font-medium">Author<input value={form.author} onChange={e => setForm({ ...form, author: e.target.value })} className="mt-1 block w-full rounded-md border p-2" /></label>
             <label className="text-sm font-medium">Category<select required value={form.categoryId} onChange={e => setForm({ ...form, categoryId: e.target.value })} className="mt-1 block w-full rounded-md border p-2"><option value="">Select category</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
             <label className="text-sm font-medium">Tags<input value={form.tags} onChange={e => setForm({ ...form, tags: e.target.value })} className="mt-1 block w-full rounded-md border p-2" /></label>
-            <label className="text-sm font-medium">Status<select value={form.status} onChange={e => setForm({ ...form, status: e.target.value as any })} className="mt-1 block w-full rounded-md border p-2"><option value="DRAFT">Draft</option><option value="PUBLISHED">Published</option><option value="SCHEDULED">Scheduled</option></select></label>
+            <label className="text-sm font-medium">Status<select value={form.status} onChange={e => { if (isPostStatus(e.target.value)) setForm({ ...form, status: e.target.value }); }} className="mt-1 block w-full rounded-md border p-2"><option value="DRAFT">Draft</option><option value="PUBLISHED">Published</option><option value="SCHEDULED">Scheduled</option></select></label>
           </div>
           <button type="submit" disabled={busy} className="rounded-md bg-[#0F172A] px-5 py-3 font-semibold text-white disabled:opacity-50">{busy ? "Saving…" : editingId ? "Save article" : "Create article"}</button>
         </form>

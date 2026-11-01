@@ -26,7 +26,13 @@ export default function PolicyGeneratorPage() {
   const [selectedCountry, setSelectedCountry] = useState<(typeof COUNTRIES)[number]>(COUNTRIES[0]);
   const [form, setForm] = useState({ companyName: '', policyType: 'HR Policy', employeeCount: '50', industry: '', summary: '', complianceNotes: '' });
 
-  useEffect(() => { setToken(sessionStorage.getItem('accessToken') || localStorage.getItem('accessToken') || ''); }, []);
+  useEffect(() => {
+    let active = true;
+    void Promise.resolve().then(() => {
+      if (active) setToken(sessionStorage.getItem('accessToken') || localStorage.getItem('accessToken') || '');
+    });
+    return () => { active = false; };
+  }, []);
   useEffect(() => { return () => { if (pdfBlobUrl) URL.revokeObjectURL(pdfBlobUrl); }; }, [pdfBlobUrl]);
 
   useEffect(() => {
@@ -34,13 +40,14 @@ export default function PolicyGeneratorPage() {
     (async () => {
       try {
         const res = await fetch(`/api/cv-documents/file/${savedDoc.id}`, { headers: { Authorization: `Bearer ${token}` } });
-        if (!res.ok) return;
+        if (!res.ok) throw new Error(`Could not download the generated document (${res.status}).`);
         const blob = await res.blob();
-        if (pdfBlobUrl) URL.revokeObjectURL(pdfBlobUrl);
         setPdfBlobUrl(URL.createObjectURL(blob));
-      } catch { }
+      } catch (requestError: unknown) {
+        setError(requestError instanceof Error ? requestError.message : 'Could not open the generated document.');
+      }
     })();
-  }, [savedDoc?.id]);
+  }, [savedDoc?.id, token]);
 
   const handleGenerate = async () => {
     if (!token) { setError('Sign in required'); return; }
@@ -58,7 +65,9 @@ export default function PolicyGeneratorPage() {
       };
       const result = await apiRequest<SavedDoc>('/cv-documents', token, { method: 'POST', body: JSON.stringify(payload) });
       setSavedDoc(result);
-    } catch (e: any) { setError(e.message); } finally { setLoading(false); }
+    } catch (requestError: unknown) {
+      setError(requestError instanceof Error ? requestError.message : 'Could not generate the policy.');
+    } finally { setLoading(false); }
   };
 
   return (
@@ -134,4 +143,3 @@ export default function PolicyGeneratorPage() {
     </div>
   );
 }
-

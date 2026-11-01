@@ -108,8 +108,8 @@ export class ContentController {
 
   @Roles(UserRole.SUPER_ADMIN)
   @Post('admin/content/media/:id/scan')
-  scanMedia(@Param('id') id: string) {
-    return this.content.refreshMediaScan(id);
+  scanMedia(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.content.refreshMediaScan(id, user);
   }
 
   @Roles(UserRole.SUPER_ADMIN)

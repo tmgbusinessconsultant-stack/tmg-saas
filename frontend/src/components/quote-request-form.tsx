@@ -87,14 +87,13 @@ export default function QuoteRequestForm({ source = "contact" }: { source?: stri
 
       {/* FIXED: Integrated verification challenge token mapping securely inside the grid form layout context */}
       <div className="py-1">
-        <TurnstileChallenge onToken={setToken => setCaptchaToken(setToken)} action="quote_submit" />
+        <TurnstileChallenge onVerify={setCaptchaToken} />
       </div>
 
-      <button disabled={loading || (process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? !captchaToken : false)} type="submit" className="w-full text-white text-sm font-black tracking-wider uppercase transition-all shadow-sm hover:opacity-95 disabled:opacity-40" style={{ background: "var(--primary)", borderRadius: "var(--button-radius)", height: "var(--button-height)" }}>
+      <button disabled={loading || !captchaToken} type="submit" className="w-full text-white text-sm font-black tracking-wider uppercase transition-all shadow-sm hover:opacity-95 disabled:opacity-40" style={{ background: "var(--primary)", borderRadius: "var(--button-radius)", height: "var(--button-height)" }}>
         {loading ? "Transmitting Parameters..." : "Request Framework Proposal"}
       </button>
       <p className="text-[10px] text-center text-zinc-400 font-bold uppercase tracking-wide">Delivered Over 500+ Regional Strategy Assets &bull; Doha, Qatar</p>
     </form>
   );
 }
-

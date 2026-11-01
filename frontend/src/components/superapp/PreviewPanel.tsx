@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useState } from "react";
 
 export type AssetType = "image" | "code" | "trading" | "document" | "video" | string;
@@ -9,7 +10,7 @@ export interface AssetPayload {
   prompt?: string;
   code?: string;
   answer?: string;
-  data?: any;
+  data?: unknown;
 }
 
 interface PreviewPanelProps {
@@ -79,7 +80,7 @@ export default function PreviewPanel({ asset, onSendEmail, onActionTrigger, comp
   }
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-white border-l border-slate-200">
+    <div className={`flex flex-col h-full overflow-hidden bg-white border-l border-slate-200 ${compact ? "m-0 rounded-none shadow-none" : ""}`}>
       {/* Header Context Bar */}
       <div className="p-3 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
         <h3 className="font-bold text-xs uppercase tracking-wider text-[#0A3D62]">
@@ -97,7 +98,7 @@ export default function PreviewPanel({ asset, onSendEmail, onActionTrigger, comp
           <div className="space-y-3">
             {asset.url ? (
               <div className="overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
-                <img src={asset.url} alt={asset.prompt || "AI Output"} className="w-full h-auto object-contain rounded-lg" loading="lazy" />
+                <Image src={asset.url} alt={asset.prompt || "AI Output"} width={1200} height={900} unoptimized className="w-full h-auto object-contain rounded-lg" />
               </div>
             ) : (
               <div className="w-full h-48 bg-slate-100 border border-dashed rounded-xl flex items-center justify-center text-xs text-slate-400 font-mono">

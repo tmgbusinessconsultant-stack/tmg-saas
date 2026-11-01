@@ -1,7 +1,6 @@
 "use client";
 import Link from "next/link";
 export default function ServicePage(){
-  const service = "business-consulting";
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <Link href="/services" className="text-sm text-gray-500">← Services</Link>
@@ -14,4 +13,3 @@ export default function ServicePage(){
     </div>
   );
 }
-

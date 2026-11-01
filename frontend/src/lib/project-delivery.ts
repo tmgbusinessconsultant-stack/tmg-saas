@@ -31,6 +31,10 @@ export type Project = {
   messages: ProjectMessage[];
 };
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function apiBaseUrl(): string {
   const value = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
   if (!value) throw new Error("The API URL is not configured.");
@@ -58,8 +62,8 @@ export async function apiRequest<T>(
     let message = `Request failed (${response.status}).`;
     try {
       const body: unknown = await response.json();
-      if (typeof body === "object" && body !== null && "message" in body) {
-        const apiMessage = (body as any).message;
+      if (isRecord(body) && "message" in body) {
+        const apiMessage = body.message;
         if (typeof apiMessage === "string") message = apiMessage;
         else if (Array.isArray(apiMessage)) message = apiMessage.join(" ");
       }

@@ -1,115 +1,154 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, Req, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
-import { SitesService } from './sites.service';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { UserRole } from '@prisma/client';
+import { CurrentUser } from '../auth/current-user.decorator';
+import type { AuthenticatedUser } from '../auth/auth.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { PuckContentValidationInterceptor } from './interceptors/puck-validator.interceptor';
+import { CreateSiteDto, SitesService } from './sites.service';
 
 @Controller('sites')
 export class SitesController {
-  constructor(private sites: SitesService) {}
+  constructor(private readonly sitesService: SitesService) {}
 
-  @UseGuards(JwtAuthGuard)
-  @Post()
-  create(@Req() req: any, @Body() dto: any) {
-    return this.sites.createSite(req.user.id, dto);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get('admin/all')
-  listAllAdmin(@Req() req: any) {
-    return this.sites.listAllSites();
-  }
-
-  @UseGuards(JwtAuthGuard)
   @Get()
-  list(@Req() req: any) {
-    return this.sites.listSites(req.user.id);
+  @UseGuards(JwtAuthGuard)
+  getUserSites(@CurrentUser() user: AuthenticatedUser) {
+    return this.sitesService.listSites(user.id);
+  }
+
+  @Post()
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  createSite(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateSiteDto) {
+    return this.sitesService.createSite(user.id, dto);
+  }
+
+  @Get('admin/all')
+  @UseGuards(JwtAuthGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  getAllSitesGlobal() {
+    return this.sitesService.listAllSites();
   }
 
   @Get('by-subdomain/:subdomain')
   getBySubdomain(@Param('subdomain') subdomain: string) {
-    return this.sites.getSiteBySubdomain(subdomain);
+    return this.sitesService.getBySubdomain(subdomain);
   }
 
   @Get('domain/:domain')
   getByDomain(@Param('domain') domain: string) {
-    return this.sites.getSiteByDomain(domain);
+    return this.sitesService.getByCustomDomain(domain);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get(':id')
-  get(@Param('id') id: string) {
-    return this.sites.getSite(id);
+  @UseGuards(JwtAuthGuard)
+  getSiteById(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.sitesService.getSiteForUser(id, user.id);
   }
 
+  @Put(':id')
   @UseGuards(JwtAuthGuard)
+  updateSite(
+    @Param('id') id: string,
+    @Body() body: Record<string, unknown>,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.sitesService.updateSite(id, user.id, body);
+  }
+
   @Put(':id/pages/:slug')
-  updatePage(@Param('id') id: string, @Param('slug') slug: string, @Body() body: any) {
-    return this.sites.savePageLayout(id, slug, body);
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(PuckContentValidationInterceptor)
+  @HttpCode(HttpStatus.OK)
+  updatePageLayout(
+    @Param('id') siteId: string,
+    @Param('slug') slug: string,
+    @Body() payload: unknown,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.sitesService.savePageLayout(siteId, slug, payload, user.id);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Delete(':id/pages/:slug')
-  deletePage(@Param('id') id: string, @Param('slug') slug: string) {
-    return this.sites.deletePage(id, slug);
+  @UseGuards(JwtAuthGuard)
+  deletePageSegment(
+    @Param('id') siteId: string,
+    @Param('slug') slug: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.sitesService.deletePage(siteId, slug, user.id);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Post(':id/domain')
-  addCustomDomain(@Param('id') id: string, @Body() body: { domain: string }, @Req() req: any) {
-    return this.sites.addCustomDomain(id, req.user.id, body.domain);
-  }
-
-  @UseGuards(JwtAuthGuard)
   @Post(':id/header')
-  updateHeader(@Param('id') id: string, @Body() body: any, @Req() req: any) {
-    return this.sites.updateHeader(id, req.user.id, body.headerData, body.logoUrl);
+  @UseGuards(JwtAuthGuard)
+  updateHeaderConfiguration(
+    @Param('id') siteId: string,
+    @Body() body: { headerData: unknown; logoUrl?: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.sitesService.updateHeader(siteId, user.id, body.headerData, body.logoUrl);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post(':id/footer')
-  updateFooter(@Param('id') id: string, @Body() body: any, @Req() req: any) {
-    return this.sites.updateFooter(id, req.user.id, body.footerData);
+  @UseGuards(JwtAuthGuard)
+  updateFooterConfiguration(
+    @Param('id') siteId: string,
+    @Body() body: { footerData: unknown },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.sitesService.updateFooter(siteId, user.id, body.footerData);
   }
 
-  // === STEP 4: LOGO FILE UPLOAD ===
+  @Post(':id/domain')
   @UseGuards(JwtAuthGuard)
+  linkCustomDomain(
+    @Param('id') siteId: string,
+    @Body() body: { domain: string },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.sitesService.addCustomDomain(siteId, user.id, body.domain);
+  }
+
+  @Post(':id/verify-domain')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  verifyDomainPropagation(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.sitesService.verifyDomainPropagation(id, user.id);
+  }
+
   @Post(':id/logo-upload')
-  @UseInterceptors(FileInterceptor('file', {
-    storage: diskStorage({
-      destination: './uploads/logos',
-      filename: (req, file, cb) => {
-        const unique = Date.now() + '-' + Math.round(Math.random()*1e9);
-        cb(null, unique + extname(file.originalname));
-      },
-    }),
-    fileFilter: (req, file, cb) => {
-      if (!file.mimetype.match(/\/(jpg|jpeg|png|webp|svg\+xml|svg)$/)) {
-        return cb(new Error('Only image files allowed'), false);
-      }
-      cb(null, true);
-    },
-    limits: { fileSize: 5 * 1024 * 1024 },
-  }))
-  async uploadLogo(@Param('id') id: string, @UploadedFile() file: Express.Multer.File, @Req() req: any) {
-    const url = `/uploads/logos/${file.filename}`;
-    await this.sites.updateHeader(id, req.user.id, null, url);
-    return { url, fileUrl: `http://localhost:4000${url}`, filename: file.filename };
-  }
-
-    @UseGuards(JwtAuthGuard)
-  @Delete(':id')
-  async deleteSite(@Param('id') id: string, @Req() req: any) {
-    return this.sites.deleteSite(id, req.user.id);
-  }
-
   @UseGuards(JwtAuthGuard)
+  uploadLogo(
+    @Param('id') siteId: string,
+    @Body() body: unknown,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.sitesService.uploadLogo(siteId, user.id, body);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  deleteSite(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.sitesService.deleteSite(id, user.id);
+  }
+
   @Put(':id/publish')
-  publish(@Param('id') id: string) {
-    return this.sites.publish(id);
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  publishProductionRelease(@Param('id') siteId: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.sitesService.publish(siteId, user.id);
   }
 }
-
-
-

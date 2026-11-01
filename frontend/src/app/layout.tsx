@@ -52,7 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="min-h-screen w-full">{children}</main>
 
         {/* Premium Synchronized Application Footer Structure */}
-        <footer className="text-white w-full flex flex-col justify-between border-t border-zinc-800/20" style={{ background: "var(--footer-bg)", minHeight: "var(--footer-height)" as any }}>
+        <footer className="text-white w-full flex flex-col justify-between border-t border-zinc-800/20" style={{ background: "var(--footer-bg)", minHeight: "var(--footer-height)" }}>
           <div className="mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-sm text-slate-300 w-full flex-grow" style={{ maxWidth: "var(--container-max)" }}>
 
             {/* Branding Mission Brief */}
@@ -105,4 +105,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
-

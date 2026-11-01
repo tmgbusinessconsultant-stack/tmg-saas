@@ -1,7 +1,9 @@
 "use client";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
-export default function PayPalSubscribe({ planId, onSuccess }: { planId: string; onSuccess?: (data: any) => void }) {
+type PayPalApproval = { subscriptionID?: string | null; orderID?: string | null };
+
+export default function PayPalSubscribe({ planId, onSuccess }: { planId: string; onSuccess?: (data: PayPalApproval) => void }) {
   const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "sb";
   const currency = process.env.NEXT_PUBLIC_PAYPAL_CURRENCY || "USD";
 

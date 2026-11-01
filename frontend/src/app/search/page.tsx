@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import SearchCenter from "./search-center";
+import { serializeJsonLd } from "@/lib/json-ld";
 
 export const metadata: Metadata = {
   title: "Search | TMG Business Consulting",
@@ -45,7 +46,7 @@ export default function SearchPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(searchActionSchema) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(searchActionSchema) }}
       />
       <Suspense
         fallback={
@@ -62,4 +63,3 @@ export default function SearchPage() {
     </>
   );
 }
-

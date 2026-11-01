@@ -1,15 +1,17 @@
 "use client";
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { whatsappNumber } from "@/lib/contact-details";
+import { serializeJsonLd } from "@/lib/json-ld";
 
-type Product = {
+export type ShopProduct = {
     id: string; title: string; description: string; price: number; currency: string;
     category: string; features: string[]; downloadUrl: string | null; imageUrl?: string | null;
     mediaId?: string | null; type?: "PRODUCT" | "SERVICE"; bestseller?: boolean; active?: boolean;
 };
 
-export default function ShopClient({ products, title, subtitle }: { products: Product[], title: string, subtitle: string }) {
+export default function ShopClient({ products, title, subtitle }: { products: ShopProduct[], title: string, subtitle: string }) {
     const [filter, setFilter] = useState("All");
     const [buying, setBuying] = useState<string | null>(null);
     const [search, setSearch] = useState("");
@@ -24,9 +26,24 @@ export default function ShopClient({ products, title, subtitle }: { products: Pr
         return [...list].sort((a, b) => (b.bestseller ? 1 : 0) - (a.bestseller ? 1 : 0) || a.price - b.price);
     }, [products, filter, search]);
 
-    const whatsappLink = (p: Product) => `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`Hi TMG, I want to buy: ${p.title} - $${p.price} ${p.currency || 'USD'}`)}`;
+    const whatsappLink = (p: ShopProduct) => `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`Hi TMG, I want to buy: ${p.title} - $${p.price} ${p.currency || 'USD'}`)}`;
+    const itemListSchema = {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        name: title,
+        itemListElement: filtered.map((product, index) => ({
+            "@type": "ListItem",
+            position: index + 1,
+            item: {
+                "@type": "Product",
+                name: product.title,
+                description: product.description,
+                offers: { "@type": "Offer", price: product.price, priceCurrency: product.currency || "USD" },
+            },
+        })),
+    };
 
-    const handleBuyProduct = async (product: Product) => {
+    const handleBuyProduct = async (product: ShopProduct) => {
         try {
             setBuying(product.id);
             const apiBase = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "") || "http://localhost:4000";
@@ -76,7 +93,7 @@ export default function ShopClient({ products, title, subtitle }: { products: Pr
 
             <div className="mx-auto px-6 pb-24 max-w-7xl mt-8">
                 {filtered.length === 0 ? (
-                    <div className="text-center py-20 bg-white rounded-2xl border border-dashed max-w-md mx-auto"><span className="text-3xl">📦</span><p className="text-slate-500 mt-2">No products for "{search || filter}"</p></div>
+                    <div className="text-center py-20 bg-white rounded-2xl border border-dashed max-w-md mx-auto"><span className="text-3xl">📦</span><p className="text-slate-500 mt-2">No products for &quot;{search || filter}&quot;</p></div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {filtered.map(product => (
@@ -85,7 +102,7 @@ export default function ShopClient({ products, title, subtitle }: { products: Pr
                                     <div className="relative overflow-hidden rounded-xl mb-5 bg-slate-50 aspect-[16/10]">
                                         {product.bestseller && <div className="absolute top-3 left-3 z-10 text-[10px] uppercase font-extrabold px-2.5 py-1 rounded-md bg-amber-400 text-slate-900 shadow">🔥 Bestseller</div>}
                                         {product.type && <div className="absolute top-3 right-3 z-10 text-[10px] uppercase font-bold px-2 py-1 rounded bg-slate-900 text-white">{product.type}</div>}
-                                        {product.imageUrl ? <img src={product.imageUrl} alt={product.title} className="h-full w-full object-cover group-hover:scale-105 transition duration-500" /> : <div className="h-full flex flex-col items-center justify-center opacity-30 text-sm gap-1">📂 {product.category}</div>}
+                                        {product.imageUrl ? <Image src={product.imageUrl} alt={product.title} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" unoptimized className="object-cover group-hover:scale-105 transition duration-500" /> : <div className="h-full flex flex-col items-center justify-center opacity-30 text-sm gap-1">📂 {product.category}</div>}
                                     </div>
                                     <div className="text-xs font-bold uppercase tracking-wider text-blue-600 mb-2">{product.category} • Instant Access</div>
                                     <h3 className="font-extrabold text-xl tracking-tight group-hover:text-blue-600 transition">{product.title}</h3>
@@ -118,7 +135,7 @@ export default function ShopClient({ products, title, subtitle }: { products: Pr
             </div>
 
             {/* SEO JSON-LD — BEST */}
-            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "ItemList", "name": title, "itemListElement": filtered.map((p, i) => ({ "@type": "ListItem", "position": i + 1, "item": { "@type": "Product", "name": p.title, "description": p.description, "offers": { "@type": "Offer", "price": p.price, "priceCurrency": p.currency || "USD" } } })) }) }} />
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(itemListSchema) }} />
         </div>
     );
 }

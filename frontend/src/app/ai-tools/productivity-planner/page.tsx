@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { apiRequest } from '@/lib/project-delivery';
 
@@ -12,31 +12,62 @@ const COUNTRIES = [
   { code: 'Australia', week: 'Mon-Fri', prayer: false, ramadan: false },
 ] as const;
 
-type Plan = { id: string; role: string; country: string; teamSize: string; workSchedule: string; createdAt: string; weeklyPlan?: any; kpis?: any; challenges?: string; };
+type Plan = { id: string; role: string; country: string; teamSize: string; workSchedule: string; createdAt: string; weeklyPlan?: unknown; kpis?: unknown; challenges?: string; };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function formatTasks(tasks: unknown): string {
+  if (!Array.isArray(tasks)) return String(tasks);
+  return tasks.map((task: unknown) => {
+    if (!isRecord(task)) return String(task);
+    const time = typeof task.time === 'string' ? task.time : '';
+    const description = typeof task.task === 'string' ? task.task : '';
+    return `${time} ${description}`.trim();
+  }).join(' • ');
+}
 
 export default function ProductivityPage() {
   const [token, setToken] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<Plan | null>(null);
   const [history, setHistory] = useState<Plan[]>([]);
+  const [error, setError] = useState('');
   const [country, setCountry] = useState<(typeof COUNTRIES)[number]>(COUNTRIES[0]);
   const [form, setForm] = useState({ role: 'Founder', teamSize: '1-5', workSchedule: 'Sun-Thu 8AM-4PM (Qatar)', goals: '', challenges: '', ramadanMode: false });
 
-  useEffect(() => { setToken(sessionStorage.getItem('accessToken') || localStorage.getItem('accessToken') || ''); }, []);
-  useEffect(() => { if (token) loadHistory(); }, [token]);
+  const loadHistory = useCallback(async (accessToken: string) => {
+    try {
+      const data = await apiRequest<Plan[]>('/productivity-plans', accessToken);
+      setHistory(Array.isArray(data) ? data : []);
+    } catch (loadError: unknown) {
+      setError(loadError instanceof Error ? loadError.message : 'Could not load productivity plans.');
+    }
+  }, []);
 
-  const loadHistory = async () => {
-    try { const data = await apiRequest<Plan[]>('/productivity-plans', token); setHistory(data); } catch { }
-  };
+  useEffect(() => {
+    let active = true;
+    void Promise.resolve().then(async () => {
+      const accessToken = sessionStorage.getItem('accessToken') || localStorage.getItem('accessToken') || '';
+      if (!active) return;
+      setToken(accessToken);
+      if (accessToken) await loadHistory(accessToken);
+    });
+    return () => { active = false; };
+  }, [loadHistory]);
 
   const submit = async () => {
     if (!form.goals.trim()) { setResult(null); return; }
-    setLoading(true);
+    if (!token) { setError('Sign in required.'); return; }
+    setLoading(true); setError('');
     try {
       const payload = { ...form, country: country.code, workSchedule: form.workSchedule };
       const data = await apiRequest<Plan>('/productivity-plans', token, { method: 'POST', body: JSON.stringify(payload) });
-      setResult(data); void loadHistory();
-    } catch (e: any) { console.error(e); } finally { setLoading(false); }
+      setResult(data); await loadHistory(token);
+    } catch (submitError: unknown) {
+      setError(submitError instanceof Error ? submitError.message : 'Could not generate the productivity plan.');
+    } finally { setLoading(false); }
   };
 
   return (
@@ -84,6 +115,7 @@ export default function ProductivityPage() {
             <button onClick={submit} disabled={loading} className="w-full rounded-full bg-zinc-900 text-white py-3.5 text-sm font-semibold hover:bg-black disabled:opacity-50">
               {loading ? 'Building Weekly Plan...' : `Generate ${country.code} Weekly Plan`}
             </button>
+            {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{error}</p>}
 
             {history.length > 0 && (
               <div className="pt-5 border-t border-zinc-100">
@@ -114,10 +146,10 @@ export default function ProductivityPage() {
                 <h3 className="font-semibold text-zinc-900">Weekly Plan — {result.workSchedule}</h3>
                 <p className="text-xs text-zinc-500 mt-1">{result.country} • {result.role} • Team {result.teamSize}</p>
                 <div className="mt-5 space-y-3">
-                  {result.weeklyPlan && typeof result.weeklyPlan === 'object' ? Object.entries(result.weeklyPlan).map(([day, tasks]: any) => (
+                  {isRecord(result.weeklyPlan) ? Object.entries(result.weeklyPlan).map(([day, tasks]) => (
                     <div key={day} className="rounded-[12px] bg-zinc-50 border border-zinc-100 p-3 text-sm">
                       <span className="font-semibold text-zinc-900">{day}:</span>
-                      <span className="text-zinc-600 ml-2">{Array.isArray(tasks) ? tasks.map((t: any) => `${t.time || ''} ${t.task}`).join(' • ') : String(tasks)}</span>
+                      <span className="text-zinc-600 ml-2">{formatTasks(tasks)}</span>
                     </div>
                   )) : <pre className="text-xs bg-zinc-50 p-3 rounded-[12px] border border-zinc-100 overflow-auto">{JSON.stringify(result, null, 2)}</pre>}
                 </div>
@@ -132,4 +164,3 @@ export default function ProductivityPage() {
     </div>
   );
 }
-

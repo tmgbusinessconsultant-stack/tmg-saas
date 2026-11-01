@@ -134,7 +134,9 @@ export class SuperAppService {
       };
 
     } catch (error) {
-      this.logger.error(`Pipeline failure during processing: ${error.message}`, error.stack);
+      const message = error instanceof Error ? error.message : 'Unknown processing error';
+      const stack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Pipeline failure during processing: ${message}`, stack);
       throw new HttpException('Internal Processing Engine Error', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

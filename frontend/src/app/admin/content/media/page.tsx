@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { apiRequest, type CmsGalleryItem, type CmsMedia, mediaUrl } from "@/lib/content-management";
+import { apiRequest, type CmsMedia, mediaUrl } from "@/lib/content-management";
 import AdminMediaPreview from "@/components/admin-media-preview";
 
 const folders = ["blog", "services", "clients", "gallery", "documents"];
@@ -25,13 +25,9 @@ function formatSize(value: string): string {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function getUsages(item: CmsMedia) { return (item as any).usages ?? []; }
-function getLocations(item: CmsMedia) { return (item as any).locations ?? []; }
-
 export default function MediaLibraryPage() {
   const [token, setToken] = useState("");
   const [items, setItems] = useState<CmsMedia[]>([]);
-  const [galleryItems, setGalleryItems] = useState<CmsGalleryItem[]>([]);
   const [search, setSearch] = useState("");
   const [type, setType] = useState("");
   const [folder, setFolder] = useState("blog");
@@ -39,19 +35,13 @@ export default function MediaLibraryPage() {
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState<{ item: CmsMedia; location: string } | null>(null);
-  const [previewLocation, setPreviewLocation] = useState<Record<string, string>>({});
 
   const refresh = useCallback(async (accessToken: string) => {
     const query = new URLSearchParams();
     if (search.trim()) query.set("search", search.trim());
     if (type) query.set("type", type);
     const suffix = query.size ? `?${query.toString()}` : "";
-    const [nextItems, nextGalleryItems] = await Promise.all([
-      apiRequest<CmsMedia[]>(`/admin/content/media${suffix}`, accessToken),
-      apiRequest<CmsGalleryItem[]>("/admin/content/gallery", accessToken),
-    ]);
-    setItems(nextItems);
-    setGalleryItems(nextGalleryItems);
+    setItems(await apiRequest<CmsMedia[]>(`/admin/content/media${suffix}`, accessToken));
   }, [search, type]);
 
   useEffect(() => {
@@ -85,7 +75,7 @@ export default function MediaLibraryPage() {
     form.set("file", file);
     form.set("location", folder);
     try {
-      const uploaded = await apiRequest<CmsMedia>("/admin/content/media", token, { method: "POST", body: form });
+      await apiRequest<CmsMedia>("/admin/content/media", token, { method: "POST", body: form });
       await refresh(token);
       setNotice(`${file.name} uploaded.`);
     } catch (cause) {
@@ -94,7 +84,7 @@ export default function MediaLibraryPage() {
   }
 
   async function toggleLocation(item: CmsMedia, location: string) {
-    const locs = getLocations(item);
+    const locs = item.locations;
     const next = locs.includes(location) ? locs.filter((current: string) => current !== location) : [...locs, location];
     try {
       await apiRequest(`/admin/content/media/${encodeURIComponent(item.id)}`, token, { method: "PATCH", body: JSON.stringify({ locations: next }) });
@@ -103,8 +93,8 @@ export default function MediaLibraryPage() {
   }
 
   async function deleteItem(item: CmsMedia) {
-    const usages = getUsages(item); const locs = getLocations(item);
-    const usageDetails = usages.length ? `\n\nCurrently used in:\n${usages.map((u: any) => `• ${u.label}`).join("\n")}` : locs.length ? `\n\nPublished to: ${locs.join(", ")}.` : "";
+    const usages = item.usages; const locs = item.locations;
+    const usageDetails = usages.length ? `\n\nCurrently used in:\n${usages.map((usage) => `• ${usage.label}`).join("\n")}` : locs.length ? `\n\nPublished to: ${locs.join(", ")}.` : "";
     if (!window.confirm(`Delete ${item.originalName}?${usageDetails}`)) return;
     try {
       await apiRequest(`/admin/content/media/${encodeURIComponent(item.id)}`, token, { method: "DELETE" });
@@ -125,16 +115,6 @@ export default function MediaLibraryPage() {
   async function copyUrl(item: CmsMedia) {
     try { await navigator.clipboard.writeText(mediaUrl(item.url)); setNotice("URL copied."); }
     catch { setError("Could not copy URL."); }
-  }
-
-  function usagePageCount(item: CmsMedia): number {
-    const usages = getUsages(item); const locs = getLocations(item);
-    const pages = new Set(usages.map((u: any) => u.href));
-    if (locs.includes("homepage")) pages.add("/");
-    if (locs.includes("services")) pages.add("/services");
-    if (locs.includes("about")) pages.add("/about");
-    if (locs.includes("case-study")) pages.add("/case-studies");
-    return pages.size;
   }
 
   return (
@@ -158,7 +138,7 @@ export default function MediaLibraryPage() {
             </select>
           </label>
           <label className="text-sm font-medium">Select file
-            <input type="file" accept=".jpg,.jpeg,.png,.svg,.webp,.gif,.pdf,.mp4" disabled={!token || busy} className="mt-1 block w-full rounded-md border border-slate-300 p-2"
+            <input type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.mp4" disabled={!token || busy} className="mt-1 block w-full rounded-md border border-slate-300 p-2"
               onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ""; if (file) void upload(file); }} />
           </label>
         </div>
@@ -178,7 +158,7 @@ export default function MediaLibraryPage() {
         {items.length === 0 ? <p className="mt-5 rounded-xl border border-dashed p-8 text-slate-600">No matching media files.</p> : (
           <div className="mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {items.map((item) => {
-              const usages = getUsages(item); const locs = getLocations(item);
+              const usages = item.usages; const locs = item.locations;
               return (
                 <article key={item.id} className="overflow-hidden rounded-2xl border bg-white shadow-sm">
                   <div className="flex h-48 items-center justify-center bg-slate-100">
@@ -189,8 +169,8 @@ export default function MediaLibraryPage() {
                     <p className="mt-1 text-xs text-slate-500">{item.contentType} · {formatSize(item.size)} · {new Date(item.createdAt).toLocaleString()}</p>
                     <p className={`mt-2 inline-flex rounded-full px-3 py-1 text-sm font-semibold ${item.status === "AVAILABLE" ? "bg-green-100 text-green-900" : item.status === "SCANNING" ? "bg-blue-100 text-blue-900" : "bg-red-100 text-red-900"}`}>
                       {item.scanStatus === "PENDING" ? "⏳ Pending scan" : item.scanStatus === "NOT_SCANNED" ? "⚠️ Not scanned · cannot publish" : item.scanStatus === "PASSED"
-                        ? usages.some((u: any) => u.entityType === "HOMEPAGE_HERO") ? "⭐ Featured · scan passed"
-                          : usages.some((u: any) => u.published) || locs.some((l: string) => ["homepage", "services", "about", "case-study"].includes(l)) ? "✅ Published · scan passed"
+                        ? usages.some((usage) => usage.entityType === "HOMEPAGE_HERO") ? "⭐ Featured · scan passed"
+                          : usages.some((usage) => usage.published) || locs.some((location) => ["homepage", "services", "about", "case-study"].includes(location)) ? "✅ Published · scan passed"
                             : locs.length ? "📌 Destination selected"
                               : "✅ Scan passed · ready"
                         : "❌ Scan failed"}
@@ -204,6 +184,7 @@ export default function MediaLibraryPage() {
                     </fieldset>
                     <div className="mt-4 flex gap-3 text-sm font-semibold">
                       <button type="button" onClick={() => void copyUrl(item)} className="underline">Copy URL</button>
+                      <button type="button" onClick={() => setPreview({ item, location: locs[0] ?? "gallery" })} className="underline">Preview</button>
                       <button type="button" onClick={() => void deleteItem(item)} className="text-red-700 underline">Delete</button>
                     </div>
                     <label className="mt-4 block text-sm">Replace file<input type="file" className="mt-1 block w-full text-sm" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void replace(item, f); }} /></label>
@@ -225,4 +206,3 @@ export default function MediaLibraryPage() {
     </main>
   );
 }
-

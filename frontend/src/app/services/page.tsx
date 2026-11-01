@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import PublishedMediaSection from "@/components/published-media-section";
+import { serializeJsonLd } from "@/lib/json-ld";
 
 export const metadata: Metadata = {
   title: "Business Services in Qatar | TMG Business Consulting",
@@ -81,7 +82,7 @@ const serviceSchema = {
 export default function ServicesPage() {
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(serviceSchema) }} />
       <div className="mx-auto px-6 py-16" style={{ maxWidth: "var(--container-max)" }}>
         <div className="text-center max-w-3xl mx-auto">
           <p className="uppercase tracking-[0.2em] text-xs font-semibold" style={{ color: "var(--gold)" }}>Services</p>
@@ -122,4 +123,3 @@ export default function ServicesPage() {
     </>
   );
 }
-

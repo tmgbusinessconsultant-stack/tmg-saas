@@ -1,24 +1,22 @@
 // c:\tmg-saas\frontend\app\shop\page.tsx
 import React from "react";
 import ShopClient from "./shop-client";
+import type { ShopProduct } from "./shop-client";
 
 export const dynamic = "force-dynamic";
 
-interface Product {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-  category: string;
-  type: string;
-  active: boolean;
-  icon?: string;
-}
-
 interface ShopData {
-  products: Product[];
+  products: ShopProduct[];
   title: string;
   subtitle: string;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function getText(value: unknown, fallback: string): string {
+  return typeof value === "string" && value.trim() ? value : fallback;
 }
 
 async function loadShopProducts(): Promise<ShopData> {
@@ -30,55 +28,61 @@ async function loadShopProducts(): Promise<ShopData> {
     const res = await fetch(`${base}/settings/public`, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP fetch error code: ${res.status}`);
 
-    const data = await res.json();
-    const rows: any[] = Array.isArray(data) ? data : (data.settings || data || []);
+    const data: unknown = await res.json();
+    const rawRows = Array.isArray(data)
+      ? data
+      : isRecord(data) && Array.isArray(data.settings) ? data.settings : [];
+    const rows = rawRows.filter(isRecord);
+    const findRow = (key: string) => rows.find(row => row.key === key);
+    const shopRow = findRow("shop_products_json");
+    const titleRow = findRow("shop_title");
+    const subtitleRow = findRow("shop_subtitle");
+    const targetSource = shopRow?.effectiveValue ?? shopRow?.dbValue;
+    let products: unknown[] = [];
 
-    const shopRow = rows.find((r: any) => r.key === "shop_products_json");
-    const titleRow = rows.find((r: any) => r.key === "shop_title");
-    const subtitleRow = rows.find((r: any) => r.key === "shop_subtitle");
-
-    let products: any[] = [];
-    const targetSource = shopRow?.effectiveValue || shopRow?.dbValue;
-
-    if (targetSource) {
+    if (typeof targetSource === "string" || Array.isArray(targetSource)) {
       try {
-        products = typeof targetSource === "string" ? JSON.parse(targetSource) : targetSource;
+        const parsed: unknown = typeof targetSource === "string" ? JSON.parse(targetSource) : targetSource;
+        if (Array.isArray(parsed)) products = parsed;
+        else throw new Error("The shop products setting must contain a JSON array.");
       } catch (parseError) {
         console.error("Critical target array extraction mismatch:", parseError);
       }
     }
 
     // Advanced filtering pipeline separating products from business consulting options
-    const filteredProducts: Product[] = (Array.isArray(products) ? products : [])
-      .filter((p: any) => {
-        if (!p || p.active === false) return false;
-        const typeNormalized = (p.type || "").toUpperCase();
-        const catNormalized = (p.category || "").toLowerCase();
+    const filteredProducts: ShopProduct[] = products.flatMap((product, index) => {
+      if (!isRecord(product) || product.active === false) return [];
+      const productType = typeof product.type === "string" ? product.type.toUpperCase() : "";
+      const category = getText(product.category, "General Resources");
+      const normalizedCategory = category.toLowerCase();
+      if (productType === "SERVICE" || normalizedCategory.includes("service") || normalizedCategory.includes("consulting")) return [];
+      const priceValue = typeof product.price === "number" ? product.price : Number(product.price);
 
-        return (
-          typeNormalized !== "SERVICE" &&
-          !catNormalized.includes("service") &&
-          !catNormalized.includes("consulting")
-        );
-      })
-      .map((p: any) => ({
-        id: p.id || Math.random().toString(36).substring(2, 9),
-        title: p.title || "Premium Digital Asset",
-        description: p.description || "No summary overview context provided.",
-        price: Number(p.price) || 0,
-        category: p.category || "General Resources",
-        type: p.type || "DIGITAL",
+      return [{
+        id: getText(product.id, `product-${index + 1}`),
+        title: getText(product.title, "Premium Digital Asset"),
+        description: getText(product.description, "No summary overview context provided."),
+        price: Number.isFinite(priceValue) ? priceValue : 0,
+        currency: getText(product.currency, "QAR"),
+        category,
+        features: Array.isArray(product.features) ? product.features.filter((feature): feature is string => typeof feature === "string") : [],
+        downloadUrl: typeof product.downloadUrl === "string" ? product.downloadUrl : null,
+        imageUrl: typeof product.imageUrl === "string" ? product.imageUrl : null,
+        mediaId: typeof product.mediaId === "string" ? product.mediaId : null,
+        type: "PRODUCT",
         active: true,
-        icon: p.icon || "📦"
-      }));
+        bestseller: product.bestseller === true,
+      }];
+    });
 
     return {
       products: filteredProducts,
-      title: titleRow?.effectiveValue || titleRow?.dbValue || "TMG Digital Store",
-      subtitle: subtitleRow?.effectiveValue || subtitleRow?.dbValue || "Tools, Templates, Designs & Resources - Instant Download"
+      title: getText(titleRow?.effectiveValue ?? titleRow?.dbValue, "TMG Digital Store"),
+      subtitle: getText(subtitleRow?.effectiveValue ?? subtitleRow?.dbValue, "Tools, Templates, Designs & Resources - Instant Download")
     };
-  } catch (e: any) {
-    console.error("Shop page build load execution error:", e.message);
+  } catch (error: unknown) {
+    console.error("Shop page build load execution error:", error);
     return {
       products: [],
       title: "TMG Digital Store",

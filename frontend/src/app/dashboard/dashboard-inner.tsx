@@ -42,6 +42,10 @@ export default function ClientDashboardPage() {
 
   // AUTO-FILL from shop service request ?serviceTitle=...
   useEffect(() => {
+    let active = true;
+    let scrollTimer: ReturnType<typeof setTimeout> | undefined;
+    void Promise.resolve().then(() => {
+      if (!active) return;
     const newProject = searchParams.get("newProject");
     const sTitle = searchParams.get("serviceTitle");
     const sType = searchParams.get("serviceType");
@@ -58,8 +62,10 @@ export default function ClientDashboardPage() {
       if (sDesc) setDescription(sDesc + "\n\n[Requested from TMG Shop]");
       setNotice("Service from Shop pre-filled — click Submit to create project in Project Center.");
       // scroll to form
-      setTimeout(()=>{ document.getElementById("new-project-form")?.scrollIntoView({ behavior: "smooth" }); }, 300);
+      scrollTimer = setTimeout(()=>{ if (active) document.getElementById("new-project-form")?.scrollIntoView({ behavior: "smooth" }); }, 300);
     }
+    });
+    return () => { active = false; if (scrollTimer) clearTimeout(scrollTimer); };
   }, [searchParams]);
 
   const loadProjects = useCallback(async (accessToken: string) => {
@@ -68,15 +74,20 @@ export default function ClientDashboardPage() {
   }, []);
 
   useEffect(() => {
-    const accessToken = sessionStorage.getItem("accessToken") || localStorage.getItem("accessToken") || "";
-    if (!accessToken) { setLoading(false); return; }
-    setToken(accessToken);
-    void apiRequest<{ maximumMegabytes: number }>("/settings/project-upload-limit", accessToken)
-      .then((s) => setMaximumUploadMegabytes(s.maximumMegabytes))
-      .catch((e) => setError(e instanceof Error ? e.message : "Could not load upload limit"));
-    void loadProjects(accessToken)
-      .catch((e) => setError(e instanceof Error ? e.message : "Could not load projects"))
-      .finally(() => setLoading(false));
+    let active = true;
+    void Promise.resolve().then(() => {
+      if (!active) return;
+      const accessToken = sessionStorage.getItem("accessToken") || localStorage.getItem("accessToken") || "";
+      if (!accessToken) { setLoading(false); return; }
+      setToken(accessToken);
+      void apiRequest<{ maximumMegabytes: number }>("/settings/project-upload-limit", accessToken)
+        .then((settings) => { if (active) setMaximumUploadMegabytes(settings.maximumMegabytes); })
+        .catch((loadError: unknown) => { if (active) setError(loadError instanceof Error ? loadError.message : "Could not load upload limit"); });
+      void loadProjects(accessToken)
+        .catch((loadError: unknown) => { if (active) setError(loadError instanceof Error ? loadError.message : "Could not load projects"); })
+        .finally(() => { if (active) setLoading(false); });
+    });
+    return () => { active = false; };
   }, [loadProjects]);
 
   useEffect(() => {
@@ -232,7 +243,7 @@ export default function ClientDashboardPage() {
                     ))}
                     {project.messages.length === 0 && <p className="text-sm text-zinc-400">No messages yet.</p>}
                   </div>
-                  <form onSubmit={(e) => void (async () => { const b = messages[project.id]?.trim(); if (!b) return; setError(""); try { await apiRequest(`/projects/${encodeURIComponent(project.id)}/messages`, token, { method: "POST", body: JSON.stringify({ body: b }) }); setMessages((c) => ({ ...c, [project.id]: "" })); await loadProjects(token); } catch (err) { setError(err instanceof Error ? err.message : "Send failed"); } })()} className="mt-3 flex gap-2">
+                  <form onSubmit={() => void (async () => { const b = messages[project.id]?.trim(); if (!b) return; setError(""); try { await apiRequest(`/projects/${encodeURIComponent(project.id)}/messages`, token, { method: "POST", body: JSON.stringify({ body: b }) }); setMessages((c) => ({ ...c, [project.id]: "" })); await loadProjects(token); } catch (err) { setError(err instanceof Error ? err.message : "Send failed"); } })()} className="mt-3 flex gap-2">
                     <input required maxLength={5000} value={messages[project.id] ?? ""} onChange={(e) => setMessages((c) => ({ ...c, [project.id]: e.target.value }))} className="min-w-0 flex-1 rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-sm focus:border-zinc-900 focus:outline-none" placeholder="Write a message…" />
                     <button type="submit" className="rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-black">Send</button>
                   </form>
@@ -245,5 +256,3 @@ export default function ClientDashboardPage() {
     </div>
   );
 }
-
-

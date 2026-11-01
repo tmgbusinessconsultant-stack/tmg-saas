@@ -13,6 +13,10 @@ type FileAnalysis = { summary: string; keyInsights: string[]; recommendations: s
 const statuses = ["PENDING", "ASSIGNED", "IN_PROGRESS", "REVIEW", "CLIENT_FEEDBACK", "COMPLETED", "DELIVERED", "ARCHIVED"];
 const uploadAccept = ".docx,.doc,.pdf,.xlsx,.xls,.csv,.pptx,.txt,.json,.xml,.zip,.png,.jpg,.jpeg,.webp";
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "An unexpected error occurred.";
+}
+
 export default function AdminProjectsPage() {
   const [token, setToken] = useState("");
   const [projects, setProjects] = useState<Project[]>([]);
@@ -46,15 +50,15 @@ export default function AdminProjectsPage() {
       setToken(accessToken);
       void apiRequest<{ maximumMegabytes: number }>("/settings/project-upload-limit", accessToken)
         .then((settings) => setMaximumUploadMegabytes(settings.maximumMegabytes))
-        .catch((e: any) => setError(e.message));
-      void refresh(accessToken).catch((e: any) => setError(e.message)).finally(() => setLoading(false));
+        .catch((cause: unknown) => setError(getErrorMessage(cause)));
+      void refresh(accessToken).catch((cause: unknown) => setError(getErrorMessage(cause))).finally(() => setLoading(false));
     }, 0);
     return () => window.clearTimeout(timer);
   }, [refresh]);
 
   useEffect(() => {
     if (!token) return;
-    const timer = window.setInterval(() => void refresh(token).catch((e: any) => setError(e.message)), 15000);
+    const timer = window.setInterval(() => void refresh(token).catch((cause: unknown) => setError(getErrorMessage(cause))), 15000);
     return () => window.clearInterval(timer);
   }, [refresh, token]);
 
@@ -63,7 +67,7 @@ export default function AdminProjectsPage() {
     try {
       await apiRequest(`/projects/${encodeURIComponent(projectId)}/${path}`, token, { method: "PATCH", body: JSON.stringify(body) });
       await refresh(token); setNotice("Project updated.");
-    } catch (e: any) { setError(e.message); }
+    } catch (e: unknown) { setError(getErrorMessage(e)); }
   }
 
   async function analyzeFile(projectId: string, fileId: string) {
@@ -75,7 +79,7 @@ export default function AdminProjectsPage() {
       });
       setFileAnalyses((c) => ({ ...c, [fileId]: report }));
       setNotice("AI analysis completed. Review before sharing.");
-    } catch (e: any) { setError(e.message); } finally { setAnalysisBusy(""); }
+    } catch (e: unknown) { setError(getErrorMessage(e)); } finally { setAnalysisBusy(""); }
   }
 
   async function loadAnalysis(projectId: string, fileId: string) {
@@ -84,7 +88,7 @@ export default function AdminProjectsPage() {
       const report = await apiRequest<FileAnalysis | null>(`/ai/admin/projects/${encodeURIComponent(projectId)}/files/${encodeURIComponent(fileId)}/analysis`, token);
       if (!report) { setNotice("No saved AI report."); return; }
       setFileAnalyses((c) => ({ ...c, [fileId]: report }));
-    } catch (e: any) { setError(e.message); } finally { setAnalysisBusy(""); }
+    } catch (e: unknown) { setError(getErrorMessage(e)); } finally { setAnalysisBusy(""); }
   }
 
   async function uploadDeliverable(projectId: string, file: File) {
@@ -93,7 +97,7 @@ export default function AdminProjectsPage() {
     try {
       await uploadProjectFile(projectId, file, token, "DELIVERABLE", (p) => setProgress((c) => ({ ...c, [key]: p })));
       await refresh(token); setNotice(`${file.name} delivered.`);
-    } catch (e: any) { setError(e.message); } finally { setProgress((c) => { const n = { ...c }; delete n[key]; return n; }); }
+    } catch (e: unknown) { setError(getErrorMessage(e)); } finally { setProgress((c) => { const n = { ...c }; delete n[key]; return n; }); }
   }
 
   async function sendMessage(projectId: string) {
@@ -101,7 +105,7 @@ export default function AdminProjectsPage() {
     try {
       await apiRequest(`/projects/${encodeURIComponent(projectId)}/messages`, token, { method: "POST", body: JSON.stringify({ body }) });
       setMessageDrafts((c) => ({ ...c, [projectId]: "" })); await refresh(token);
-    } catch (e: any) { setError(e.message); }
+    } catch (e: unknown) { setError(getErrorMessage(e)); }
   }
 
   async function deleteMessage(projectId: string, messageId: string) {
@@ -109,7 +113,7 @@ export default function AdminProjectsPage() {
     try {
       await apiRequest(`/projects/${encodeURIComponent(projectId)}/messages/${encodeURIComponent(messageId)}`, token, { method: "DELETE" });
       await refresh(token); setNotice("Message deleted.");
-    } catch (e: any) { setError(e.message); }
+    } catch (e: unknown) { setError(getErrorMessage(e)); }
   }
 
   async function deleteFile(projectId: string, fileId: string, name: string) {
@@ -117,12 +121,12 @@ export default function AdminProjectsPage() {
     try {
       await apiRequest(`/projects/${encodeURIComponent(projectId)}/files/${encodeURIComponent(fileId)}`, token, { method: "DELETE" });
       await refresh(token); setNotice("File deleted.");
-    } catch (e: any) { setError(e.message); }
+    } catch (e: unknown) { setError(getErrorMessage(e)); }
   }
 
   async function refreshScan(projectId: string, fileId: string) {
     try { await apiRequest(`/projects/${encodeURIComponent(projectId)}/files/${encodeURIComponent(fileId)}/scan-status`, token); await refresh(token); }
-    catch (e: any) { setError(e.message); }
+    catch (e: unknown) { setError(getErrorMessage(e)); }
   }
 
   if (loading) return <main className="mx-auto max-w-7xl px-6 py-16">Loading projects…</main>;
@@ -176,7 +180,7 @@ export default function AdminProjectsPage() {
                         <div className="flex flex-wrap gap-2">
                           {file.status === "AVAILABLE" && (
                             <>
-                              <button onClick={() => void downloadProjectFile(project.id, file.id, token).catch((e: any) => setError(e.message))} className="font-semibold underline">View / Download</button>
+                              <button onClick={() => void downloadProjectFile(project.id, file.id, token).catch((cause: unknown) => setError(getErrorMessage(cause)))} className="font-semibold underline">View / Download</button>
                               {/\.(pdf|docx|xlsx|pptx|csv|txt)$/i.test(file.originalName) && (
                                 <>
                                   <button disabled={analysisBusy === file.id} onClick={() => void analyzeFile(project.id, file.id)} className="font-semibold underline disabled:opacity-50">Analyze AI</button>
@@ -241,4 +245,3 @@ export default function AdminProjectsPage() {
     </main>
   );
 }
-

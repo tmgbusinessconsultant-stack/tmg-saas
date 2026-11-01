@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
         const data = await backendRes.json();
         aiResponse = data.message || data.response || data.content || '';
       }
-    } catch (e) {
+    } catch {
       // Local fallback triggers if proxy microservice experiences connection timeouts
     }
 
@@ -35,8 +35,8 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ message: aiResponse, country, currency, symbol, law });
-  } catch (err: any) {
-    console.error('API Router Exception:', err);
+  } catch (error: unknown) {
+    console.error('API Router Exception:', error);
     return NextResponse.json({ message: 'Internal assistant routing connection fallback mismatch. Please re-attempt processing shortly.' }, { status: 500 });
   }
 }

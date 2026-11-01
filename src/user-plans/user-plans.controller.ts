@@ -43,49 +43,49 @@ export class UserPlansController {
   // ===== ADMIN ROUTES — SUPER_ADMIN ONLY =====
   @Get('admin/all')
   @UseGuards(RolesGuard)
-  @Roles('SUPER_ADMIN', 'ADMIN')
+  @Roles('SUPER_ADMIN')
   async getAll(@Req() req: any) {
     return this.userPlans.getAllPlans();
   }
 
   @Post('admin/assign')
   @UseGuards(RolesGuard)
-  @Roles('SUPER_ADMIN', 'ADMIN')
+  @Roles('SUPER_ADMIN')
   async assign(@Body() body: { userId: string, planId: any, billingCycle: any }) {
     return this.userPlans.assignPlan(body.userId, body.planId, body.billingCycle);
   }
 
   @Post('admin/renew/:id')
   @UseGuards(RolesGuard)
-  @Roles('SUPER_ADMIN', 'ADMIN')
+  @Roles('SUPER_ADMIN')
   async renew(@Param('id') id: string) {
     return this.userPlans.renewPlan(id);
   }
 
   @Post('admin/status/:id')
   @UseGuards(RolesGuard)
-  @Roles('SUPER_ADMIN', 'ADMIN')
+  @Roles('SUPER_ADMIN')
   async updateStatus(@Param('id') id: string, @Body() body: { status: string }) {
     return this.userPlans.updateStatus(id, body.status);
   }
 
   @Post('admin/autorenew/:id')
   @UseGuards(RolesGuard)
-  @Roles('SUPER_ADMIN', 'ADMIN')
+  @Roles('SUPER_ADMIN')
   async updateAutoRenew(@Param('id') id: string, @Body() body: { autoRenew: boolean }) {
     return this.userPlans.updateAutoRenew(id, body.autoRenew);
   }
 
   @Post('admin/reset-usage/:id')
   @UseGuards(RolesGuard)
-  @Roles('SUPER_ADMIN', 'ADMIN')
+  @Roles('SUPER_ADMIN')
   async resetUsage(@Param('id') id: string) {
     return this.userPlans.resetUsage(id);
   }
 
   @Post('admin/tools/:id')
   @UseGuards(RolesGuard)
-  @Roles('SUPER_ADMIN', 'ADMIN')
+  @Roles('SUPER_ADMIN')
   async updateTools(@Param('id') id: string, @Body() body: { allowedTools: string[] }) {
     return this.userPlans.updateTools(id, body.allowedTools);
   }

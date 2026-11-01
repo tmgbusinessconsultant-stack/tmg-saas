@@ -13,6 +13,7 @@ const desktopLinks = [
   ["AI Assistant", "/business-assistant"],
   ["Documents", "/documents"],
   ["Pricing", "/pricing"],
+  ["My Websites", "/sites"],
   ["About", "/about"],
   ["Contact", "/contact"],
 ] as const;
@@ -25,6 +26,7 @@ const mobileLinks = [
   ["AI Assistant Console", "/business-assistant"],
   ["My Documents Vault", "/documents"],
   ["Pricing Plans", "/pricing"],
+  ["🌐 My Websites", "/sites"],
   ["About TMG", "/about"],
   ["Contact Us", "/contact"],
   ["Client Portal", "/dashboard"],
@@ -46,8 +48,12 @@ export default function SiteHeader() {
   }, []);
 
   useEffect(() => {
-    const token = typeof window !== 'undefined' ? (sessionStorage.getItem("accessToken") || localStorage.getItem("token")) : null;
-    setIsAdmin(!!token);
+    const getToken = () => {
+      if (typeof window === 'undefined') return null;
+      return sessionStorage.getItem("accessToken") || localStorage.getItem("accessToken") || localStorage.getItem("token") || localStorage.getItem("access_token") || localStorage.getItem("authToken");
+    };
+    const timer = window.setTimeout(() => setIsAdmin(!!getToken()), 0);
+    return () => window.clearTimeout(timer);
   }, [pathname]);
 
   useEffect(() => {
@@ -62,7 +68,10 @@ export default function SiteHeader() {
     return () => { document.body.style.overflow = ""; document.removeEventListener("keydown", onKeyDown); };
   }, [open]);
 
-  useEffect(() => { setOpen(false); }, [pathname]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setOpen(false), 0);
+    return () => window.clearTimeout(timer);
+  }, [pathname]);
 
   const isActive = (href: string) => pathname === href || (href !== "/" && pathname.startsWith(href));
 
@@ -83,13 +92,16 @@ export default function SiteHeader() {
           {desktopLinks.map(([label, href]) => {
             const active = isActive(href);
             const isShop = href === "/shop";
+            const isWebsites = href === "/sites";
             return (
               <Link
                 key={href}
                 href={href}
                 className={`rounded-full px-3.5 py-2 transition-all duration-200 border ${active
                   ? "bg-white text-[#0F172A] border-white shadow-sm"
-                  : isShop
+                  : isWebsites
+                    ? "bg-white text-[#0F172A] border-white shadow-sm font-bold"
+                    : isShop
                     ? "bg-[#D4AF37] text-black border-[#D4AF37] hover:bg-[#C9A227] font-black"
                     : "bg-slate-100 text-[#0F172A] border-slate-200 hover:bg-white hover:shadow-sm"
                   }`}

@@ -8,6 +8,8 @@
     "start": "node dist/src/main.js",
     "start:dev": "nest start --watch",
     "start:prod": "node dist/src/main.js",
+    "test": "tsx --test test/auth/rbac.spec.ts test/common/site-access.spec.ts test/common/content-scan.spec.ts test/projects/project-file-security.spec.ts test/payments/payment-security.spec.ts",
+    "test:e2e": "npm run build && tsx --test test/e2e/health.e2e.spec.ts",
     "prisma:migrate:deploy": "npx prisma migrate deploy"
   },
   "engines": {
@@ -25,12 +27,13 @@
     "@nestjs/platform-express": "^10.3.0",
     "@paypal/react-paypal-js": "^10.6.1",
     "@prisma/client": "^5.22.0",
+    "@sentry/nestjs": "^11.10.0",
+    "@sentry/node": "^11.10.0",
     "@vercel/analytics": "^2.0.1",
     "axios": "^1.21.0",
     "bcryptjs": "^3.0.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
-    "dotenv": "^18.0.9",
     "elevenlabs": "^1.59.0",
     "express": "^5.3.0",
     "node-fetch": "^3.3.2",
@@ -59,6 +62,8 @@
     "@types/pdfkit": "^0.17.7",
     "@types/sanitize-html": "^2.16.2",
     "chokidar": "^3.6.0",
+    "dotenv": "^18.0.9",
+    "pg": "^8.23.1",
     "prisma": "^5.22.0",
     "tsx": "^4.23.15",
     "typescript": "^5.4.0"

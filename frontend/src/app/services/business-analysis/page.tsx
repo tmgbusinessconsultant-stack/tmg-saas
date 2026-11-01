@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { serializeJsonLd } from "@/lib/json-ld";
 
 const PAGE_URL = "https://tmgbusinessconsulting.com/services/business-analysis";
 const TITLE = "Business Analysis Services | TMG";
@@ -40,8 +41,8 @@ const faqSchema = {
 export default function BusinessAnalysisPage() {
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(serviceSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqSchema) }} />
       <main className="mx-auto px-6 py-16" style={{ maxWidth: "var(--container-max)" }}>
         <p className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: "var(--gold)" }}>TMG Consulting</p>
         <h1 className="mt-3 font-bold tracking-tight" style={{ fontSize: "var(--h1-size)", fontFamily: "var(--font-family)", lineHeight: "1.1" }}>
@@ -83,4 +84,3 @@ export default function BusinessAnalysisPage() {
     </>
   );
 }
-

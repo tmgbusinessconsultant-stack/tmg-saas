@@ -2,6 +2,14 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Unexpected error";
+}
+
 export default function CvBuilderPage(){
   const [step,setStep]=useState(1);
   const [data,setData]=useState({name:"",role:"",experience:"",skills:""});
@@ -9,9 +17,13 @@ export default function CvBuilderPage(){
   const [result,setResult]=useState("");
   const [token,setToken]=useState("");
 
-  useEffect(()=>{
-    setToken(sessionStorage.getItem("accessToken") || localStorage.getItem("accessToken") || localStorage.getItem("token") || "");
-  },[]);
+  useEffect(() => {
+    let active = true;
+    void Promise.resolve().then(() => {
+      if (active) setToken(sessionStorage.getItem("accessToken") || localStorage.getItem("accessToken") || localStorage.getItem("token") || "");
+    });
+    return () => { active = false; };
+  }, []);
 
   const getApiUrl = () => {
     return process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "") || "http://localhost:4000";
@@ -41,11 +53,15 @@ export default function CvBuilderPage(){
           template: "Qatar Professional"
         })
       });
-      const j=await res.json(); 
-      if(!res.ok) throw new Error(j.message || `Failed ${res.status}`);
-      setResult(JSON.stringify(j, null, 2));
+      const response: unknown = await res.json();
+      if (!res.ok) {
+        const message = isRecord(response) && typeof response.message === "string" ? response.message : `Failed ${res.status}`;
+        throw new Error(message);
+      }
+      setResult(JSON.stringify(response, null, 2));
       setStep(3);
-    }catch(e:any){ 
+    } catch (error: unknown) {
+      const primaryError = errorMessage(error);
       // Fallback to AI endpoint
       try {
         const apiUrl = getApiUrl();
@@ -54,14 +70,17 @@ export default function CvBuilderPage(){
           headers:{"Content-Type":"application/json",Authorization:`Bearer ${token}`},
           body:JSON.stringify(data)
         });
-        const j2=await res2.json();
-        setResult(j2.data||j2.result||JSON.stringify(j2, null, 2));
+        const fallbackResponse: unknown = await res2.json();
+        if (!res2.ok) throw new Error(`Fallback request failed (${res2.status}).`);
+        const fallbackValue = isRecord(fallbackResponse)
+          ? fallbackResponse.data ?? fallbackResponse.result
+          : null;
+        setResult(typeof fallbackValue === "string" ? fallbackValue : JSON.stringify(fallbackResponse, null, 2));
         setStep(3);
-      } catch {
-        setResult(`Error: ${e.message} - Check backend running at ${getApiUrl()}`);
+      } catch (fallbackError: unknown) {
+        setResult(`Error: ${primaryError}; fallback: ${errorMessage(fallbackError)} - Check backend running at ${getApiUrl()}`);
       }
-    } 
-    setLoading(false);
+    } finally { setLoading(false); }
   };
 
   return (

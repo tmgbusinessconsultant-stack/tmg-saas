@@ -36,7 +36,7 @@ export default function CoverLetterProPage() {
   const [pdfBlobUrl, setPdfBlobUrl] = useState('');
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [template, setTemplate] = useState('Qatar Professional');
-  const [selectedCountry, setselectedCountry] = useState<any>(COUNTRIES[0]);
+  const [selectedCountry, setselectedCountry] = useState<(typeof COUNTRIES)[number]>(COUNTRIES[0]);
 
   const [form, setForm] = useState({
     applicantName: '',
@@ -54,17 +54,25 @@ export default function CoverLetterProPage() {
 
   const currentTpl = TEMPLATES.find(t => t.id === template) || TEMPLATES[0];
 
-  useEffect(() => { setToken(sessionStorage.getItem('accessToken') ?? ''); }, []);
+  useEffect(() => {
+    let active = true;
+    void Promise.resolve().then(() => {
+      if (active) setToken(sessionStorage.getItem('accessToken') ?? '');
+    });
+    return () => { active = false; };
+  }, []);
   useEffect(() => {
     if (!savedDoc?.id || !token) return;
     (async () => {
       try {
         const base = process.env.NEXT_PUBLIC_API_URL || '/api';
         const res = await fetch(`${base}/cv-documents/file/${savedDoc.id}`, { headers: { Authorization: `Bearer ${token}` } });
-        if (!res.ok) return;
+        if (!res.ok) throw new Error(`Could not download the generated document (${res.status}).`);
         const blob = await res.blob();
         setPdfBlobUrl(URL.createObjectURL(blob));
-      } catch {}
+      } catch (requestError: unknown) {
+        setError(requestError instanceof Error ? requestError.message : 'Could not open the generated document.');
+      }
     })();
   }, [savedDoc?.id, token]);
 
@@ -111,7 +119,9 @@ export default function CoverLetterProPage() {
       };
       const result = await apiRequest<SavedDoc>('/cv-documents', token, { method: 'POST', body: JSON.stringify(payload) });
       setSavedDoc(result);
-    } catch (e: any) { setError(e.message); } finally { setLoading(false); }
+    } catch (requestError: unknown) {
+      setError(requestError instanceof Error ? requestError.message : 'Could not generate the cover letter.');
+    } finally { setLoading(false); }
   };
 
   return (
@@ -201,7 +211,7 @@ export default function CoverLetterProPage() {
                 {pdfBlobUrl && <a href={pdfBlobUrl} download={`${form.applicantName}-Cover-Letter-${selectedCountry.country}-${selectedCountry.currency}.pdf`} className="bg-black text-white px-4 py-2 rounded text-sm">Download PDF — {selectedCountry.symbol} {selectedCountry.currency}</a>}
                 <button onClick={() => { setSavedDoc(null); setPdfBlobUrl(''); }} className="border px-4 py-2 rounded text-sm">New Letter</button>
               </div>
-              <div className="mt-3 text-xs text-gray-500 p-2 bg-gray-50 rounded">Compliance: {selectedCountry.law} | {selectedCountry.law || selectedCountry.tax} | TMG Premium International</div>
+              <div className="mt-3 text-xs text-gray-500 p-2 bg-gray-50 rounded">Compliance: {selectedCountry.law} | {selectedCountry.tax} | TMG Premium International</div>
             </div>
           )}
         </div>
@@ -209,8 +219,6 @@ export default function CoverLetterProPage() {
     </div>
   );
 }
-
-
 
 
 

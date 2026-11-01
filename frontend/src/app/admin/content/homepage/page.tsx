@@ -3,7 +3,15 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiRequest, type CmsMedia } from "@/lib/content-management";
 import AdminMediaPreview from "@/components/admin-media-preview";
-import { defaultHomepageContent, type HomepageContent } from "@/lib/homepage-content";
+import { defaultHomepageContent, mergeHomepageContent, type HomepageContent, type ServiceCard } from "@/lib/homepage-content";
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
 
 function parseRows(value: string, keys: string[]): Array<Record<string, string>> {
   return value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).map((line) => {
@@ -15,7 +23,7 @@ function parseRows(value: string, keys: string[]): Array<Record<string, string>>
 function formatRows(value: unknown, keys: string[]): string {
   if (!Array.isArray(value)) return "";
   return value.map((row) => keys.map((key) => {
-    const field = row as Record<string, unknown>;
+    const field = isRecord(row) ? row : {};
     return typeof field?.[key] === "string" ? field[key] : "";
   }).join(" | ")).join("\n");
 }
@@ -46,15 +54,17 @@ function toForm(value: HomepageContent): HomeForm {
     testimonialsHeading: value.testimonials.heading,
     testimonialsSubheading: value.testimonials.subheading || "Trusted by founders and SMEs",
     testimonials: value.testimonials.items.map((item, index) => {
-      const legacy = item as any;
+      const legacy: Record<string, unknown> = item;
       return {
-        id: legacy.id || `legacy-${index}-${Date.now()}`,
-        quote: legacy.quote || "",
-        clientName: legacy.clientName || legacy.author || legacy.name || "",
-        company: legacy.company || legacy.role || "",
-        photoUrl: legacy.photoUrl || "",
-        rating: Number.isInteger(legacy.rating) && legacy.rating >= 1 && legacy.rating <= 5 ? legacy.rating : 5,
-        approved: legacy.approved !== false, // FIXED: default TRUE, not false
+        id: typeof legacy.id === "string" && legacy.id ? legacy.id : `legacy-${index}`,
+        quote: typeof legacy.quote === "string" ? legacy.quote : "",
+        clientName: typeof legacy.clientName === "string" ? legacy.clientName
+          : typeof legacy.author === "string" ? legacy.author
+            : typeof legacy.name === "string" ? legacy.name : "",
+        company: typeof legacy.company === "string" ? legacy.company : typeof legacy.role === "string" ? legacy.role : "",
+        photoUrl: typeof legacy.photoUrl === "string" ? legacy.photoUrl : "",
+        rating: typeof legacy.rating === "number" && Number.isInteger(legacy.rating) && legacy.rating >= 1 && legacy.rating <= 5 ? legacy.rating : 5,
+        approved: legacy.approved !== false,
       };
     }),
     statistics: formatRows(value.statistics, ["value", "label"]),
@@ -74,21 +84,27 @@ function toContent(form: HomeForm): HomepageContent {
       secondaryHref: form.secondaryHref, imageUrl: form.heroImage,
     },
     quickCard: { title: form.quickTitle, description: form.quickDescription, buttonText: form.quickButtonText, buttonHref: form.quickButtonHref },
-    services: { heading: form.servicesHeading, cards: parseRows(form.services, ["title", "description"]) as any },
+    services: {
+      heading: form.servicesHeading,
+      cards: parseRows(form.services, ["title", "description"]).map((row): ServiceCard => ({
+        title: row.title ?? "",
+        description: row.description ?? "",
+      })),
+    },
     about: {
       title: form.aboutTitle, description: form.aboutDescription,
       reasons: form.reasons.split(/\r?\n/).map((item) => item.trim()).filter(Boolean),
       asideTitle: form.asideTitle, asideItems: form.asideItems.split(/\r?\n/).map((item) => item.trim()).filter(Boolean),
     },
     testimonials: { heading: form.testimonialsHeading, subheading: form.testimonialsSubheading, items: form.testimonials },
-    statistics: parseRows(form.statistics, ["value", "label"]) as any,
-    caseStudies: parseRows(form.caseStudies, ["title", "description"]) as any,
-    faq: parseRows(form.faq, ["question", "answer"]) as any,
+    statistics: parseRows(form.statistics, ["value", "label"]).map(row => ({ value: row.value ?? "", label: row.label ?? "" })),
+    caseStudies: parseRows(form.caseStudies, ["title", "description"]).map(row => ({ title: row.title ?? "", description: row.description ?? "" })),
+    faq: parseRows(form.faq, ["question", "answer"]).map(row => ({ question: row.question ?? "", answer: row.answer ?? "" })),
     cta: {
       heading: form.ctaHeading, description: form.ctaDescription, primaryText: form.ctaPrimaryText,
       primaryHref: form.ctaPrimaryHref, secondaryText: form.ctaSecondaryText, secondaryHref: form.ctaSecondaryHref,
     },
-  } as HomepageContent;
+  };
 }
 
 export default function HomepageContentPage() {
@@ -101,24 +117,23 @@ export default function HomepageContentPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const accessToken = sessionStorage.getItem("accessToken") || localStorage.getItem("token") || "";
-    if (!accessToken) { setError("Sign in with admin account first. Go to /admin"); return; }
-    setToken(accessToken);
-    void apiRequest<CmsMedia[]>("/admin/content/media?type=image/", accessToken).then(setMedia).catch((e: any) => setError(e?.message));
-    void apiRequest<HomepageContent | null>("/admin/content/settings/homepage", accessToken).then((value) => {
-      if (value) {
-        setForm(toForm({
-          ...defaultHomepageContent,
-          ...value,
-          hero: { ...defaultHomepageContent.hero, ...value.hero },
-          quickCard: { ...defaultHomepageContent.quickCard, ...value.quickCard },
-          services: { ...defaultHomepageContent.services, ...value.services },
-          about: { ...defaultHomepageContent.about, ...value.about },
-          testimonials: { ...defaultHomepageContent.testimonials, ...value.testimonials, items: value.testimonials?.items ?? defaultHomepageContent.testimonials.items },
-          cta: { ...defaultHomepageContent.cta, ...value.cta },
-        }));
-      }
-    }).catch((e: any) => setError(e?.message));
+    let active = true;
+    const initialize = async () => {
+      const accessToken = sessionStorage.getItem("accessToken") || localStorage.getItem("token") || "";
+      if (!accessToken) throw new Error("Sign in with admin account first. Go to /admin");
+      setToken(accessToken);
+      const [nextMedia, value] = await Promise.all([
+        apiRequest<CmsMedia[]>("/admin/content/media?type=image/", accessToken),
+        apiRequest<HomepageContent | null>("/admin/content/settings/homepage", accessToken),
+      ]);
+      if (!active) return;
+      setMedia(nextMedia);
+      if (value) setForm(toForm(mergeHomepageContent(value)));
+    };
+    void Promise.resolve()
+      .then(initialize)
+      .catch((error: unknown) => { if (active) setError(getErrorMessage(error, "Could not load homepage content.")); });
+    return () => { active = false; };
   }, []);
 
   async function save(e: React.FormEvent) {
@@ -126,7 +141,7 @@ export default function HomepageContentPage() {
     try {
       await apiRequest("/admin/content/settings/homepage", token, { method: "PUT", body: JSON.stringify({ value: toContent(form) }) });
       setNotice("✅ Homepage + Testimonials saved! Refresh homepage in 30 sec to see.");
-    } catch (cause: any) { setError(cause?.message || "Save failed"); } finally { setSaving(false); }
+    } catch (cause: unknown) { setError(getErrorMessage(cause, "Save failed")); } finally { setSaving(false); }
   }
 
   function field(key: StringHomeFormKey, label: string, options: { multiline?: boolean; url?: boolean } = {}) {

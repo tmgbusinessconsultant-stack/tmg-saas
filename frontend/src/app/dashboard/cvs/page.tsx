@@ -40,7 +40,9 @@ export default function CvLibraryPage() {
     }
   }, []);
 
-  useEffect(() => { void loadDocuments(); }, [loadDocuments]);
+  useEffect(() => {
+    void Promise.resolve().then(loadDocuments);
+  }, [loadDocuments]);
 
   // Cleanup blob URLs
   useEffect(() => {
@@ -50,31 +52,33 @@ export default function CvLibraryPage() {
   const selectedDocument = documents.find(d => d.id === selectedId);
 
   useEffect(() => {
-    if (!selectedDocument?.id) { setPdfBlobUrl(""); return; }
     let active = true;
-    const fetchPdf = async () => {
+    const selectedDocumentId = selectedDocument?.id;
+    void Promise.resolve().then(async () => {
+      if (!selectedDocumentId) {
+        setPdfBlobUrl("");
+        setPdfLoading(false);
+        return;
+      }
       setPdfLoading(true);
       setError("");
       try {
         const token = sessionStorage.getItem("accessToken") || localStorage.getItem("accessToken") || "";
-        const res = await fetch(`/api/cv-documents/file/${selectedDocument.id}`, {
+        const res = await fetch(`/api/cv-documents/file/${encodeURIComponent(selectedDocumentId)}`, {
           headers: { Authorization: `Bearer ${token}` },
           cache: "no-store",
         });
         if (!res.ok) throw new Error(await res.text());
         const blob = await res.blob();
         if (!active) return;
-        if (pdfBlobUrl) URL.revokeObjectURL(pdfBlobUrl);
         setPdfBlobUrl(URL.createObjectURL(blob));
-      } catch (e: any) {
-        if (active) setError(e.message);
+      } catch (loadError: unknown) {
+        if (active) setError(loadError instanceof Error ? loadError.message : "Could not load the PDF preview.");
       } finally {
         if (active) setPdfLoading(false);
       }
-    };
-    void fetchPdf();
+    });
     return () => { active = false; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDocument?.id]);
 
   const handleDownload = async () => {
@@ -92,7 +96,9 @@ export default function CvLibraryPage() {
       a.download = `${selectedDocument.title}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
-    } catch (e: any) { setError(e.message); }
+    } catch (downloadError: unknown) {
+      setError(downloadError instanceof Error ? downloadError.message : "Could not download this CV.");
+    }
   };
 
   return (
@@ -168,4 +174,3 @@ export default function CvLibraryPage() {
     </div>
   );
 }
-

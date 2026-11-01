@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { serializeJsonLd } from "@/lib/json-ld";
 
 export const metadata: Metadata = {
   title: "Business, AI and Productivity Training | TMG",
@@ -51,7 +52,7 @@ const trainingSchema = {
 export default function TrainingPage() {
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(trainingSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(trainingSchema) }} />
       <main className="mx-auto px-6 py-16" style={{ maxWidth: "var(--container-max)" }}>
         <p className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: "var(--gold)" }}>Team development</p>
         <h1 className="mt-3 font-bold tracking-tight" style={{ fontSize: "var(--h1-size)", fontFamily: "var(--font-family)", lineHeight: "1.1" }}>
@@ -81,4 +82,3 @@ export default function TrainingPage() {
     </>
   );
 }
-

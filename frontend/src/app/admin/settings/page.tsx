@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { type Dispatch, type FormEvent, type SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { apiRequest } from "@/lib/project-delivery";
 
 type EffectiveRow = { key: string; effectiveValue: string | null; dbValue: string | null; envValue: string | null; source: string; updatedAt: string | null; updatedBy: string | null; };
@@ -38,6 +38,21 @@ const PRESETS = [
   { name: "Ocean Blue", colors: { primary: "#0E7490", gold: "#06B6D4", bg: "#ECFEFF", headerBg: "#0E7490", footerBg: "#164E63" } },
   { name: "Forest", colors: { primary: "#14532D", gold: "#22C55E", bg: "#F0FDF4", headerBg: "#14532D", footerBg: "#052E16" } },
 ];
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isDesignSettings(value: unknown): value is Partial<typeof DESIGN_DEFAULTS> {
+  return isRecord(value)
+    && Object.entries(value).every(([key, setting]) =>
+      key in DESIGN_DEFAULTS && typeof setting === "string",
+    );
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "An unexpected error occurred.";
+}
 
 export default function AdminSettingsPage() {
   const [token, setToken] = useState("");
@@ -81,7 +96,7 @@ export default function AdminSettingsPage() {
   const [borderWidth, setBorderWidth] = useState(DESIGN_DEFAULTS.borderWidth);
   const [colorNotice, setColorNotice] = useState("");
 
-  const applyCssVars = (c: typeof DESIGN_DEFAULTS) => {
+  const applyCssVars = useCallback((c: typeof DESIGN_DEFAULTS) => {
     const root = document.documentElement;
     root.style.setProperty("--primary", c.primary);
     root.style.setProperty("--gold", c.gold);
@@ -106,7 +121,7 @@ export default function AdminSettingsPage() {
     root.style.setProperty("--footer-height", c.footerHeight);
     root.style.setProperty("--container-max", c.containerMax);
     root.style.setProperty("--border-width", c.borderWidth);
-  };
+  }, []);
 
   const getCurrentColors = (): typeof DESIGN_DEFAULTS => ({
     primary, gold, bg, cardBg, headerBg, footerBg, textColor, borderColor,
@@ -115,7 +130,7 @@ export default function AdminSettingsPage() {
     headerHeight, footerHeight, containerMax, borderWidth
   });
 
-  const loadColorsToState = (c: any) => {
+  const loadColorsToState = useCallback((c: Partial<typeof DESIGN_DEFAULTS>) => {
     setPrimary(c.primary || DESIGN_DEFAULTS.primary);
     setGold(c.gold || DESIGN_DEFAULTS.gold);
     setBg(c.bg || DESIGN_DEFAULTS.bg);
@@ -140,34 +155,98 @@ export default function AdminSettingsPage() {
     setContainerMax(c.containerMax || DESIGN_DEFAULTS.containerMax);
     setBorderWidth(c.borderWidth || DESIGN_DEFAULTS.borderWidth);
     applyCssVars({ ...DESIGN_DEFAULTS, ...c });
-  };
+  }, [applyCssVars]);
 
-  useEffect(() => {
-    const accessToken = sessionStorage.getItem("accessToken") || localStorage.getItem("accessToken") || localStorage.getItem("token") || "";
-    if (!accessToken) { setError("Sign in as admin"); setLoading(false); return; }
-    setToken(accessToken);
-    apiRequest<{ maximumMegabytes: number }>("/settings/project-upload-limit", accessToken).then(s => setMaximumMegabytes(String(s.maximumMegabytes))).catch(() => { }).finally(() => setLoading(false));
-
-    // Load from local + backend
-    const saved = localStorage.getItem("tmg_colors");
-    if (saved) { try { loadColorsToState(JSON.parse(saved)); } catch { } }
-
-    void loadLive(accessToken); void loadAudit(accessToken);
-
-    // Try load tmg_colors from backend if exists
-    apiRequest<{ effectiveValue: string } | any>("/settings/tmg_colors", accessToken).then((r: any) => {
-      const val = r.effectiveValue || r.value || r;
-      if (val) {
-        try { const parsed = typeof val === "string" ? JSON.parse(val) : val; if (parsed.primary) { loadColorsToState(parsed); localStorage.setItem("tmg_colors", JSON.stringify(parsed)); } } catch { }
-      }
-    }).catch(() => { });
+  const loadLive = useCallback(async (accessToken: string) => {
+    setLiveLoading(true);
+    try {
+      setLiveRows(await apiRequest<EffectiveRow[]>("/settings/public", accessToken));
+    } catch (error) {
+      setError(getErrorMessage(error));
+      throw error;
+    } finally {
+      setLiveLoading(false);
+    }
   }, []);
 
-  async function loadLive(accessToken?: string) { const t = accessToken || token || sessionStorage.getItem("accessToken") || localStorage.getItem("accessToken") || localStorage.getItem("token") || ""; if (!t) return; setLiveLoading(true); try { const rows = await apiRequest<EffectiveRow[]>("/settings/public", t); setLiveRows(rows); } catch { } setLiveLoading(false); }
-  async function loadAudit(accessToken?: string) { const t = accessToken || token || sessionStorage.getItem("accessToken") || localStorage.getItem("accessToken") || localStorage.getItem("token") || ""; if (!t) return; try { const rows = await apiRequest<AuditRow[]>("/settings/audit", t); setAudits(rows); } catch { try { const rows = await apiRequest<AuditRow[]>("/settings/audit-log", t); setAudits(rows); } catch { } } }
-  async function saveLive(key: string, value: string) { setLiveSavingKey(key); setError(""); setNotice(""); try { await apiRequest(`/settings/${key}`, token, { method: "PUT", body: JSON.stringify({ value }) }); setNotice(`${key} saved LIVE ✓`); await loadLive(); await loadAudit(); } catch (e: any) { setError(e.message); } finally { setLiveSavingKey(null); } }
-  async function resetLive(key: string) { if (!confirm(`Reset ${key} to ENV default?`)) return; try { await apiRequest(`/settings/${key}`, token, { method: "DELETE" }); setNotice(`${key} reset to ENV`); await loadLive(); await loadAudit(); } catch (e: any) { setError(e.message); } }
-  async function saveSettings(e: FormEvent<HTMLFormElement>) { e.preventDefault(); setSaving(true); try { const result = await apiRequest<{ maximumMegabytes: number }>("/settings/project-upload-limit", token, { method: "PATCH", body: JSON.stringify({ maximumMegabytes: Number(maximumMegabytes) }) }); setMaximumMegabytes(String(result.maximumMegabytes)); setNotice("Upload limit saved."); } catch (err: any) { setError(err.message); } finally { setSaving(false); } }
+  const loadAudit = useCallback(async (accessToken: string) => {
+    try {
+      setAudits(await apiRequest<AuditRow[]>("/settings/audit", accessToken));
+    } catch {
+      try {
+        setAudits(await apiRequest<AuditRow[]>("/settings/audit-log", accessToken));
+      } catch (error) {
+        setError(getErrorMessage(error));
+        throw error;
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const initialize = async () => {
+      const accessToken = sessionStorage.getItem("accessToken")
+        || localStorage.getItem("accessToken")
+        || localStorage.getItem("token")
+        || "";
+      if (!accessToken) throw new Error("Sign in as an administrator to manage settings.");
+      const uploadLimit = await apiRequest<{ maximumMegabytes: number }>("/settings/project-upload-limit", accessToken);
+      if (!active) return;
+      setToken(accessToken);
+      setMaximumMegabytes(String(uploadLimit.maximumMegabytes));
+
+      const localSettings = localStorage.getItem("tmg_colors");
+      if (localSettings) {
+        const parsed: unknown = JSON.parse(localSettings);
+        if (!isDesignSettings(parsed)) throw new Error("Saved local design settings have an invalid format.");
+        loadColorsToState(parsed);
+      }
+
+      await Promise.all([loadLive(accessToken), loadAudit(accessToken)]);
+      const response: unknown = await apiRequest<unknown>("/settings/tmg_colors", accessToken);
+      if (!active) return;
+      const rawValue = isRecord(response) ? response.effectiveValue ?? response.value : response;
+      const parsed: unknown = typeof rawValue === "string" ? JSON.parse(rawValue) as unknown : rawValue;
+      if (isDesignSettings(parsed)) {
+        loadColorsToState(parsed);
+        localStorage.setItem("tmg_colors", JSON.stringify(parsed));
+      }
+    };
+
+    void Promise.resolve()
+      .then(initialize)
+      .catch((error: unknown) => { if (active) setError(getErrorMessage(error)); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [loadAudit, loadColorsToState, loadLive]);
+
+  async function saveLive(key: string, value: string) {
+    setLiveSavingKey(key); setError(""); setNotice("");
+    try {
+      await apiRequest(`/settings/${key}`, token, { method: "PUT", body: JSON.stringify({ value }) });
+      setNotice(`${key} saved LIVE ✓`);
+      await loadLive(token); await loadAudit(token);
+    } catch (error: unknown) { setError(getErrorMessage(error)); }
+    finally { setLiveSavingKey(null); }
+  }
+
+  async function resetLive(key: string) {
+    if (!confirm(`Reset ${key} to ENV default?`)) return;
+    try {
+      await apiRequest(`/settings/${key}`, token, { method: "DELETE" });
+      setNotice(`${key} reset to ENV`);
+      await loadLive(token); await loadAudit(token);
+    } catch (error: unknown) { setError(getErrorMessage(error)); }
+  }
+
+  async function saveSettings(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault(); setSaving(true);
+    try {
+      const result = await apiRequest<{ maximumMegabytes: number }>("/settings/project-upload-limit", token, { method: "PATCH", body: JSON.stringify({ maximumMegabytes: Number(maximumMegabytes) }) });
+      setMaximumMegabytes(String(result.maximumMegabytes)); setNotice("Upload limit saved.");
+    } catch (error: unknown) { setError(getErrorMessage(error)); }
+    finally { setSaving(false); }
+  }
 
   async function saveColors() {
     const colors = getCurrentColors();
@@ -180,13 +259,17 @@ export default function AdminSettingsPage() {
       // save as single JSON blob
       await apiRequest(`/settings/tmg_colors`, token, { method: "PUT", body: JSON.stringify({ value: JSON.stringify(colors) }) });
       // also save individual for live tab visibility
-      for (const [k, v] of Object.entries(colors)) {
-        await apiRequest(`/settings/design_${k}`, token, { method: "PUT", body: JSON.stringify({ value: v as string }) }).catch(() => { });
-      }
+      await Promise.all(Object.entries(colors).map(([key, value]) =>
+        apiRequest(`/settings/design_${key}`, token, { method: "PUT", body: JSON.stringify({ value }) }),
+      ));
       setColorNotice(`SAVED ALL 22 FIELDS! Applied LIVE + saved to DB ✓`);
       setNotice("Design system saved globally — all devices will load it");
-      await loadLive(); await loadAudit();
-    } catch (e: any) { setColorNotice(`Saved locally, but DB sync failed: ${e.message}. Other devices won't see it yet.`); setError(e.message); }
+      await loadLive(token); await loadAudit(token);
+    } catch (error: unknown) {
+      const message = getErrorMessage(error);
+      setColorNotice(`Saved locally, but DB sync failed: ${message}. Other devices won't see it yet.`);
+      setError(message);
+    }
     finally { setSaving(false); setTimeout(() => setColorNotice(""), 8000); }
   }
 
@@ -212,13 +295,14 @@ export default function AdminSettingsPage() {
     const reader = new FileReader();
     reader.onload = () => {
       try {
-        const parsed = JSON.parse(reader.result as string);
-        if (!parsed.primary && !parsed.gold) throw new Error("Invalid design file");
+        if (typeof reader.result !== "string") throw new Error("The selected file could not be read as text.");
+        const parsed: unknown = JSON.parse(reader.result);
+        if (!isDesignSettings(parsed) || (!parsed.primary && !parsed.gold)) throw new Error("Invalid design file.");
         loadColorsToState(parsed);
         localStorage.setItem("tmg_colors", JSON.stringify(parsed));
         setNotice("Design imported — click SAVE to apply globally");
         setColorNotice("Imported! Now click SAVE & APPLY to save to DB");
-      } catch (err: any) { setError(`Import failed: ${err.message}`); }
+      } catch (error: unknown) { setError(`Import failed: ${getErrorMessage(error)}`); }
     };
     reader.readAsText(file);
     e.target.value = "";
@@ -226,6 +310,16 @@ export default function AdminSettingsPage() {
 
   const filteredLive = useMemo(() => liveRows.filter(r => `${r.key} ${r.effectiveValue}`.toLowerCase().includes(liveSearch.toLowerCase())), [liveRows, liveSearch]);
   const filteredAudits = useMemo(() => audits.filter(a => `${a.key} ${a.changedBy} ${a.newValue}`.toLowerCase().includes(auditSearch.toLowerCase())), [audits, auditSearch]);
+  const colorControls: { label: string; value: string; setter: Dispatch<SetStateAction<string>> }[] = [
+    { label: "Primary", value: primary, setter: setPrimary },
+    { label: "Gold", value: gold, setter: setGold },
+    { label: "Page BG", value: bg, setter: setBg },
+    { label: "Card BG", value: cardBg, setter: setCardBg },
+    { label: "Header BG", value: headerBg, setter: setHeaderBg },
+    { label: "Footer BG", value: footerBg, setter: setFooterBg },
+    { label: "Text Color", value: textColor, setter: setTextColor },
+    { label: "Border", value: borderColor, setter: setBorderColor },
+  ];
 
   if (loading) return <main className="p-8">Loading…</main>;
 
@@ -233,7 +327,7 @@ export default function AdminSettingsPage() {
     <main className="mx-auto max-w-7xl px-6 py-12">
       <header className="flex flex-wrap justify-between gap-3">
         <div><p className="text-xs font-bold tracking-widest text-[#8A6A00]">ADMIN • SUPER ADVANCED</p><h1 className="text-4xl font-bold text-slate-900">System Settings — Global Control</h1><p className="text-sm text-slate-500 mt-1">{liveRows.length} live keys • {audits.length} audit logs • 22 design fields</p></div>
-        <div className="flex gap-2"><Link href="/admin" className="border px-4 py-2 rounded bg-white text-slate-900 text-sm h-fit">Dashboard</Link><button onClick={() => { void loadLive(); void loadAudit(); }} className="border px-4 py-2 rounded bg-white text-sm h-fit">Refresh All</button></div>
+        <div className="flex gap-2"><Link href="/admin" className="border px-4 py-2 rounded bg-white text-slate-900 text-sm h-fit">Dashboard</Link><button onClick={() => { void loadLive(token); void loadAudit(token); }} className="border px-4 py-2 rounded bg-white text-sm h-fit">Refresh All</button></div>
       </header>
 
       <div className="mt-8 flex gap-2 border-b overflow-x-auto sticky top-0 bg-[#F8FAFC] z-10 py-2">
@@ -287,17 +381,8 @@ export default function AdminSettingsPage() {
 
           <div><h3 className="font-bold bg-slate-100 p-2 rounded text-slate-900 text-sm">A. COLORS (8)</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
-              {[
-                ["Primary", primary, setPrimary],
-                ["Gold", gold, setGold],
-                ["Page BG", bg, setBg],
-                ["Card BG", cardBg, setCardBg],
-                ["Header BG", headerBg, setHeaderBg],
-                ["Footer BG", footerBg, setFooterBg],
-                ["Text Color", textColor, setTextColor],
-                ["Border", borderColor, setBorderColor],
-              ].map(([label, val, setter]: any) => (
-                <label key={label} className="text-xs text-slate-900 font-medium">{label}<div className="flex gap-1 mt-1"><input type="color" value={val} onChange={e => setter(e.target.value)} className="h-10 w-10 rounded border cursor-pointer" /><input value={val} onChange={e => setter(e.target.value)} className="flex-1 border rounded p-1 text-black text-xs font-mono" /></div></label>
+              {colorControls.map(({ label, value, setter }) => (
+                <label key={label} className="text-xs text-slate-900 font-medium">{label}<div className="flex gap-1 mt-1"><input type="color" value={value} onChange={e => setter(e.target.value)} className="h-10 w-10 rounded border cursor-pointer" /><input value={value} onChange={e => setter(e.target.value)} className="flex-1 border rounded p-1 text-black text-xs font-mono" /></div></label>
               ))}
             </div>
           </div>
@@ -347,12 +432,10 @@ export default function AdminSettingsPage() {
 
       {activeTab === "audit" && (
         <section className="mt-8 border rounded-2xl bg-white overflow-hidden shadow-sm">
-          <div className="p-4 bg-slate-50 border-b flex flex-wrap justify-between gap-3 items-center"><h2 className="font-bold text-slate-900">Audit Log — All Changes</h2><div className="flex gap-2"><input value={auditSearch} onChange={e => setAuditSearch(e.target.value)} placeholder="Search key, user, value..." className="border rounded-lg px-3 py-1.5 text-sm bg-white w-64" /><button onClick={() => void loadAudit()} className="text-xs border px-3 py-1.5 rounded-lg bg-white">Refresh</button></div></div>
+          <div className="p-4 bg-slate-50 border-b flex flex-wrap justify-between gap-3 items-center"><h2 className="font-bold text-slate-900">Audit Log — All Changes</h2><div className="flex gap-2"><input value={auditSearch} onChange={e => setAuditSearch(e.target.value)} placeholder="Search key, user, value..." className="border rounded-lg px-3 py-1.5 text-sm bg-white w-64" /><button onClick={() => void loadAudit(token)} className="text-xs border px-3 py-1.5 rounded-lg bg-white">Refresh</button></div></div>
           <div className="overflow-x-auto"><table className="w-full text-sm"><thead className="bg-slate-50 text-left text-xs uppercase text-slate-500"><tr><th className="p-3">Time</th><th className="p-3">Key</th><th className="p-3">Changed By</th><th className="p-3">Old → New</th></tr></thead><tbody>{filteredAudits.length === 0 && <tr><td colSpan={4} className="p-8 text-center text-slate-500">No audits</td></tr>}{filteredAudits.map(a => (<tr key={a.id} className="border-t hover:bg-slate-50"><td className="p-3 text-xs whitespace-nowrap">{new Date(a.createdAt).toLocaleString()}</td><td className="p-3 font-mono font-bold text-slate-900 text-xs">{a.key}</td><td className="p-3 text-xs font-mono">{a.changedBy.slice(0, 12)}</td><td className="p-3 font-mono text-xs max-w-[400px]"><span className="text-red-500 line-through block truncate">{a.oldValue?.slice(0, 80) || "—"}</span><span className="text-green-600 block truncate font-bold">{a.newValue?.slice(0, 80)}</span></td></tr>))}</tbody></table></div>
         </section>
       )}
     </main>
   );
 }
-
-

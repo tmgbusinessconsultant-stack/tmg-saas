@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const API = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "http://localhost:3001";
 
@@ -19,17 +19,48 @@ type Plan = {
   user?: { email: string; role: string };
 };
 
+type PlanAction = "switch" | "billing" | "tools" | "status" | "renew" | "reset" | "accept" | "activate" | "delete";
+type PlanFilter = "ALL" | "ACTIVE" | "BLOCKED" | "EXPIRED" | "TRIAL";
+type ActionDetails = Record<string, unknown>;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isPlan(value: unknown): value is Plan {
+  return isRecord(value)
+    && typeof value.id === "string"
+    && typeof value.userId === "string"
+    && typeof value.planId === "string"
+    && typeof value.billingCycle === "string"
+    && typeof value.status === "string"
+    && Array.isArray(value.allowedTools)
+    && value.allowedTools.every((tool: unknown) => typeof tool === "string")
+    && typeof value.startDate === "string"
+    && typeof value.endDate === "string"
+    && typeof value.autoRenew === "boolean"
+    && (value.user === undefined || (
+      isRecord(value.user)
+      && typeof value.user.email === "string"
+      && typeof value.user.role === "string"
+    ));
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "An unexpected error occurred.";
+}
+
 export default function AdminPlansPanel() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState("");
-  const [filter, setFilter] = useState<"ALL" | "ACTIVE" | "BLOCKED" | "EXPIRED" | "TRIAL">("ALL");
+  const [filter, setFilter] = useState<PlanFilter>("ALL");
   const [error, setError] = useState("");
 
   const getToken = () => sessionStorage.getItem("accessToken") || localStorage.getItem("token") || "";
 
-  const fetchPlans = async () => {
+  const fetchPlans = useCallback(async () => {
     try {
       setLoading(true); setError("");
       const token = getToken();
@@ -44,14 +75,20 @@ export default function AdminPlansPanel() {
         });
       }
       if (!res.ok) throw new Error(`Failed ${res.status}`);
-      const data = await res.json();
-      setPlans(Array.isArray(data) ? data : data.data || []);
-    } catch (e: any) { setError(e.message); } finally { setLoading(false); }
-  };
+      const response: unknown = await res.json();
+      const data = Array.isArray(response) ? response : isRecord(response) ? response.data : null;
+      if (!Array.isArray(data) || !data.every(isPlan)) throw new Error("The plans API returned an invalid response.");
+      setPlans(data);
+    } catch (error: unknown) { setError(getErrorMessage(error)); } finally { setLoading(false); }
+  }, []);
 
-  useEffect(() => { fetchPlans(); }, []);
+  useEffect(() => {
+    let active = true;
+    void Promise.resolve().then(() => { if (active) return fetchPlans(); });
+    return () => { active = false; };
+  }, [fetchPlans]);
 
-  const action = async (id: string, type: string, extra?: any) => {
+  const action = async (id: string, type: PlanAction, extra?: ActionDetails) => {
     // confirmations
     if (type === "status" && !window.confirm(`Change status to ${extra?.status}?`)) return;
     if (type === "switch" && !window.confirm(`Switch plan to ${extra?.planId}? This will change billing immediately.`)) return;
@@ -63,16 +100,18 @@ export default function AdminPlansPanel() {
       const base = `${API}/user-plans/admin`;
       const baseApi = `${API}/api/user-plans/admin`;
 
-      let path = `${base}/${type}/${id}`;
-      if (type === "switch") path = `${base}/switch/${id}`;
-      if (type === "billing") path = `${base}/billing/${id}`;
-      if (type === "tools") path = `${base}/tools/${id}`;
-      if (type === "status") path = `${base}/status/${id}`;
-      if (type === "renew") path = `${base}/renew/${id}`;
-      if (type === "reset") path = `${base}/reset-usage/${id}`;
-      if (type === "accept") path = `${base}/accept/${id}`;
-      if (type === "activate") path = `${base}/activate/${id}`;
-      if (type === "delete") path = `${base}/delete/${id}`;
+      const endpoint: Record<PlanAction, string> = {
+        switch: "switch",
+        billing: "billing",
+        tools: "tools",
+        status: "status",
+        renew: "renew",
+        reset: "reset-usage",
+        accept: "accept",
+        activate: "activate",
+        delete: "delete",
+      };
+      const path = `${base}/${endpoint[type]}/${id}`;
 
       let res = await fetch(path, {
         method: type === "delete" ? "DELETE" : "POST",
@@ -95,7 +134,7 @@ export default function AdminPlansPanel() {
         throw new Error(txt || `Action failed ${res.status}`);
       }
       await fetchPlans();
-    } catch (e: any) { setError(e.message); } finally { setBusyId(""); }
+    } catch (error: unknown) { setError(getErrorMessage(error)); } finally { setBusyId(""); }
   };
 
   const filtered = plans.filter(p => {
@@ -126,8 +165,8 @@ export default function AdminPlansPanel() {
       </div>
 
       <div className="flex gap-2 p-3 border-b bg-slate-50 overflow-x-auto">
-        {["ALL", "ACTIVE", "BLOCKED", "EXPIRED", "TRIAL"].map(f => (
-          <button key={f} onClick={() => setFilter(f as any)} className={`px-3 py-1.5 text-xs rounded-full border whitespace-nowrap ${filter === f ? 'bg-black text-white' : 'bg-white hover:bg-slate-100'}`}>{f}</button>
+        {(["ALL", "ACTIVE", "BLOCKED", "EXPIRED", "TRIAL"] satisfies PlanFilter[]).map(f => (
+          <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 text-xs rounded-full border whitespace-nowrap ${filter === f ? 'bg-black text-white' : 'bg-white hover:bg-slate-100'}`}>{f}</button>
         ))}
       </div>
 
@@ -143,12 +182,12 @@ export default function AdminPlansPanel() {
                 <td className="p-3"><span className="px-2 py-1 rounded bg-slate-900 text-white text-xs">{p.planId}</span></td>
                 <td className="p-3"><span className={`px-2 py-1 rounded text-xs ${p.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : p.status === 'BLOCKED' ? 'bg-red-100 text-red-700' : 'bg-yellow-100'}`}>{p.status}</span></td>
                 <td className="p-3 text-xs">{p.allowedTools?.length} tools<br /><span className="text-[10px] text-slate-400">{p.usedTools ?? 0}/{p.totalTools ?? '-'}</span></td>
-                <td className="p-3 text-xs">{new Date(p.endDate).toLocaleDateString()}<div className="text-[10px] text-slate-400">{Math.ceil((new Date(p.endDate).getTime() - Date.now()) / 86400000)}d left</div></td>
+                <td className="p-3 text-xs">{new Date(p.endDate).toLocaleDateString()}</td>
                 <td className="p-3">
                   <div className="flex flex-wrap gap-1 w-[320px]">
                     <button disabled={!!busyId} onClick={() => action(p.id, 'renew')} className="px-2 py-1 text-[11px] bg-blue-600 text-white rounded disabled:opacity-50">Renew +30d</button>
                     <button disabled={!!busyId} onClick={() => action(p.id, 'status', { status: p.status === 'BLOCKED' ? 'ACTIVE' : 'BLOCKED' })} className={`px-2 py-1 text-[11px] rounded text-white disabled:opacity-50 ${p.status === 'BLOCKED' ? 'bg-green-600' : 'bg-red-600'}`}>{p.status === 'BLOCKED' ? 'Unblock' : 'Block'}</button>
-                    <button disabled={!!busyId} onClick={() => { const t = prompt('Tools comma separated', p.allowedTools.join(',')); if (t) action(p.id, 'tools', { allowedTools: t.split(',').map((s: string) => s.trim()) }) }} className="px-2 py-1 text-[11px] bg-slate-800 text-white rounded">Edit Tools</button>
+                    <button disabled={!!busyId} onClick={() => { const t = prompt('Tools comma separated', p.allowedTools.join(',')); if (t) action(p.id, 'tools', { allowedTools: t.split(',').map(s => s.trim()) }) }} className="px-2 py-1 text-[11px] bg-slate-800 text-white rounded">Edit Tools</button>
                     <button disabled={!!busyId} onClick={() => action(p.id, 'reset')} className="px-2 py-1 text-[11px] bg-yellow-600 text-white rounded">Reset Usage</button>
                     <button disabled={!!busyId} onClick={() => action(p.id, 'switch', { planId: 'PRO' })} className="px-2 py-1 text-[11px] bg-purple-600 text-white rounded">PRO</button>
                     <button disabled={!!busyId} onClick={() => action(p.id, 'switch', { planId: 'BUSINESS' })} className="px-2 py-1 text-[11px] bg-black text-white rounded">BUSINESS</button>
@@ -182,4 +221,3 @@ export default function AdminPlansPanel() {
     </div>
   );
 }
-

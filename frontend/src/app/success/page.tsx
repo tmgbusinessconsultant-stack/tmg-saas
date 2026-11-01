@@ -1,15 +1,13 @@
 "use client";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 export const dynamic = "force-dynamic";
 function SuccessContent() {
   const searchParams = useSearchParams();
-  const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
+  const subscriptionId = searchParams.get("subscription_id") || searchParams.get("subscriptionId");
   useEffect(() => {
-    const subId = searchParams.get("subscription_id") || searchParams.get("subscriptionId");
-    if (subId) setSubscriptionId(subId);
-    if (subId) localStorage.setItem("paypal_sub_id", subId);
-  }, [searchParams]);
+    if (subscriptionId) localStorage.setItem("paypal_sub_id", subscriptionId);
+  }, [subscriptionId]);
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-8">
       <h1 className="text-4xl font-bold text-green-600 mb-4">Payment Successful!</h1>
@@ -26,4 +24,3 @@ export default function SuccessPage() {
     </Suspense>
   );
 }
-
