@@ -1,0 +1,7 @@
+﻿- [x] RBAC E2E tests (free/pro/business + cross-user isolation) - 7 tests PASS - 2026-11-01
+- [ ] PayPal live verify -> UserPlan ACTIVE
+- [ ] Domain uniqueness + ownership verification
+- [ ] S3 bucket hardening + GuardDuty
+- [ ] DB backup + restore tested
+- [ ] Lighthouse >90 + cross-browser
+- [ ] Monitoring (Sentry/Log) + uptime alerts
