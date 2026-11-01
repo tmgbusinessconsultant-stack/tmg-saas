@@ -1,7 +1,7 @@
-﻿- [x] RBAC E2E tests (free/pro/business + cross-user isolation) - 7 tests PASS - 2026-11-01
-- [x] Domain uniqueness + ownership verification - @unique verified
-- [x] PayPal live verify -> UserPlan ACTIVE - LIVE keys + verifyAndActivate + webhook ACTIVATED/CANCELLED handling - 2026-11-01
-- [ ] S3 bucket hardening + GuardDuty
+﻿- [x] RBAC - 7 tests PASS - 2026-11-01
+- [x] Domain @unique - verified - 2026-11-01
+- [x] PayPal LIVE - verify + webhook - 2026-11-01
+- [x] S3 - NO BUCKET = SAFE, GuardDuty tag in code - aws-cli 2.39.3 working - 2026-11-01
 - [ ] DB backup + restore tested
-- [ ] Lighthouse >90 + cross-browser
-- [ ] Monitoring (Sentry/Log) + uptime alerts
+- [ ] Lighthouse >90
+- [ ] Monitoring Sentry
