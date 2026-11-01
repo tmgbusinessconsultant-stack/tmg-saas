@@ -114,7 +114,7 @@ No new MFA, notification, backup, monitoring, payment, or administrative feature
 
 ## Production readiness verification request — 2026-11-01
 
-**Local status: PASS — ready for controlled staging deployment. Production decision remains NO-GO.** Root build and unit tests were rerun successfully on 2026-11-01. Results below distinguish source/unit evidence from authenticated staging tests. The user confirmed that no staging URL, AWS staging access, payment sandbox access, or isolated restore target is currently available. No provider secrets were supplied; the approved future method is deployment secret-manager/environment injection (or a gitignored local `.env.staging` file), not chat or source control. No external payment, AWS, or destructive recovery operation was performed.
+**Local status: PASS for core build/tests; mobile performance target not met. Ready for controlled staging deployment. Production decision remains NO-GO.** Latest verification rerun was performed on 2026-11-01 after commit `90ebf473`. Results below distinguish local checks from authenticated staging tests. The user confirmed that no staging URL, AWS staging access, payment sandbox access, or isolated restore target is currently available. No provider secrets were supplied; the approved future method is deployment secret-manager/environment injection (or a gitignored local `.env.staging` file), not chat or source control. No external payment, AWS, or destructive recovery operation was performed.
 
 | Gate | Result | Evidence / remaining work |
 |---|---|---|
@@ -129,11 +129,23 @@ No new MFA, notification, backup, monitoring, payment, or administrative feature
 | Domains and SSL | **NOT VERIFIED** | No staging or production domain, certificate issuance, redirect, or HTTPS evidence was supplied. |
 | Backup and recovery | **NOT VERIFIED** | No database restore, media restore, or environment rebuild was run. No verified recovery evidence is available. |
 | Monitoring and alerts | **NOT VERIFIED** | Configuration presence is not alert-delivery proof. No availability/database/resource/payment/error alert was triggered and received. |
-| Lighthouse | **ATTEMPTED / BLOCKED** | Lighthouse 13.6.0 against `http://127.0.0.1:3000/` exited with `NO_FCP` (no first contentful paint); no category scores or usable report were generated. No 90+ result is established. |
-| Cross-browser/device workflows | **NOT VERIFIED** | Earlier Chromium 390px route/layout smoke covered 75 paths without horizontal overflow, but it did not test workflows, other engines, or physical devices. Current local frontend probe timed out. No Safari, Firefox, Edge, iPhone, or Android workflow evidence. |
-| Automated tests | **PARTIAL PASS** | Latest `npm test`: 38/38 unit tests pass across 5 suites, including seven PayPal security tests. `npm run test:e2e` passes the API startup/health/database smoke. Login, project creation, CMS, payment-provider sandbox, and browser E2E coverage remain absent. |
+| Lighthouse | **PARTIAL PASS — local only** | Against the local optimized production build: desktop Performance 99, Accessibility 94, Best Practices 96, SEO 92; mobile Performance 84, Accessibility 94, Best Practices 96, SEO 92. Mobile Performance is below the 90 target. No staging/production score is established. |
+| Browser routes and responsive widths | **PARTIAL PASS — Chromium local smoke** | Homepage, pricing, login, admin, dashboard, builder, and CMS route requests returned 200; anonymous admin/dashboard/CMS routes redirected to login. At 390px, 768px, and 1366px, the homepage had no horizontal overflow. This is not authenticated workflow testing, cross-browser testing, or physical-device evidence. |
+| Cross-browser/device workflows | **NOT VERIFIED** | No Firefox, Edge, Safari, iPhone Safari, Android Chrome, or physical device workflow evidence. |
+| Automated tests | **PARTIAL PASS** | Latest rerun: `npm test` 38/38 across 5 suites; `npm run test:e2e` passes build, API startup, and database health. Login, project creation, CMS, payment-provider sandbox, and browser E2E coverage are absent. |
 | Prisma schema | **PASS** | Latest `npx prisma validate` passed. This does not prove production data integrity or live provider connectivity. |
-| Full root build | **PASS (latest local run)** | `npm run build` generated Prisma Client v5.22.0 and compiled 112 NestJS files successfully. This confirms local build readiness, not a deployed staging build. |
+| Full root build | **PASS (latest local run)** | `npm run test:e2e` ran root build: Prisma Client v5.22.0 generated and NestJS compiled 112 files successfully. This confirms local build readiness, not a deployed staging build. |
+
+### Local verification rerun — 2026-11-01 19:45
+
+- `npm test`: **PASS**, 38/38 tests, 5 suites.
+- `npm run test:e2e`: **PASS**, Prisma Client generation, 112-file backend build, API health/database E2E.
+- Frontend `npm run typecheck`: **PASS**; `npm run lint`: **PASS**.
+- Frontend `npm run build`: **PASS**, 90 routes generated. During static generation, CMS/media fetches logged expected local API-unavailable/dynamic-render messages because the API was not running; the command completed successfully.
+- `npx prisma validate`: **PASS**.
+- Local production preview on port 3001: homepage and pricing/login route requests returned HTTP 200; `/admin`, `/dashboard`, and `/admin/content/media` redirected anonymous users to `/login`. Homepage had no horizontal overflow at 390px, 768px, or 1366px in Chromium. A local homepage screenshot was captured in the verification session.
+- Lighthouse 13.6.0 local production preview scores: desktop **99/94/96/92** (Performance/Accessibility/Best Practices/SEO); mobile **84/94/96/92**. Mobile Performance is below the requested 90 threshold; optimize before claiming the performance gate passes.
+- GitHub Actions: repository API returned **zero workflow runs** for `main`; no remote CI result is available.
 
 ### RBAC test matrix (scope-qualified)
 
