@@ -1,7 +1,7 @@
 ﻿- [x] RBAC - 7 tests PASS - 2026-11-01
 - [x] Domain @unique - verified - 2026-11-01
 - [x] PayPal LIVE - verify + webhook - 2026-11-01
-- [x] S3 - NO BUCKET = SAFE, GuardDuty tag in code - aws-cli 2.39.3 working - 2026-11-01
-- [ ] DB backup + restore tested
+- [x] S3 - NO BUCKET = SAFE, GuardDuty tag in code - aws-cli 2.39.3 - 2026-11-01
+- [x] DB backup + restore tested - Neon PITR + manual SQL backup_20261101.sql - 2026-11-01
 - [ ] Lighthouse >90
 - [ ] Monitoring Sentry
