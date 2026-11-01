@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+﻿import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 const PLAN_MAP: Record<string, { id: string, billing: string }> = {
@@ -52,17 +52,79 @@ export class PaypalService {
     if (!['ACTIVE','APPROVED','APPROVAL_PENDING'].includes(sub.status)) throw new BadRequestException(`Status ${sub.status}`);
     const mapped = PLAN_MAP[sub.plan_id];
     if (!mapped) throw new BadRequestException(`Unknown plan_id ${sub.plan_id}`);
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + (mapped.billing === 'annual' ? 365 : 30));
+    if (sub.status !== 'ACTIVE') {
+      throw new BadRequestException('The PayPal subscription is not active.');
+    }
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + (mapped.billing === 'annual' ? 365 : 30));
     const result = await this.prisma.userPlan.upsert({
-      where: { userId },
-      update: { planId: mapped.id, billingCycle: mapped.billing, status: 'ACTIVE', paypalSubscriptionId: subscriptionID, paypalPlanId: sub.plan_id, allowedTools: PLAN_TOOLS[mapped.id], expiresAt },
-      create: { userId, planId: mapped.id, billingCycle: mapped.billing, status: 'ACTIVE', paypalSubscriptionId: subscriptionID, paypalPlanId: sub.plan_id, allowedTools: PLAN_TOOLS[mapped.id], expiresAt },
+      where: { paypalSubscriptionId: subscriptionID },
+      update: {
+        planId: mapped.id,
+        billingCycle: mapped.billing,
+        status: 'ACTIVE',
+        allowedTools: PLAN_TOOLS[mapped.id],
+        endDate,
+      },
+      create: {
+        userId,
+        planId: mapped.id,
+        billingCycle: mapped.billing,
+        status: 'ACTIVE',
+        paypalSubscriptionId: subscriptionID,
+        allowedTools: PLAN_TOOLS[mapped.id],
+        startDate: new Date(),
+        endDate,
+      },
     });
+    this.logger.log(`PayPal ACTIVE ${subscriptionID} -> ${mapped.id} for user ${userId}`);
     return { success: true, plan: result };
   }
 
   async handleWebhookEvent(event: any) {
-    return { ok: true, received: event.event_type };
+    const type = event?.event_type;
+    const resource = event?.resource;
+    this.logger.log(`Webhook ${type} ${resource?.id || resource?.billing_agreement_id || ''}`);
+
+    try {
+      const subId = resource?.id || resource?.billing_agreement_id || resource?.subscription_id || event?.resource?.id;
+      
+      if (type === 'BILLING.SUBSCRIPTION.ACTIVATED' || type === 'PAYMENT.SALE.COMPLETED') {
+        const planId = resource?.plan_id || resource?.plan?.id;
+        const mapped = PLAN_MAP[planId];
+        if (!mapped || !subId) return { ok: true, ignored: true };
+        
+        // Try to find existing userPlan
+        const existing = await this.prisma.userPlan.findFirst({ where: { paypalSubscriptionId: subId } });
+        if (!existing) {
+          this.logger.warn(`Webhook ${type} for unknown sub ${subId} - waiting for /verify`);
+          return { ok: true, pendingVerify: true };
+        }
+        const endDate = new Date();
+        endDate.setDate(endDate.getDate() + (mapped.billing === 'annual' ? 365 : 30));
+        await this.prisma.userPlan.update({
+          where: { id: existing.id },
+          data: { status: 'ACTIVE', endDate, allowedTools: PLAN_TOOLS[mapped.id] },
+        });
+        return { ok: true, renewed: subId };
+      }
+
+      if (type === 'BILLING.SUBSCRIPTION.CANCELLED' || type === 'BILLING.SUBSCRIPTION.SUSPENDED' || type === 'BILLING.SUBSCRIPTION.EXPIRED') {
+        if (!subId) return { ok: true };
+        const existing = await this.prisma.userPlan.findFirst({ where: { paypalSubscriptionId: subId } });
+        if (existing) {
+          await this.prisma.userPlan.update({
+            where: { id: existing.id },
+            data: { status: type.includes('CANCELLED') ? 'CANCELLED' : 'EXPIRED', autoRenew: false },
+          });
+        }
+        return { ok: true, deactivated: subId };
+      }
+
+      return { ok: true, received: type };
+    } catch (e) {
+      this.logger.error(`Webhook error ${type}: ${e}`);
+      return { ok: true, error: String(e) }; // return 200 so PayPal doesn't retry endlessly
+    }
   }
 }
