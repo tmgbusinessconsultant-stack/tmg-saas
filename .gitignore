@@ -16,6 +16,7 @@ backend/
 check-*.js
 create-admin.*
 *.mjs
+!frontend/postcss.config.mjs
 seed-plans.js
 who-has-plan.js
 uploads/
