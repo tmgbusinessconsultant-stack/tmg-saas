@@ -9,7 +9,7 @@ on:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     services:
       postgres:
         image: postgres:16
@@ -32,8 +32,8 @@ jobs:
       NEXT_PUBLIC_API_URL: http://127.0.0.1:4000/api
       NEXT_PUBLIC_PAYPAL_CLIENT_ID: ci-placeholder
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm

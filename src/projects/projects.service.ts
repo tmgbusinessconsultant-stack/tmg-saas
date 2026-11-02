@@ -241,7 +241,7 @@ export class ProjectsService {
     if (file.status !== 'AVAILABLE') {
       throw new ForbiddenException('This file is unavailable until malware scanning is complete.');
     }
-    if (typeof file.name !== 'string' || path.basename(file.name) !== file.name) {
+    if (typeof file.name !== 'string' || file.name.includes('..') || file.name.includes('/') || file.name.includes('\\') || path.basename(file.name) !== file.name) {
       throw new ForbiddenException('The stored file path is invalid.');
     }
     const privateRoot = path.resolve(process.cwd(), 'private-uploads', 'projects', project.id);
