@@ -89,7 +89,7 @@ Use separate Vercel projects for the API and frontend:
 
 For the Next.js frontend service, set the Root Directory to `frontend`, the Build Command to `npm ci --include=dev --legacy-peer-deps && npm run build`, and the Start Command to `npm run start`. The frontend build script uses webpack so Tailwind's CSS directives are processed consistently; the default Turbopack build can leave `@source` unprocessed in the production CSS. Including development dependencies is required because Tailwind CSS and its PostCSS plugin are build-time dependencies.
 
-The frontend CSS sets Tailwind's source base to `../` relative to `frontend/src/app/globals.css`, which scans the frontend `src` tree. The build verifies that generated CSS contains essential layout utilities before succeeding. After deployment, verify the served `/_next/static/` CSS includes utility rules such as `.flex{display:flex}` and `.hidden{display:none}`. If the build check fails, resolve the source-scan/build configuration before deploying; both the Render service URL and custom domain should serve the same newly built assets.
+The frontend CSS disables working-directory-based source detection and explicitly scans `../` relative to `frontend/src/app/globals.css`, covering the complete `frontend/src` tree. The build verifies that generated CSS contains essential layout utilities before succeeding. After deployment, verify the served `/_next/static/` CSS includes utility rules such as `.flex{display:flex}` and `.hidden{display:none}`. If the build check fails, resolve the source-scan/build configuration before deploying; both the Render service URL and custom domain should serve the same newly built assets.
 
 ## Render API deployment
 
