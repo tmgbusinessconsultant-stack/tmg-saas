@@ -84,6 +84,15 @@ Use separate Vercel projects for the API and frontend:
 - Configure environment variables separately for Preview and Production. Set `CORS_ORIGINS` to the exact frontend origins allowed to call each API deployment. Use a separate database for Preview; never point Preview at production data.
 - After deployment, apply pending migrations with `npm run prisma:migrate:deploy` from a controlled release step, then check `<API deployment URL>/api/health`. It returns healthy only when the API can reach PostgreSQL.
 
+## Render frontend deployment
+
+For the Next.js frontend service, set the Root Directory to `frontend`, the Build Command to
+`npm ci --include=dev --legacy-peer-deps && npm run build`, and the Start Command to
+`npm run start`. Tailwind CSS and its PostCSS plugin must be installed as build-time dependencies.
+
+The frontend CSS explicitly scans `frontend/src` for Tailwind classes. After deployment, verify the
+served `/_next/static/` CSS includes rules such as `.flex{display:flex}` and `.hidden{display:none}`.
+If not, clear Render build cache and redeploy the latest commit.
 ## Authentication and API access
 
 - `POST /api/auth/register` and `POST /api/auth/login` are public. Registration accepts a name, email, and password of at least 12 characters; passwords are bcrypt-hashed before storage. Registration uses the same generic response for new and already-registered email addresses; sign in separately after registering.
