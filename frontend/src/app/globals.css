@@ -1,6 +1,5 @@
-@import "tailwindcss" source(none);
+@import "tailwindcss";
 @source "../";
-@config "../../tailwind.config.js";
 
 :root {
   /* === 22 GLOBAL DESIGN FIELDS - Synced from Admin Settings === */
