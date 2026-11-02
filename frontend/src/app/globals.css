@@ -1,9 +1,7 @@
 @import "tailwindcss";
-@source "../**/*.{js,ts,jsx,tsx,mdx}";
-@source "./**/*.{js,ts,jsx,tsx,mdx}";
 
 :root {
-  /* === 22 GLOBAL DESIGN FIELDS - Synced from Admin Settings === */
+/* === 22 GLOBAL DESIGN FIELDS - Synced from Admin Settings === */
   --background: #F8FAFC;
   --foreground: #0F172A;
   --primary: #0F172A;
