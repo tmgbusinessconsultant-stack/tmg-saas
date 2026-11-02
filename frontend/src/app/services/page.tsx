@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import PublishedMediaSection from "@/components/published-media-section";
 import { serializeJsonLd } from "@/lib/json-ld";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Business Services in Qatar | TMG Business Consulting",
   description: "Company formation guidance, PRO services, AI consulting, business analysis, training and website consulting in Qatar and beyond.",

@@ -6,6 +6,7 @@ import { Permissions } from '../auth/permissions.decorator';
 import type { AuthenticatedUser } from '../auth/auth.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 import { Response } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -16,8 +17,10 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Get() @Permissions('projects:read') list(@CurrentUser() user: AuthenticatedUser) { return this.projectsService.list(user); }
-  @Get('staff') @Permissions('projects:read') listStaff() { return this.projectsService.listStaff(); }
+  @Get('staff') @Roles('ADMIN', 'SUPER_ADMIN', 'ADMIN_MANAGER', 'PROJECT_MANAGER', 'STAFF') @Permissions('projects:read') listStaff() { return this.projectsService.listStaff(); }
   @Post() @Permissions('projects:create') create(@CurrentUser() user: AuthenticatedUser, @Body() body: any) { return this.projectsService.create(user, body); }
+  @Patch(':id') @Permissions('projects:update') updateProject(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: unknown) { return this.projectsService.updateProject(user, id, body); }
+  @Delete(':id') @Permissions('projects:update') deleteProject(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) { return this.projectsService.deleteProject(user, id); }
   @Patch(':id/status') @Permissions('projects:update') updateStatus(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { status: string }) { return this.projectsService.updateStatus(user, id, body.status); }
   @Patch(':id/assignee') @Permissions('projects:update') assign(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { assigneeId: string | null }) { return this.projectsService.assign(user, id, body.assigneeId); }
   @Patch(':id/assign') @Permissions('projects:update') assignLegacy(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { assigneeId: string | null }) { return this.projectsService.assign(user, id, body.assigneeId); }

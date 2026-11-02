@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -46,7 +46,25 @@ export default function PricingPage() {
   const router = useRouter();
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   const [productTab, setProductTab] = useState<"ai" | "website">("website");
+  const [paypalReady, setPaypalReady] = useState(false);
+  const paypalSectionRef = useRef<HTMLDivElement>(null);
   const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
+
+  useEffect(() => {
+    const section = paypalSectionRef.current;
+    if (productTab !== "ai" || paypalReady || !section) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setPaypalReady(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, [paypalReady, productTab]);
 
   return (
     <div className="min-h-screen bg-white px-4 py-10">
@@ -70,7 +88,7 @@ export default function PricingPage() {
               </div>
             </div>
             {!clientId && <div className="mb-6 rounded-lg bg-red-50 p-3 text-center text-red-600">Missing NEXT_PUBLIC_PAYPAL_CLIENT_ID</div>}
-            <div className="grid gap-6 md:grid-cols-3">
+            <div ref={paypalSectionRef} className="grid gap-6 md:grid-cols-3">
               {(Object.keys(PAYPAL_PLANS) as PlanKey[]).map(key => {
                 const plan = PAYPAL_PLANS[key];
                 const price = billing === "monthly" ? plan.priceM : plan.priceY;
@@ -83,7 +101,7 @@ export default function PricingPage() {
                     <div className="mt-5 flex items-baseline gap-1"><span className="text-4xl font-bold">${price}</span><span className="text-sm text-zinc-500">/{billing === "monthly" ? "mo" : "yr"}</span></div>
                     <p className="mt-1 text-xs text-zinc-400">QAR {plan.qarM}/mo • PayPal Secure</p>
                     <div className="mt-6">
-                      {clientId ? (
+                      {clientId && paypalReady ? (
                         <PayPalScriptProvider options={{ clientId, vault: true, intent: "subscription", currency: "USD" }}>
                           <PayPalButtons
                             style={{ layout: "vertical", color: "gold", shape: "pill", label: "subscribe" }}
@@ -127,6 +145,8 @@ export default function PricingPage() {
                             }}
                           />
                         </PayPalScriptProvider>
+                      ) : clientId ? (
+                        <div className="w-full rounded-full bg-zinc-100 py-3 text-center text-sm text-zinc-500">PayPal loads when this section is in view</div>
                       ) : <button disabled className="w-full rounded-full bg-zinc-200 py-3 text-zinc-500">PayPal Not Configured</button>}
                     </div>
                     <ul className="mt-6 space-y-2 text-sm text-zinc-700">{plan.features.map(feature => <li key={feature} className="flex gap-2"><span className="text-green-600">✓</span> {feature}</li>)}</ul>

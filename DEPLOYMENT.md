@@ -79,20 +79,30 @@ The quote form collects company size, employee count, scope, and an optional bud
 
 Use separate Vercel projects for the API and frontend:
 
-- **API project:** repository root as the project root, Node.js 20.9 or newer, install with `npm ci`, build with `npm run vercel-build`. Set `DATABASE_URL`, a random `JWT_SECRET` of at least 32 characters, `CORS_ORIGINS`, `TRUST_PROXY_HOPS`, Turnstile and Groq variables when those features are enabled, `PAYPAL_ENV` (`sandbox` or `live`), the matching `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, and `PAYPAL_WEBHOOK_ID`, AWS S3 settings, and any Microsoft/Power BI environment variables required above. Attach an IAM role or provide API-only AWS credentials. Store all real secrets in the deployment secret manager. The root `vercel.json` forwards `/api/*` requests to the shared function in `api/`.
-- **Frontend project:** set the project root to `frontend`, install with `npm ci`, and build with `npm run build`. Set `NEXT_PUBLIC_API_URL` to the API deployment's base URL including `/api` (for example, `https://your-api.example.com/api`), the matching public Turnstile site key, `NEXT_PUBLIC_PAYPAL_CLIENT_ID`, and the public contact variables to verified business details. Keep provider secrets only in the API environment.
+- **API project:** repository root as the project root, Node.js 20.9 or newer, install with `npm ci`, build with `npm run vercel-build`. Set `DATABASE_URL`, a random `JWT_SECRET` of at least 32 characters, `CORS_ORIGINS`, `TRUST_PROXY_HOPS`, `SENTRY_DSN`, Turnstile and Groq variables when those features are enabled, `PAYPAL_MODE` (`sandbox` or `live`), and exactly one matching `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, and `PAYPAL_WEBHOOK_ID` set. Do not configure `PAYPAL_ENV`, `PAYPAL_SECRET`, or both `PAYPAL_SANDBOX_*` and `PAYPAL_LIVE_*`; the API rejects legacy, mixed, and mode-prefixed credential sets. Use sandbox credentials and matching public client ID for Preview/staging; use live credentials only in the separately approved Production environment. Attach an IAM role or provide API-only AWS credentials. Store all real secrets in the deployment secret manager. The root `vercel.json` forwards `/api/*` requests to the shared function in `api/`.
+- **Frontend project:** set the project root to `frontend`, install with `npm ci`, and build with `npm run build`. Set `NEXT_PUBLIC_API_URL` to the API deployment's base URL including `/api` (for example, `https://your-api.example.com/api`), the matching public Turnstile site key, `NEXT_PUBLIC_PAYPAL_CLIENT_ID`, and the public contact variables to verified business details. Set `NEXT_PUBLIC_SENTRY_DSN` only when client-side error monitoring is approved; it initializes after page load and browser idle, with replay disabled and production traces sampled at 10%. Keep provider secrets only in the API environment.
 - Configure environment variables separately for Preview and Production. Set `CORS_ORIGINS` to the exact frontend origins allowed to call each API deployment. Use a separate database for Preview; never point Preview at production data.
 - After deployment, apply pending migrations with `npm run prisma:migrate:deploy` from a controlled release step, then check `<API deployment URL>/api/health`. It returns healthy only when the API can reach PostgreSQL.
+- PayPal webhook requests are limited to 30 per IP per minute in each API process. The default limiter store is in-memory and is not shared across replicas; configure a shared gateway/WAF limit for horizontally scaled deployments.
 
 ## Render frontend deployment
 
-For the Next.js frontend service, set the Root Directory to `frontend`, the Build Command to
-`npm ci --include=dev --legacy-peer-deps && npm run build`, and the Start Command to
-`npm run start`. Tailwind CSS and its PostCSS plugin must be installed as build-time dependencies.
+For the Next.js frontend service, set the Root Directory to `frontend`, the Build Command to `npm ci --include=dev --legacy-peer-deps && npm run build`, and the Start Command to `npm run start`. Including development dependencies is required because Tailwind CSS and its PostCSS plugin are build-time dependencies. Keep the Render build environment's `NODE_ENV` from excluding development dependencies; the explicit `--include=dev` protects the install if production mode is set.
 
-The frontend CSS explicitly scans `frontend/src` for Tailwind classes. After deployment, verify the
-served `/_next/static/` CSS includes rules such as `.flex{display:flex}` and `.hidden{display:none}`.
-If not, clear Render build cache and redeploy the latest commit.
+The frontend CSS explicitly scans `frontend/src` for Tailwind classes. After deployment, verify the served `/_next/static/` CSS includes utility rules such as `.flex{display:flex}` and `.hidden{display:none}`. If it does not, clear Render's build cache and redeploy the latest commit; both the Render service URL and custom domain should serve the same newly built assets.
+
+## Render API deployment
+
+For the API service, set the Root Directory to the repository root, the Build Command to `npm ci --include=dev --legacy-peer-deps && npm run build`, and the Start Command to `npm run start:prod`. Prisma CLI and the Nest build CLI are development dependencies required during the build, so the install must include development dependencies even when the runtime uses production mode.
+
+## Verification commands
+
+- `npm test` runs backend unit tests, including canonical PayPal mode validation and webhook throttling.
+- `npm run test:e2e` builds the API and runs the database health check plus HTTP auth/project ownership workflows. The auth/project workflows are skipped unless `E2E_DATABASE_URL` points to an isolated disposable test database; never point it at staging or production data.
+- `npm run test:e2e:cms` runs an opt-in real S3 CMS upload/delete smoke test when `CMS_E2E_API_URL` and a temporary Super Admin `CMS_E2E_ADMIN_TOKEN` are injected from the secret manager. It does not prove GuardDuty scan outcomes.
+- PayPal sandbox purchases, renewals, failures, cancellations, and signed webhook delivery still require a configured sandbox buyer, webhook, and staging URL. Do not claim those external lifecycle checks passed based on local mocks or unit tests.
+- Apply `20261101100000_enable_client_project_access` before deploying the client project workflow. It grants existing `CLIENT` accounts only project create/read/update permissions; project ownership is still checked server-side, staff-directory access is role-restricted, and this migration does not enable project file-upload permission.
+
 ## Authentication and API access
 
 - `POST /api/auth/register` and `POST /api/auth/login` are public. Registration accepts a name, email, and password of at least 12 characters; passwords are bcrypt-hashed before storage. Registration uses the same generic response for new and already-registered email addresses; sign in separately after registering.

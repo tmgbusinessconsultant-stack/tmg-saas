@@ -3,6 +3,8 @@ import { articles } from "./blog/blog-content";
 
 type CmsSitemapPost = { slug: string; updatedAt: string; publishDate: string | null };
 
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://tmgbusinessconsulting.com";
   const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");

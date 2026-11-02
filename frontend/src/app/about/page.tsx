@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 const values = [
   "Clarity over complexity",
   "Practical execution",

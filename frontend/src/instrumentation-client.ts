@@ -1,10 +1,27 @@
-﻿import * as Sentry from "@sentry/nextjs";
+const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN?.trim();
 
-Sentry.init({
-  dsn: "https://75870f4cd27dc2939a944298b6a7269b@o4512356911284224.ingest.us.sentry.io/4512356954800128",
-  tracesSampleRate: 1.0,
-  environment: process.env.NODE_ENV,
-  enabled: true,
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1.0,
-});
+if (dsn) {
+  const initializeSentry = () => {
+    void import("@sentry/nextjs")
+      .then(({ init }) => {
+        init({
+          dsn,
+          tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 0,
+          replaysSessionSampleRate: 0,
+          replaysOnErrorSampleRate: 0,
+          environment: process.env.NODE_ENV,
+        });
+      })
+      .catch((error: unknown) => console.error("Could not initialize frontend error monitoring.", error));
+  };
+
+  const scheduleInitialization = () => {
+    if (typeof window.requestIdleCallback === "function") {
+      window.requestIdleCallback(initializeSentry, { timeout: 5_000 });
+    } else {
+      window.setTimeout(initializeSentry, 2_500);
+    }
+  };
+  if (document.readyState === "complete") scheduleInitialization();
+  else window.addEventListener("load", scheduleInitialization, { once: true });
+}

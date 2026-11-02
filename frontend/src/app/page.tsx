@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import Link from "next/link";
 import Image from "next/image";
 import { Suspense } from "react";
-import { mediaUrl } from "@/lib/content-management";
+import { isExternalMedia, mediaUrl } from "@/lib/content-management";
 import { defaultHomepageContent, type HomepageContent } from "@/lib/homepage-content";
 import PublishedMediaSection from "@/components/published-media-section";
 
@@ -11,7 +11,10 @@ async function loadHomepageContent(): Promise<HomepageContent> {
   try {
     const base = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
     if (!base) return defaultHomepageContent;
-    const response = await fetch(`${base}/content/homepage`, { cache: "no-store" });
+    const response = await fetch(`${base}/content/homepage`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(1_500),
+    });
     if (!response.ok) return defaultHomepageContent;
     const body = await response.text();
     if (!body.trim()) return defaultHomepageContent;
@@ -57,6 +60,9 @@ function HomeSkeleton() {
 }
 
 function HomePageContent({ content }: { content: HomepageContent }) {
+  const heroImageUrl = content.hero.imageUrl ? mediaUrl(content.hero.imageUrl) : "";
+  const optimizeHeroImage = !isExternalMedia(content.hero.imageUrl) || isConfiguredApiImage(content.hero.imageUrl);
+
   return (
     <div className="w-full">
       <section className="text-white" style={{ background: `linear-gradient(135deg, var(--header-bg), var(--primary))` }}>
@@ -75,9 +81,18 @@ function HomePageContent({ content }: { content: HomepageContent }) {
             </div>
           </div>
           <div className="p-8 shadow-2xl" style={{ background: "var(--card-bg)", borderRadius: "var(--radius)", color: "var(--foreground)" }}>
-            {content.hero.imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={mediaUrl(content.hero.imageUrl)} alt="" className="mb-6 max-h-48 w-full rounded-lg object-cover" />
+            {heroImageUrl ? (
+              <div className="relative mb-6 h-48 w-full overflow-hidden rounded-lg">
+                <Image
+                  src={heroImageUrl}
+                  alt={content.hero.imageAlt || ""}
+                  fill
+                  priority
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  unoptimized={!optimizeHeroImage}
+                  className="rounded-lg object-cover"
+                />
+              </div>
             ) : (
               <div className="flex justify-center mb-6">
                 <Image src="/logo.png" alt="TMG" width={200} height={70} className="h-16 w-auto" />
@@ -144,4 +159,13 @@ function HomePageContent({ content }: { content: HomepageContent }) {
       </section>
     </div>
   );
+}
+
+function isConfiguredApiImage(imageUrl: string): boolean {
+  try {
+    const apiOrigin = new URL(process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000").origin;
+    return new URL(mediaUrl(imageUrl)).origin === apiOrigin;
+  } catch {
+    return false;
+  }
 }

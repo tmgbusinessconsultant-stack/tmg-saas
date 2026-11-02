@@ -10,6 +10,7 @@ import type { PrismaService } from '../../src/prisma/prisma.service';
 
 const originalFetch = globalThis.fetch;
 const originalEnvironment = {
+  PAYPAL_MODE: process.env.PAYPAL_MODE,
   PAYPAL_ENV: process.env.PAYPAL_ENV,
   PAYPAL_CLIENT_ID: process.env.PAYPAL_CLIENT_ID,
   PAYPAL_CLIENT_SECRET: process.env.PAYPAL_CLIENT_SECRET,
@@ -26,7 +27,9 @@ afterEach(() => {
 });
 
 function configurePayPal() {
-  process.env.PAYPAL_ENV = 'sandbox';
+  process.env.PAYPAL_MODE = 'sandbox';
+  delete process.env.PAYPAL_ENV;
+  delete process.env.PAYPAL_SECRET;
   process.env.PAYPAL_CLIENT_ID = 'test-client-id';
   process.env.PAYPAL_CLIENT_SECRET = 'test-client-secret';
 }

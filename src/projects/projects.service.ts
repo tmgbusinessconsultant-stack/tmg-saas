@@ -18,7 +18,7 @@ export class ProjectsService {
   constructor(private readonly prisma: PrismaService) {}
 
   private isAdmin(user: AuthenticatedUser) {
-    const r = (user as any).role?.toString().toUpperCase();
+    const r = user.role?.toString().toUpperCase();
     return ['ADMIN','SUPER_ADMIN','ADMIN_MANAGER','PROJECT_MANAGER','STAFF','CONTENT_MANAGER','FINANCE_MANAGER'].includes(r);
   }
 
@@ -27,6 +27,7 @@ export class ProjectsService {
     if (!project) throw new NotFoundException('Project not found');
     if (this.isAdmin(user)) return project;
     if (project.ownerId === user.id) return project;
+    if (user.role?.toString().toUpperCase() === 'CLIENT') throw new ForbiddenException('No access');
     if (project.assigneeId === user.id) return project;
     throw new ForbiddenException('No access');
   }
@@ -110,6 +111,49 @@ export class ProjectsService {
         status: 'PENDING',
       },
     });
+  }
+
+  async updateProject(user: AuthenticatedUser, projectId: string, input: unknown) {
+    const project = await this.assertAccess(user, projectId);
+    if (user.role?.toString().toUpperCase() === 'CLIENT' && project.ownerId !== user.id) {
+      throw new ForbiddenException('No access');
+    }
+    if (!input || typeof input !== 'object' || Array.isArray(input)) {
+      throw new BadRequestException('Project changes are required.');
+    }
+
+    const body = input as Record<string, unknown>;
+    const data: { title?: string; description?: string; serviceType?: string } = {};
+    if (body.title !== undefined) {
+      if (typeof body.title !== 'string' || !body.title.trim() || body.title.trim().length > 200) {
+        throw new BadRequestException('Project title must be between 1 and 200 characters.');
+      }
+      data.title = body.title.trim();
+    }
+    if (body.description !== undefined) {
+      if (typeof body.description !== 'string' || body.description.length > 10_000) {
+        throw new BadRequestException('Project description must not exceed 10,000 characters.');
+      }
+      data.description = body.description;
+    }
+    if (body.serviceType !== undefined) {
+      if (typeof body.serviceType !== 'string' || !body.serviceType.trim() || body.serviceType.trim().length > 100) {
+        throw new BadRequestException('Project service type must be between 1 and 100 characters.');
+      }
+      data.serviceType = body.serviceType.trim();
+    }
+    if (Object.keys(data).length === 0) throw new BadRequestException('No editable project fields were provided.');
+
+    return (this.prisma as any).project.update({ where: { id: projectId }, data });
+  }
+
+  async deleteProject(user: AuthenticatedUser, projectId: string) {
+    const project = await this.assertAccess(user, projectId);
+    if (user.role?.toString().toUpperCase() === 'CLIENT' && project.ownerId !== user.id) {
+      throw new ForbiddenException('No access');
+    }
+    await (this.prisma as any).project.delete({ where: { id: projectId } });
+    return { success: true };
   }
 
   async updateStatus(user: AuthenticatedUser, projectId: string, status: string) {

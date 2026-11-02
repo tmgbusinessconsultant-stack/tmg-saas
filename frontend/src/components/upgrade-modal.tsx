@@ -17,7 +17,9 @@ export default function UpgradeModal({ isOpen, onClose, plan }: UpgradeModalProp
         <h2 className="text-xl font-bold">Upgrade to {plan?.name || "Pro"}</h2>
         <p className="mt-2 text-sm text-gray-600">Get advanced AI features</p>
         <div className="mt-6">
-          <PayPalSubscribe planId={plan?.paypalPlanId || "P-TEST"} onSuccess={() => { alert("Subscribed!"); onClose(); }} />
+          {plan?.paypalPlanId
+            ? <PayPalSubscribe planId={plan.paypalPlanId} onSuccess={() => { alert("Subscription verified."); onClose(); }} />
+            : <p role="status" className="text-sm text-red-600">PayPal is not configured for this plan.</p>}
         </div>
         <button onClick={onClose} className="mt-4 w-full py-2 border rounded">Cancel</button>
       </div>

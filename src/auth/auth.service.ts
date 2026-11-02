@@ -101,7 +101,7 @@ export class AuthService {
         name: input.name,
         passwordHash,
         role: UserRole.CLIENT,
-        permissions: [],
+        permissions: ['projects:create', 'projects:read', 'projects:update'],
       },
     });
   }

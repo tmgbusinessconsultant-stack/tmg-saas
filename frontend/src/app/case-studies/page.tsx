@@ -1,6 +1,8 @@
 import Link from "next/link";
 import PublishedMediaSection from "@/components/published-media-section";
 
+export const dynamic = "force-dynamic";
+
 export default function CaseStudiesPage() {
   return (
     <main className="min-h-screen bg-[#FCFCF9]">
@@ -26,4 +28,3 @@ export default function CaseStudiesPage() {
     </main>
   );
 }
-

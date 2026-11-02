@@ -7,6 +7,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { getPayPalApiBase, resolvePayPalMode } from './paypal-config';
 
 const PLAN_MAP: Record<string, { id: string; billing: 'monthly' | 'annual' }> = {
   'P-6JD50850NE6749845NLPPESI': { id: 'starter', billing: 'monthly' },
@@ -42,14 +43,16 @@ export class PaypalService {
   constructor(private prisma: PrismaService) {}
 
   private getApiBase(): string {
-    if (process.env.PAYPAL_ENV === 'sandbox') return 'https://api-m.sandbox.paypal.com';
-    if (process.env.PAYPAL_ENV === 'live') return 'https://api-m.paypal.com';
-    throw new ServiceUnavailableException('Set PAYPAL_ENV to sandbox or live.');
+    try {
+      return getPayPalApiBase(resolvePayPalMode());
+    } catch (error) {
+      throw new ServiceUnavailableException(error instanceof Error ? error.message : 'PayPal configuration is invalid.');
+    }
   }
 
   private async getPayPalToken(): Promise<{ token: string; base: string }> {
     const clientId = process.env.PAYPAL_CLIENT_ID;
-    const secret = process.env.PAYPAL_SECRET || process.env.PAYPAL_CLIENT_SECRET;
+    const secret = process.env.PAYPAL_CLIENT_SECRET;
     const base = this.getApiBase();
     if (!clientId || !secret) {
       throw new ServiceUnavailableException('PayPal API credentials are not configured.');

@@ -37,7 +37,7 @@ async function PublishedMediaContent({ location, title }: { location: string; ti
       <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {images.map((image) => (
           <figure key={image.id} className="group overflow-hidden rounded-[20px] border border-zinc-200 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all hover:border-zinc-900">
-            <Image src={contentApiUrl(image.url)} alt={image.originalName} width={1200} height={900} unoptimized className="aspect-[4/3] w-full object-cover group-hover:scale-[1.02] transition-transform duration-500" />
+            <Image src={contentApiUrl(image.url)} alt={image.originalName} width={1200} height={900} sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="aspect-[4/3] w-full object-cover group-hover:scale-[1.02] transition-transform duration-500" />
           </figure>
         ))}
       </div>

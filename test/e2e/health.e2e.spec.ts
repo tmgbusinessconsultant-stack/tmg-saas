@@ -21,7 +21,14 @@ test('boots the API and verifies the HTTP health and database check', async () =
     ['-r', 'dotenv/config', 'dist/src/main.js'],
     {
       cwd: resolve(__dirname, '../..'),
-      env: { ...process.env, NODE_ENV: 'test', PORT: String(port) },
+      env: {
+        ...process.env,
+        NODE_ENV: 'test',
+        PAYPAL_MODE: 'sandbox',
+        PAYPAL_ENV: '',
+        PAYPAL_SECRET: '',
+        PORT: String(port),
+      },
       stdio: ['ignore', 'ignore', 'pipe'],
     },
   );

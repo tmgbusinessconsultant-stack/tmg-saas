@@ -6,8 +6,11 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import { json, urlencoded } from 'express';
 import { join } from 'path';
 import * as express from 'express';
+import { resolvePayPalMode } from './paypal/paypal-config';
+import { createPayPalWebhookRateLimit } from './paypal/paypal-webhook-rate-limit';
 
 async function bootstrap() {
+  resolvePayPalMode();
   (BigInt.prototype as any).toJSON = function () { return Number(this); };
 
   const logger = new Logger('Bootstrap');
@@ -17,6 +20,9 @@ async function bootstrap() {
   app.use(urlencoded({ limit: '50mb', extended: true }));
 
   app.use('/uploads/projects', (_req, res) => res.sendStatus(404));
+  const paypalWebhookRateLimit = createPayPalWebhookRateLimit();
+  app.use('/api/paypal/webhook', paypalWebhookRateLimit);
+  app.use('/api/payments/webhook/paypal', paypalWebhookRateLimit);
 
   // === STEP 4: Serve public uploaded assets ===
   app.use('/uploads', express.static(join(process.cwd(), 'uploads')));

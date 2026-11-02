@@ -96,7 +96,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-slate-500 font-medium w-full" style={{ maxWidth: "var(--container-max)" }}>
               <div>© 2026 TMG Business Consulting. All Rights Reserved.</div>
               <div className="font-mono text-[11px] tracking-wide text-slate-600">
-                Accepted Clearances: Visa &bull; Mastercard &bull; PayPal &bull; Apple Pay
+                PayPal subscriptions available for AI plans
               </div>
             </div>
           </div>

@@ -1,7 +1,7 @@
 # Production Readiness Audit
 
-**Assessment date:** 2026-11-01
-**Decision:** **NO-GO for production — local checks pass; ready for controlled staging deployment**
+**Assessment date:** 2026-11-02
+**Decision:** **NO-GO for production — local checks pass; Render API build and required staging/production gates remain unresolved**
 
 This is an evidence-based source/configuration audit and local validation, not a launch certification. The repository has an existing uncommitted worktree; those changes were preserved. External provider accounts and controlled staging infrastructure were not available. Local builds, backend health checks, and a limited Chromium route/mobile smoke were run, but no full production deployment or business-workflow verification was performed.
 
@@ -124,7 +124,7 @@ No new MFA, notification, backup, monitoring, payment, or administrative feature
 | AWS S3 and GuardDuty | **NOT VERIFIED** | No authorized staging bucket/GuardDuty configuration or test object evidence. CMS scan-gate unit tests cover clean, threat, pending, and unknown tag results. Project-file uploads are local-disk and have no verified malware scanner; project uploads are a launch blocker. |
 | PayPal lifecycle | **PARTIAL PASS (local code/tests); sandbox not verified** | Unsafe order/shop flows now fail closed; subscription verification binds the active PayPal subscription's `custom_id` to the authenticated user; webhook handlers require PayPal signature verification and use PayPal's next billing date. Seven focused mocked-provider tests pass. No authorized sandbox purchase, renewal, cancellation, failure, or delivered webhook evidence is available. |
 | Stripe | **N/A by current source scope** | No Stripe references or Stripe integration were found in the reviewed application source or package manifest. |
-| Render deployment | **NOT VERIFIED** | No Render service/configuration was found; the deployment guide documents Vercel projects. No Render URL or deployed artifact is available. |
+| Render deployment | **BLOCKED** | The frontend is deployed on Render, but its served CSS was verified without Tailwind utilities before the source-scan fix. The latest API build log fails at `npx prisma generate` because `npm ci --legacy-peer-deps` omits development dependencies. Added `include=dev` to the root `.npmrc` and documented explicit Render commands; a clean Render rebuild is still required. |
 | Security validation | **PARTIAL** | Source-level authorization/file checks and unit tests pass; selected unauthenticated API probes returned 401. No authenticated penetration test, staging isolation test, or private-S3 access test was performed. |
 | Domains and SSL | **NOT VERIFIED** | No staging or production domain, certificate issuance, redirect, or HTTPS evidence was supplied. |
 | Backup and recovery | **NOT VERIFIED** | No database restore, media restore, or environment rebuild was run. No verified recovery evidence is available. |
@@ -132,7 +132,7 @@ No new MFA, notification, backup, monitoring, payment, or administrative feature
 | Lighthouse | **PARTIAL PASS — local only** | Against the local optimized production build: desktop Performance 99, Accessibility 94, Best Practices 96, SEO 92; mobile Performance 84, Accessibility 94, Best Practices 96, SEO 92. Mobile Performance is below the 90 target. No staging/production score is established. |
 | Browser routes and responsive widths | **PARTIAL PASS — Chromium local smoke** | Homepage, pricing, login, admin, dashboard, builder, and CMS route requests returned 200; anonymous admin/dashboard/CMS routes redirected to login. At 390px, 768px, and 1366px, the homepage had no horizontal overflow. This is not authenticated workflow testing, cross-browser testing, or physical-device evidence. |
 | Cross-browser/device workflows | **NOT VERIFIED** | No Firefox, Edge, Safari, iPhone Safari, Android Chrome, or physical device workflow evidence. |
-| Automated tests | **PARTIAL PASS** | Latest rerun: `npm test` 38/38 across 5 suites; `npm run test:e2e` passes build, API startup, and database health. Login, project creation, CMS, payment-provider sandbox, and browser E2E coverage are absent. |
+| Automated tests | **PARTIAL PASS** | Latest local `npm test` rerun passes 43/43 tests across 6 suites; backend and frontend production builds pass, and frontend lint passes. New authenticated project and CMS tests have not been run against an isolated database/staging service. |
 | Prisma schema | **PASS** | Latest `npx prisma validate` passed. This does not prove production data integrity or live provider connectivity. |
 | Full root build | **PASS (latest local run)** | `npm run test:e2e` ran root build: Prisma Client v5.22.0 generated and NestJS compiled 112 files successfully. This confirms local build readiness, not a deployed staging build. |
 
@@ -145,7 +145,7 @@ No new MFA, notification, backup, monitoring, payment, or administrative feature
 - `npx prisma validate`: **PASS**.
 - Local production preview on port 3001: homepage and pricing/login route requests returned HTTP 200; `/admin`, `/dashboard`, and `/admin/content/media` redirected anonymous users to `/login`. Homepage had no horizontal overflow at 390px, 768px, or 1366px in Chromium. A local homepage screenshot was captured in the verification session.
 - Lighthouse 13.6.0 local production preview scores: desktop **99/94/96/92** (Performance/Accessibility/Best Practices/SEO); mobile **84/94/96/92**. Mobile Performance is below the requested 90 threshold; optimize before claiming the performance gate passes.
-- GitHub Actions: repository API returned **zero workflow runs** for `main`; no remote CI result is available.
+- GitHub Actions: a CI workflow has been added, but its remote result has not yet been verified.
 
 ### RBAC test matrix (scope-qualified)
 
@@ -168,7 +168,7 @@ The reported `PAYPAL_ONLY_PASS` and production GO remain **unverified**. Stripe 
 - Renewal processing fetches authoritative subscription state from PayPal and sets `endDate` to its `next_billing_time`, making duplicate renewal events idempotent.
 - `npm test` includes seven new mocked-provider security tests for disabled checkout paths, user binding, valid/invalid webhook signatures, cancellation, and idempotent renewal.
 
-These are local code/unit-test results only. PayPal Sandbox has not been configured or used, so subscription purchase, renewal, cancellation, failed payment, and signed webhook delivery have not been verified against PayPal. Configure `PAYPAL_ENV=sandbox`, matching sandbox credentials, and the sandbox `PAYPAL_WEBHOOK_ID`; do not use `PAYPAL_MODE` as a substitute. Production payment approval must wait for authorized sandbox evidence. No Render configuration or deployment was verified; current deployment documentation is Vercel-specific.
+These are local code/unit-test results only. PayPal Sandbox has not been configured or used, so subscription purchase, renewal, cancellation, failed payment, and signed webhook delivery have not been verified against PayPal. Configure `PAYPAL_MODE=sandbox` with one matching sandbox `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, public client ID, and `PAYPAL_WEBHOOK_ID`; `PAYPAL_ENV`, `PAYPAL_SECRET`, and mode-prefixed credential sets are rejected. Production payment approval must wait for authorized sandbox evidence. Render services are now identified, but the latest API build failed; the fix must be confirmed by a successful clean Render deploy and health check.
 
 ### Evidence limitations and required next steps
 
@@ -178,8 +178,18 @@ These are local code/unit-test results only. PayPal Sandbox has not been configu
 - The latest root build passed without a Prisma DLL lock. Re-run the build in the staging deployment pipeline and verify its generated artifact there.
 - Implement private object storage and a verified malware scan lifecycle for project files; investigate legacy `AVAILABLE` records before release.
 - Run authorized PayPal sandbox subscription purchase/renewal/cancellation/failure and signed-webhook tests. Implement and verify server-side order checkout before re-enabling shop/order endpoints.
-- Provision and verify the intended Render deployment configuration separately; current deployment instructions target Vercel.
+- Rebuild the Render API with development dependencies available and verify its health endpoint; verify that both frontend domains serve Tailwind utility CSS after redeploy.
 - Complete the remaining staging and browser/device tests and attach their evidence before changing the deployment decision.
+
+### Local verification rerun — 2026-11-02
+
+- `npm test`: **PASS**, 43/43 tests across 6 suites.
+- Root `npm run build`: **PASS** locally with Prisma Client generation and NestJS compilation.
+- Frontend `npm run build`: **PASS**, production routes generated; `npm run lint` completed without reported findings.
+- Local production CSS includes Tailwind `.flex`, `.hidden`, and `.grid` utilities after adding an explicit `@source` directive.
+- Render API build: **FAIL** in the supplied logs at `npx prisma generate`; the Render install command omitted dev dependencies. The root npm config now explicitly includes dev dependencies, but Render has not yet verified a new build.
+- Dependency audit: **NOT CLEAR** — the current dependency tree reports high-severity advisories; resolve or formally assess them before production approval.
+- Production decision remains **NO-GO**. Lighthouse mobile performance remains below 90, and staging auth/project/CMS workflows, PayPal sandbox, live S3/GuardDuty, monitoring alerts, migration rollout, and recovery verification remain outstanding.
 
 ## Documentation and operational gaps
 
