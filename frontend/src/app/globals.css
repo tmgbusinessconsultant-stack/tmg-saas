@@ -1,4 +1,35 @@
 @import "tailwindcss";
+@source "../**/*.{js,ts,jsx,tsx,mdx}";
+@source "./**/*.{js,ts,jsx,tsx,mdx}";
+@source "../../**/*.{js,ts,jsx,tsx,mdx}";
+
+:root {
+  /* === 22 GLOBAL DESIGN FIELDS - Synced from Admin Settings === */
+  --background: #F8FAFC;
+  --foreground: #0F172A;
+  --primary: #0F172A;
+  --gold: #D4AF37;
+  --card-bg: #FFFFFF;
+  --header-bg: #0F172A;
+  --footer-bg: #0F172A;
+  --border-color: #CBD5E1;
+  --button-radius: 8px;
+  --radius: 12px;
+  --input-radius: 12px;
+  --input-height: 44px;
+  --button-height: 44px;
+  --border-width: 1px;
+  --font-size: 14px;
+  --h1-size: 36px;
+  --h2-size: 24px;
+  --h3-size: 18px;
+  --font-family: Arial, Helvetica, sans-serif;
+  --line-height: 1.6;
+  --header-height: 64px;
+  --footer-height: auto;
+  --container-max: 1280px;
+}
+@import "tailwindcss";
 
 :root {
 /* === 22 GLOBAL DESIGN FIELDS - Synced from Admin Settings === */
