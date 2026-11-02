@@ -124,7 +124,7 @@ No new MFA, notification, backup, monitoring, payment, or administrative feature
 | AWS S3 and GuardDuty | **NOT VERIFIED** | No authorized staging bucket/GuardDuty configuration or test object evidence. CMS scan-gate unit tests cover clean, threat, pending, and unknown tag results. Project-file uploads are local-disk and have no verified malware scanner; project uploads are a launch blocker. |
 | PayPal lifecycle | **PARTIAL PASS (local code/tests); sandbox not verified** | Unsafe order/shop flows now fail closed; subscription verification binds the active PayPal subscription's `custom_id` to the authenticated user; webhook handlers require PayPal signature verification and use PayPal's next billing date. Seven focused mocked-provider tests pass. No authorized sandbox purchase, renewal, cancellation, failure, or delivered webhook evidence is available. |
 | Stripe | **N/A by current source scope** | No Stripe references or Stripe integration were found in the reviewed application source or package manifest. |
-| Render deployment | **BLOCKED** | The frontend is deployed on Render, but its served CSS was verified without Tailwind utilities before the source-scan fix. The latest API build log fails at `npx prisma generate` because `npm ci --legacy-peer-deps` omits development dependencies. Added `include=dev` to the root `.npmrc` and documented explicit Render commands; a clean Render rebuild is still required. |
+| Render deployment | **BLOCKED** | Render's latest frontend build succeeded but warned that Turbopack could not parse `@source "../"`; the live CSS still lacks Tailwind utilities. The frontend build script now uses webpack and locally emits the required utility CSS; a Render redeploy must verify the live result. An earlier API build failed because dev dependencies were omitted; the root `.npmrc` now includes them and API deployment must also be verified. |
 | Security validation | **PARTIAL** | Source-level authorization/file checks and unit tests pass; selected unauthenticated API probes returned 401. No authenticated penetration test, staging isolation test, or private-S3 access test was performed. |
 | Domains and SSL | **NOT VERIFIED** | No staging or production domain, certificate issuance, redirect, or HTTPS evidence was supplied. |
 | Backup and recovery | **NOT VERIFIED** | No database restore, media restore, or environment rebuild was run. No verified recovery evidence is available. |
@@ -186,9 +186,10 @@ These are local code/unit-test results only. PayPal Sandbox has not been configu
 - `npm test`: **PASS**, 43/43 tests across 6 suites.
 - Root `npm run build`: **PASS** locally with Prisma Client generation and NestJS compilation.
 - Frontend `npm run build`: **PASS**, production routes generated; `npm run lint` completed without reported findings.
-- Local production CSS includes Tailwind `.flex`, `.hidden`, and `.grid` utilities after adding an explicit `@source` directive.
+- Local webpack production CSS includes Tailwind `.flex`, `.hidden`, and `.grid` utilities after adding an explicit `@source` directive; default Turbopack build output did not match the live requirement.
 - Render API build: **FAIL** in the supplied logs at `npx prisma generate`; the Render install command omitted dev dependencies. The root npm config now explicitly includes dev dependencies, but Render has not yet verified a new build.
 - Dependency audit: **NOT CLEAR** — the current dependency tree reports high-severity advisories; resolve or formally assess them before production approval.
+- Render frontend: **FIX PREPARED, NOT DEPLOYED** — switched the production build script to webpack because the live Turbopack build emitted CSS without Tailwind utilities. The Render service must redeploy and serve the expected utility rules before this issue can be closed.
 - Production decision remains **NO-GO**. Lighthouse mobile performance remains below 90, and staging auth/project/CMS workflows, PayPal sandbox, live S3/GuardDuty, monitoring alerts, migration rollout, and recovery verification remain outstanding.
 
 ## Documentation and operational gaps
