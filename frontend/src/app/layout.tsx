@@ -73,6 +73,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <li><Link href="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
                 <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
                 <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+                <li><Link href="/terms" className="hover:text-white transition-colors">Refund Policy</Link></li>
               </ul>
             </div>
 
@@ -105,4 +106,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+
+
 
