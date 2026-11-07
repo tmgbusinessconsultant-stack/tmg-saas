@@ -149,6 +149,7 @@ export default function PricingPage() {
                         <div className="w-full rounded-full bg-zinc-100 py-3 text-center text-sm text-zinc-500">PayPal loads when this section is in view</div>
                       ) : <button disabled className="w-full rounded-full bg-zinc-200 py-3 text-zinc-500">PayPal Not Configured</button>}
                     </div>
+                    <p className="mt-3 text-center text-[11px] leading-4 text-zinc-500">By subscribing you agree to our <a href="/terms" className="font-semibold text-zinc-700 underline">Terms &amp; Refund Policy</a>. Digital downloads: No refund after download, 7 days if file defective.</p>
                     <ul className="mt-6 space-y-2 text-sm text-zinc-700">{plan.features.map(feature => <li key={feature} className="flex gap-2"><span className="text-green-600">✓</span> {feature}</li>)}</ul>
                   </div>
                 );
@@ -182,6 +183,7 @@ export default function PricingPage() {
                     <Link href="/sites" className={`block w-full rounded-full py-3 text-center font-bold ${plan.popular ? "bg-[#0F172A] text-white" : "bg-zinc-900 text-white"}`}>{plan.btn} →</Link>
                     
                   </div>
+                    <p className="mt-3 text-center text-[11px] leading-4 text-zinc-500">By subscribing you agree to our <a href="/terms" className="font-semibold text-zinc-700 underline">Terms &amp; Refund Policy</a>. Digital downloads: No refund after download, 7 days if file defective.</p>
                   <ul className="mt-6 space-y-2 text-sm text-zinc-700">{plan.features.map(feature => <li key={feature} className="flex gap-2"><span className="text-green-600">✓</span> {feature}</li>)}</ul>
                 </div>
               ))}
