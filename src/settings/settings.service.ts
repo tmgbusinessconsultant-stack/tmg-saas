@@ -131,7 +131,7 @@ export class SettingsService {
       'whatsappNumber',
       'phoneNumber',
     ];
-    if (!allowedTab1.includes(key)) {
+    if (!allowedTab1.includes(key) && key !== 'tmg_colors' && !key.startsWith('design_')) {
       throw new BadRequestException(`Key ${key} not allowed in Tab 1`);
     }
     this.cache.delete(key);

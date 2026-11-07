@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { articles } from "./blog/blog-content";
+import { apiUrl as buildApiUrl } from "@/lib/backend-api";
 
 type CmsSitemapPost = { slug: string; updatedAt: string; publishDate: string | null };
 
@@ -7,13 +8,13 @@ export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://tmgbusinessconsulting.com";
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
+  const apiUrl = buildApiUrl("/blog");
   let cmsPosts: CmsSitemapPost[] = [];
 
   // SAFE FETCH - Won't crash site if API is down (Your old code threw Error and broke sitemap.xml)
   if (apiUrl) {
     try {
-      const response = await fetch(`${apiUrl}/blog`, {
+      const response = await fetch(apiUrl, {
         next: { revalidate: 3600 } // Cache 1 hour - Better for SEO than no-store
       });
       if (response.ok) {

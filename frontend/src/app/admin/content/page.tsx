@@ -9,7 +9,7 @@ type ContentModule = {
 };
 
 const modules: ContentModule[] = [
-  { title: "Website Builder", description: "AI layout generator, SEO, pages, publish — TMG Builder Pro v2 BEST", href: "/builder", badge: "✨ AI BEST", highlight: true },
+  { title: "Website Builder", description: "AI layout generator, SEO, pages, publish — TMG Builder Pro v2 BEST", href: "/admin/sites", badge: "✨ AI BEST", highlight: true },
   { title: "Blog Posts", description: "Write, schedule, publish, and optimize articles.", href: "/admin/content/blog" },
   { title: "Media Library", description: "Upload, scan, organize, preview, and publish media.", href: "/admin/content/media" },
   { title: "Categories", description: "Organize blog articles into public categories.", href: "/admin/content/categories" },
@@ -17,7 +17,7 @@ const modules: ContentModule[] = [
   { title: "Homepage Content", description: "Edit the homepage hero, services, testimonials, and calls to action.", href: "/admin/content/homepage" },
   { title: "Shop Products", description: "Add, edit, approve, delete Excel templates — Final V3 BEST MATCHED, compressed images, active filter", href: "/admin/content/shop", badge: "BEST" },
   { title: "Website Gallery", description: "Manage public portfolio images and their display order.", href: "/admin/content/gallery" },
-  { title: "AI Analytics", description: "View AI conversations, search analytics, and fallback logs — V7-OMNI", href: "/admin/ai/analytics", badge: "NEW" },
+  { title: "AI Analytics", description: "View AI conversations, search analytics, and fallback logs — V7-OMNI", href: "/admin/analytics", badge: "NEW" },
 ];
 
 export default function ContentManagementPage() {

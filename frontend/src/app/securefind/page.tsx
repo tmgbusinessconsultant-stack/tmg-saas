@@ -13,18 +13,18 @@ export default function SecureFind() {
                         Lost Your Phone?<br />
                         <span style={{ color: "#D4AF37" }}>Find YOUR Own Phone</span><br />in 5 Minutes.
                     </h1>
-                    <p className="mt-6 text-[17px] leading-7 text-white font-medium max-w-xl mx-auto">
+                    <p className="mt-6 text-[18px] leading-8 text-white font-semibold max-w-xl mx-auto" style={{ color: "#FFFFFF", textShadow: "0 1px 3px rgba(0,0,0,0.6)" }}>
                         We guide you live on WhatsApp to find, lock or erase YOUR OWN iPhone or Samsung using YOUR OWN Apple ID / Google account. No hack. No password stealing. Official Apple & Google way.
                     </p>
                     <div className="mt-8 flex flex-wrap justify-center gap-4">
-                        <Link href="/securefind/start" className="px-8 py-4 rounded-full font-black text-sm bg-[#D4AF37] text-black hover:opacity-90">
+                        <Link href="/securefind/start" className="px-8 py-4 rounded-full font-black text-sm bg-[#D4AF37] text-black hover:opacity-90" style={{ color: "#000000", background: "#D4AF37" }}>
                             Recover My Phone - $29 →
                         </Link>
-                        <a href="https://wa.me/97477000000?text=Hi%20TMG%20SecureFind,%20I%20lost%20my%20phone" target="_blank" className="px-8 py-4 rounded-full font-bold text-sm bg-white text-black">
+                        <a href="https://wa.me/97477000000?text=Hi%20TMG%20SecureFind,%20I%20lost%20my%20phone" target="_blank" className="px-8 py-4 rounded-full font-bold text-sm bg-white text-black" style={{ color: "#000000", background: "#FFFFFF" }}>
                             WhatsApp Us Now
                         </a>
                     </div>
-                    <p className="mt-4 text-[11px] text-white uppercase tracking-widest font-bold">
+                    <p className="mt-4 text-[12px] text-white uppercase tracking-widest font-bold" style={{ color: "#FFFFFF" }}>
                         Pay First • Proof Required • Refund If No Proof
                     </p>
                 </div>

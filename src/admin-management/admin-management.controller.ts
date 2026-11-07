@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Param, Patch, UseGuards, BadRequestException } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, UseGuards, BadRequestException } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { UpdateAccessDto } from './dto/update-access.dto';
+import { UpdateStatusDto } from './dto/update-status.dto';
 import type { AuthenticatedUser } from '../auth/auth.service';
 import { AdminManagementService } from './admin-management.service';
 
@@ -37,5 +38,22 @@ export class AdminManagementController {
   @Get('activity')
   async listActivity() {
     return this.management.listActivity();
+  }
+
+  @Patch('users/:id/status')
+  async updateStatus(
+    @Param('id') id: string,
+    @Body() body: UpdateStatusDto,
+    @CurrentUser() actor: AuthenticatedUser,
+  ) {
+    return this.management.toggleUserStatus(id, body.isActive, actor);
+  }
+
+  @Delete('users/:id')
+  async deleteUser(
+    @Param('id') id: string,
+    @CurrentUser() actor: AuthenticatedUser,
+  ) {
+    return this.management.deleteUser(id, actor);
   }
 }

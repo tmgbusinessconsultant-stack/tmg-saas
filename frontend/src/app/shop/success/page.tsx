@@ -1,5 +1,5 @@
 "use client";
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -11,10 +11,21 @@ function SuccessContent() {
 
   const apiBase = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "") || "http://localhost:4000";
   const base = apiBase.endsWith("/api") ? apiBase : `${apiBase}/api`;
+  const paypalToken = params.get("token");
+  const [captureState, setCaptureState] = useState<"idle"|"capturing"|"done"|"failed">("idle");
+  const [downloadToken, setDownloadToken] = useState<string | null>(params.get("token"));
+  useEffect(() => {
+    if (!paypalToken || captureState !== "idle") return;
+    setCaptureState("capturing");
+    fetch(`${base}/payments/shop/capture`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orderID: paypalToken }) })
+      .then(r => r.json()).then(d => { if (d?.status === "COMPLETED" || d?.success) { setCaptureState("done"); if (d.downloadToken) setDownloadToken(d.downloadToken); } else setCaptureState("failed"); })
+      .catch(() => setCaptureState("failed"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paypalToken]);
 
   // BEST: Use same endpoint as ShopClient + fallback
-  const primaryUrl = token ? `${base}/content/media/download?${new URLSearchParams({ token, productId })}` : null;
-  const fallbackUrl = token ? `${base}/content/media/${encodeURIComponent(productId)}/download?token=${encodeURIComponent(token)}` : null;
+  const effToken = downloadToken || token; const primaryUrl = effToken ? `${base}/content/media/download?${new URLSearchParams({ token: effToken, productId })}` : null;
+  const fallbackUrl = effToken ? `${base}/content/media/${encodeURIComponent(productId)}/download?token=${encodeURIComponent(effToken)}` : null;
   const downloadUrl = primaryUrl || fallbackUrl;
 
   const copyLink = () => {

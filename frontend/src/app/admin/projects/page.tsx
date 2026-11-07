@@ -217,7 +217,7 @@ export default function AdminProjectsPage() {
 
               {/* WhatsApp Chat + Delete Message */}
               <section>
-                <h3 className="font-semibold">Project messages — WhatsApp style</h3>
+                <h3 className="font-semibold">Project messages</h3>
                 <div className="mt-3 max-h-[420px] space-y-3 overflow-y-auto rounded-2xl bg-[#ECE5DD] p-4">
                   {project.messages.map((m) => {
                     const isAdmin = (m.author.role || "").toUpperCase().includes("ADMIN");
@@ -245,3 +245,4 @@ export default function AdminProjectsPage() {
     </main>
   );
 }
+

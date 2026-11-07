@@ -85,6 +85,47 @@ export class PaypalService {
     return (await response.json()) as PayPalSubscription;
   }
 
+  async createCheckoutOrder(amount: number, currency: string) {
+    const { token, base } = await this.getPayPalToken();
+    const res = await fetch(`${base}/v2/checkout/orders`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        intent: "CAPTURE",
+        purchase_units: [{ amount: { currency_code: currency, value: amount.toFixed(2) } }],
+        application_context: {
+          return_url: `${process.env.FRONTEND_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/shop/success`,
+          cancel_url: `${process.env.FRONTEND_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/shop`,
+          brand_name: "TMG",
+          user_action: "PAY_NOW",
+        },
+      }),
+    });
+    const data = await res.json() as any;
+    if (!res.ok) throw new BadGatewayException(data?.message || "PayPal order creation failed.");
+    return data;
+  }
+
+  async captureCheckoutOrder(orderId: string) {
+    const { token, base } = await this.getPayPalToken();
+    const res = await fetch(`${base}/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    });
+    const data = await res.json() as any;
+    if (!res.ok) throw new BadGatewayException(data?.message || "PayPal capture failed.");
+    return data;
+  }
+
+  async getCheckoutOrder(orderId: string) {
+    const { token, base } = await this.getPayPalToken();
+    const res = await fetch(`${base}/v2/checkout/orders/${encodeURIComponent(orderId)}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json() as any;
+    if (!res.ok) throw new BadGatewayException("Could not verify PayPal order.");
+    return data;
+  }
   async verifyAndActivate(body: unknown, userId: string) {
     if (!body || typeof body !== 'object' || !('subscriptionID' in body)) {
       throw new BadRequestException('Missing subscriptionID.');
@@ -288,3 +329,4 @@ export class PaypalService {
     return typeof value === 'string' && value.length ? value : undefined;
   }
 }
+

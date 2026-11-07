@@ -174,7 +174,7 @@ export default function AdminSettingsPage() {
       setAudits(await apiRequest<AuditRow[]>("/settings/audit", accessToken));
     } catch {
       try {
-        setAudits(await apiRequest<AuditRow[]>("/settings/audit-log", accessToken));
+        setAudits(await apiRequest<AuditRow[]>("/admin/activity", accessToken));
       } catch (error) {
         setError(getErrorMessage(error));
         throw error;

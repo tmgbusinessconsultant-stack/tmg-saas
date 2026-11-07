@@ -18,6 +18,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import type { AuthenticatedUser } from '../auth/auth.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
+import { Public } from '../auth/public.decorator';
 import { PuckContentValidationInterceptor } from './interceptors/puck-validator.interceptor';
 import { CreateSiteDto, SitesService } from './sites.service';
 
@@ -46,11 +47,13 @@ export class SitesController {
   }
 
   @Get('by-subdomain/:subdomain')
+  @Public()
   getBySubdomain(@Param('subdomain') subdomain: string) {
     return this.sitesService.getBySubdomain(subdomain);
   }
 
   @Get('domain/:domain')
+  @Public()
   getByDomain(@Param('domain') domain: string) {
     return this.sitesService.getByCustomDomain(domain);
   }
@@ -155,3 +158,4 @@ export class SitesController {
     return this.sitesService.publish(siteId, user.id);
   }
 }
+

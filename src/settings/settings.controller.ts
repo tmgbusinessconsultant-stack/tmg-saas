@@ -66,4 +66,16 @@ export class SettingsController {
   async del(@Param('key') key: string) {
     return this.settings.deletePublic(key);
   }
+
+  @Get(['audit', 'audit-log'])
+  async getAuditLog() {
+    return [];
+  }
+
+  @Get(':key')
+  @Roles('SUPER_ADMIN')
+  @Permissions('settings:manage')
+  async getOneByKey(@Param('key') key: string) {
+    return this.settings.getEffective(key);
+  }
 }

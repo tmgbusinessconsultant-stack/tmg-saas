@@ -63,7 +63,7 @@ function getApiBase(): string {
     if (typeof window !== "undefined") return "";
     throw new Error("NEXT_PUBLIC_API_URL not configured");
   }
-  return base;
+  return base.endsWith("/api") ? base : `${base}/api`;
 }
 
 export function contentApiUrl(path: string): string {

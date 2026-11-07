@@ -216,5 +216,21 @@ export class AdminManagementService {
 
     return { totalActivityLogs: total, limit: take, offset: skip, logs };
   }
-}
 
+  async deleteUser(id: string, actor: AuthenticatedUser) {
+    const actorId = actor.id || (actor as any).sub;
+    if (id === actorId) throw new BadRequestException('Cannot delete your own account.');
+    return this.prisma.$transaction(async (tx) => {
+      const existing = await tx.user.findUnique({ where: { id }, select: { id: true, role: true, isActive: true } });
+      if (!existing) throw new NotFoundException('Target user profile not located.');
+      if (existing.role === UserRole.SUPER_ADMIN && existing.isActive) {
+        const activeSuperAdmins = await tx.user.count({ where: { role: UserRole.SUPER_ADMIN, isActive: true } });
+        if (activeSuperAdmins <= 1) throw new ConflictException('Cannot delete the single remaining operational super administrator.');
+      }
+      await tx.activityLog.deleteMany({ where: { targetId: id } }).catch(() => {});
+      await tx.activityLog.deleteMany({ where: { actorId: id } }).catch(() => {});
+      await tx.user.delete({ where: { id } });
+      return { id, deleted: true };
+    });
+  }
+}

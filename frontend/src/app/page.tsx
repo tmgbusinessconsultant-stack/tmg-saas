@@ -3,12 +3,11 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { defaultHomepageContent, type HomepageContent } from "@/lib/homepage-content";
 import PublishedMediaSection from "@/components/published-media-section";
+import { apiUrl } from "@/lib/backend-api";
 
 async function loadHomepageContent(): Promise<HomepageContent> {
   try {
-    const base = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
-    if (!base) return defaultHomepageContent;
-    const response = await fetch(`${base}/content/homepage`, { cache: "no-store", signal: AbortSignal.timeout(1500) });
+    const response = await fetch(apiUrl("/content/homepage"), { cache: "no-store", signal: AbortSignal.timeout(1500) });
     if (!response.ok) return defaultHomepageContent;
     const body = await response.text();
     if (!body.trim()) return defaultHomepageContent;
@@ -45,12 +44,12 @@ function HomePageContent({ content }: { content: HomepageContent }) {
                 <span key={t} className="px-3 py-1 rounded-full text-xs font-semibold border border-white bg-white text-black">{t}</span>
               ))}
             </div>
-            <p className="mt-6 text-[17px] leading-7 text-white font-medium max-w-xl">{content.hero.description}</p>
+            <p className="mt-6 text-[18px] leading-8 text-white font-semibold max-w-xl" style={{ color: "#FFFFFF", textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>{content.hero.description}</p>
             <div className="mt-8 flex flex-wrap gap-4">
-              <Link href={content.hero.primaryHref} className="px-8 py-4 rounded-full font-black text-sm bg-[#D4AF37] text-black hover:opacity-100 transition">{content.hero.primaryText}</Link>
-              <Link href={content.hero.secondaryHref} className="px-8 py-4 rounded-full font-bold text-sm bg-white text-black hover:bg-slate-100 transition">{content.hero.secondaryText}</Link>
+              <Link href={content.hero.primaryHref} className="px-8 py-4 rounded-full font-black text-sm bg-[#D4AF37] text-black hover:opacity-100 transition" style={{ color: "#000000", background: "#D4AF37" }}>{content.hero.primaryText}</Link>
+              <Link href={content.hero.secondaryHref} className="px-8 py-4 rounded-full font-bold text-sm bg-white text-black hover:bg-slate-100 transition" style={{ color: "#000000", background: "#FFFFFF" }}>{content.hero.secondaryText}</Link>
             </div>
-            <p className="mt-4 text-[11px] text-white uppercase tracking-widest font-bold">No in-person required • Secure portal • Loom + Docs</p>
+            <p className="mt-4 text-[12px] text-white uppercase tracking-widest font-bold" style={{ color: "#FFFFFF", textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}>No in-person required • Secure portal • Loom + Docs</p>
           </div>
 
           {/* RIGHT - Dashboard Mock Bento */}
@@ -68,7 +67,7 @@ function HomePageContent({ content }: { content: HomepageContent }) {
               </div>
               <div className="h-[90px] rounded-xl bg-[#0F172A] p-3 text-white mb-4 flex items-center gap-3">
                 <div className="h-10 w-10 rounded-lg bg-white/10 grid place-items-center">📊</div>
-                <div><p className="text-xs font-bold">Power BI Dashboard Live</p><p className="text-[11px] opacity-100">Sales • Inventory • Finance • Updated 2m ago</p></div>
+                <div><p className="text-xs font-bold" style={{ color: "#FFFFFF" }}>Power BI Dashboard Live</p><p className="text-[12px] font-bold" style={{ color: "#FFFFFF", textShadow: "0 1px 2px rgba(0,0,0,0.7)" }}>Sales • Inventory • Finance • Updated 2m ago</p></div>
               </div>
               <div className="grid grid-cols-2 gap-3 text-[11px]">
                 <div className="rounded-xl bg-slate-50 border p-3"><p className="font-bold">M365 Setup</p><p className="opacity-100">Teams + SharePoint</p></div>
@@ -108,8 +107,8 @@ function HomePageContent({ content }: { content: HomepageContent }) {
             <div className="mt-8 font-bold text-sm group-hover:gap-2 flex gap-1">Request Quote →</div>
           </Link>
           {/* SMALL - M365 */}
-          <Link href="/booking?service=m365-productivity" className="md:col-span-4 group rounded-[24px] border bg-[#0F172A] text-white p-8 hover:shadow-xl transition">
-            <span className="text-xl">📧</span><h3 className="mt-4 text-xl font-black">Microsoft 365 Digital Workplace</h3><p className="mt-3 text-sm opacity-100">Teams, SharePoint, Outlook, documentation - work smarter.</p><div className="mt-6 px-4 py-2 rounded-full bg-white/10 w-fit text-xs font-bold">M365 Suite • Excel Productivity</div><div className="mt-8 text-sm font-bold opacity-100">Request Quote →</div>
+          <Link href="/booking?service=m365-productivity" className="md:col-span-4 group rounded-[24px] border bg-white text-black p-8 hover:shadow-xl transition" style={{ background: "#FFFFFF", color: "#000000" }}>
+            <span className="text-xl">📧</span><h3 className="mt-4 text-xl font-black">Microsoft 365 Digital Workplace</h3><p className="mt-3 text-[15px] text-black font-bold leading-6" style={{ color: "#000000" }}>Teams, SharePoint, Outlook, documentation - work smarter.</p><div className="mt-6 px-4 py-2 rounded-full w-fit text-xs font-bold" style={{ color: "#FFFFFF", background: "#0F172A" }}>M365 Suite • Excel Productivity</div><div className="mt-8 text-sm font-bold opacity-100" style={{ color: "#000000" }}>Request Quote →</div>
           </Link>
           {/* AI */}
           <Link href="/booking?service=ai-automation" className="md:col-span-4 group rounded-[24px] border bg-white p-8 hover:shadow-xl transition">
@@ -165,6 +164,14 @@ function HomePageContent({ content }: { content: HomepageContent }) {
     </div>
   );
 }
+
+
+
+
+
+
+
+
 
 
 

@@ -1,21 +1,27 @@
-function normalizeApiBase(value: string): string {
-  const url = new URL(value, 'http://localhost:4000');
-  if (url.hostname === 'localhost' && !url.port) url.port = '4000';
-  const path = url.pathname.replace(/\/+$/, '');
-  url.pathname = path.toLowerCase().endsWith('/api') ? path : `${path}/api`;
-  url.search = '';
-  url.hash = '';
-  return url.toString().replace(/\/+$/, '');
+export function getApiBase(): string {
+  const raw = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000").trim().replace(/\/+$/, "");
+  return raw.endsWith("/api") ? raw : `${raw}/api`;
+}
+export function apiUrl(path: string): string {
+  const clean = path.startsWith("/") ? path : `/${path}`;
+  if (clean.startsWith("/api/") || clean === "/api") {
+    const base = getApiBase().replace(/\/api$/, "");
+    return `${base}${clean}`;
+  }
+  return `${getApiBase()}${clean}`;
+}
+export async function apiFetch(path: string, options: RequestInit = {}) {
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  return fetch(apiUrl(path), {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers || {}),
+    },
+  });
 }
 
-export function getBackendApiBase(): string {
-  return normalizeApiBase(
-    process.env.BACKEND_URL
-      || process.env.NEXT_PUBLIC_API_URL
-      || 'http://localhost:4000/api',
-  );
-}
-
-export function getPublicApiBase(): string {
-  return normalizeApiBase(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api');
-}
+// Aliases - older files import these names, same logic as getApiBase()
+export const getBackendApiBase = getApiBase;
+export const getPublicApiBase = getApiBase;

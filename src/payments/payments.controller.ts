@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Headers, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Body, Headers, UseGuards, Req } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -15,25 +15,19 @@ export class PaymentsController {
 
   @Post('orders')
   @UseGuards(JwtAuthGuard)
-  async createOrder() {
-    return this.payments.createOrder();
-  }
+  async createOrder(@Body() body: any, @Req() req: any) { return this.payments.createOrder(body, req.user?.id); }
 
   @Post('capture')
   @UseGuards(JwtAuthGuard)
-  async capture() {
-    return this.payments.captureOrder();
-  }
+  async capture(@Body() body: any) { return this.payments.captureOrder(body); }
 
   @Post('shop/orders')
-  async createShopOrder() {
-    return this.payments.createShopOrder();
-  }
+  @Public()
+  async createShopOrder(@Body() body: any) { return this.payments.createShopOrder(body); }
 
   @Post('shop/capture')
-  async captureShopOrder() {
-    return this.payments.captureShopOrder();
-  }
+  @Public()
+  async captureShopOrder(@Body() body: any) { return this.payments.captureShopOrder(body); }
 
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)

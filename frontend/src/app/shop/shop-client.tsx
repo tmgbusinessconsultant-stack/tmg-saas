@@ -56,14 +56,12 @@ export default function ShopClient({ products, title, subtitle }: { products: Sh
             if (!orderRes.ok) throw new Error("Order failed");
             const order = await orderRes.json();
 
-            const captureRes = await fetch(`${base}/payments/shop/capture`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orderID: order.id, product }) });
-            const capture = await captureRes.json();
-
-            if (capture.success) {
-                if (product.downloadUrl) window.open(product.downloadUrl, "_blank");
-                else if (product.mediaId) window.open(`${base}/content/media/${product.mediaId}/download?token=${capture.downloadToken}`, "_blank");
-                router.push(`/shop/success?productId=${product.id}&token=${capture.downloadToken}`);
-            } else throw new Error("Capture unverified");
+            if (order.approveUrl) {
+                sessionStorage.setItem("tmg_pending_order", JSON.stringify({ dbId: order.id, paypalOrderId: order.paypalOrderId, productId: product.id }));
+                window.location.href = order.approveUrl;
+                return;
+            }
+            throw new Error("No approveUrl from PayPal");
         } catch (e) {
             console.warn("Direct checkout failed, WhatsApp fallback", e);
             window.open(whatsappLink(product), "_blank");

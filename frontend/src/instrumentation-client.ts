@@ -1,11 +1,11 @@
-const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN?.trim();
+const clientDsn = process.env.NEXT_PUBLIC_SENTRY_DSN?.trim();
 
-if (dsn) {
+if (clientDsn) {
   const initializeSentry = () => {
     void import("@sentry/nextjs")
       .then(({ init }) => {
         init({
-          dsn,
+          dsn: clientDsn,
           tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 0,
           replaysSessionSampleRate: 0,
           replaysOnErrorSampleRate: 0,

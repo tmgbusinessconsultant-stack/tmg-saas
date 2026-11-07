@@ -1,4 +1,5 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+const _raw = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").trim().replace(/\/+$/, "");
+export const API_URL = _raw.endsWith("/api") ? _raw : `${_raw}/api`;
 export function getToken() { if (typeof window === "undefined") return null; return localStorage.getItem("token"); }
 export async function apiFetch(path: string, options: RequestInit = {}) {
   const token = getToken();

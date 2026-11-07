@@ -15,16 +15,22 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function isActivityItem(value: unknown): value is ActivityItem {
-  return isRecord(value)
-    && typeof value.id === "string"
-    && typeof value.action === "string"
-    && (typeof value.targetId === "string" || value.targetId === null)
-    && typeof value.createdAt === "string"
-    && isRecord(value.actor)
-    && typeof value.actor.id === "string"
-    && typeof value.actor.name === "string"
-    && typeof value.actor.email === "string";
+function normalizeItem(value: unknown, index: number): ActivityItem | null {
+  if (!isRecord(value)) return null;
+  const actorRaw = (value.actor ?? value.user ?? value.performedBy ?? {}) as Record<string, unknown>;
+  const actor = isRecord(actorRaw) ? actorRaw : {};
+  return {
+    id: typeof value.id === "string" ? value.id : `row-${index}`,
+    action: typeof value.action === "string" ? value.action : typeof value.type === "string" ? value.type : "UNKNOWN",
+    targetId: typeof value.targetId === "string" ? value.targetId : typeof value.target === "string" ? value.target : null,
+    detail: value.detail ?? value.details ?? value.metadata ?? value.data ?? null,
+    createdAt: typeof value.createdAt === "string" ? value.createdAt : typeof value.created_at === "string" ? value.created_at : new Date().toISOString(),
+    actor: {
+      id: typeof actor.id === "string" ? actor.id : typeof actor.userId === "string" ? actor.userId : "system",
+      name: typeof actor.name === "string" ? actor.name : typeof actor.email === "string" ? actor.email : "System",
+      email: typeof actor.email === "string" ? actor.email : "",
+    },
+  };
 }
 
 export default function AdminActivityPage() {
@@ -40,15 +46,15 @@ export default function AdminActivityPage() {
       }
       void apiRequest<unknown>("/admin/activity", token)
         .then((response) => {
+          console.log("Activity API raw:", response);
           const list = Array.isArray(response)
             ? response
             : isRecord(response)
-              ? response.data ?? response.items ?? response.activity
-              : null;
-          if (!Array.isArray(list) || !list.every(isActivityItem)) {
-            throw new Error("The activity API returned an invalid response.");
-          }
-          setItems(list);
+              ? response.data ?? response.items ?? response.activity ?? response.logs ?? response.activities ?? response.results ?? []
+              : [];
+          if (!Array.isArray(list)) throw new Error("The activity API returned an invalid response.");
+          const normalized = list.map(normalizeItem).filter((x): x is ActivityItem => x !== null);
+          setItems(normalized);
         })
         .catch((requestError: unknown) => setError(requestError instanceof Error ? requestError.message : "Could not load activity."));
     }, 0);
@@ -70,7 +76,7 @@ export default function AdminActivityPage() {
                 <td className="p-3">{item.createdAt ? new Date(item.createdAt).toLocaleString() : "-"}</td>
                 <td className="p-3">{item.actor?.name || "Unknown"}<span className="block text-xs text-slate-500">{item.actor?.email || ""}</span></td>
                 <td className="p-3">{item.action}</td>
-                <td className="p-3"><code className="whitespace-pre-wrap break-all text-xs">{item.targetId ? `${item.targetId}: ` : ""}{JSON.stringify(item.detail)?.slice(0,300)}</code></td>
+                <td className="p-3"><code className="whitespace-pre-wrap break-all text-xs">{item.targetId ? `${item.targetId}: ` : ""}{JSON.stringify(item.detail)?.slice(0, 300)}</code></td>
               </tr>
             ))}
             {items.length === 0 && !error && <tr><td colSpan={4} className="p-8 text-center text-slate-500">No activity recorded yet.</td></tr>}

@@ -432,6 +432,9 @@ export class ContentService {
       'application/pdf': (bytes) => bytes.toString('ascii', 0, 5) === '%PDF-',
       'video/mp4': (bytes) => bytes.toString('ascii', 4, 8) === 'ftyp',
     };
+    // Sniff from bytes, don't trust client-sent mimetype (PowerShell/curl send octet-stream)
+    const detected = (Object.keys(signatures) as Array<keyof typeof signatures>).find((t) => signatures[t](file.buffer));
+    if (detected) (file as any).mimetype = detected;
     const signatureCheck = signatures[file.mimetype];
     if (!signatureCheck || !signatureCheck(file.buffer)) {
       throw new BadRequestException('Unsupported media type or file signature.');
@@ -442,3 +445,4 @@ export class ContentService {
     return fileName.replace(/[\\/]/g, '_').replace(/[^\w.-]/g, '_').slice(0, 160) || 'uploaded-media';
   }
 }
+
