@@ -4,6 +4,7 @@ import { AppModule } from './app.module';
 import { configureApp } from './configure-app';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { json, urlencoded } from 'express';
+import type { Request, Response } from 'express';
 import { join } from 'path';
 import * as express from 'express';
 import { resolvePayPalMode } from './paypal/paypal-config';
@@ -19,7 +20,7 @@ async function bootstrap() {
   app.use(json({ limit: '50mb' }));
   app.use(urlencoded({ limit: '50mb', extended: true }));
 
-  app.use('/uploads/projects', (_req, res) => res.sendStatus(404));
+  app.use('/uploads/projects', (_req: Request, res: Response) => res.sendStatus(404));
   const paypalWebhookRateLimit = createPayPalWebhookRateLimit();
   app.use('/api/paypal/webhook', paypalWebhookRateLimit);
   app.use('/api/payments/webhook/paypal', paypalWebhookRateLimit);

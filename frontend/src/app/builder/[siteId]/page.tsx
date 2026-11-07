@@ -7,6 +7,7 @@ import Image from "next/image";
 import { Puck, type Data } from "@measured/puck";
 import { config } from "./config";
 import "@measured/puck/puck.css";
+import { getPublicApiBase } from "@/lib/backend-api";
 import {
   Settings2, Trash2, Plus, Sparkles, UploadCloud, LayoutDashboard,
   ExternalLink, Loader2, ArrowRight, ChevronDown, BarChart3, Edit3, Monitor, Tablet, Smartphone,
@@ -76,6 +77,7 @@ export default function PremiumWebbuilderEngine() {
   const [sites, setSites] = useState<Site[]>([]);
   const [name, setName] = useState("");
   const [loadingDashboard, setLoadingDashboard] = useState(true);
+  const [dashboardError, setDashboardError] = useState("");
   const [creating, setCreating] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -118,20 +120,28 @@ export default function PremiumWebbuilderEngine() {
     return sessionStorage.getItem("accessToken") || localStorage.getItem("accessToken") || localStorage.getItem("token") || localStorage.getItem("access_token") || localStorage.getItem("authToken");
   }, []);
 
-  const API = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000").replace(/\/+$/, "").replace(/\/api$/, "") + "/api";
-  const API_BASE = API.replace("/api", "");
+  const API = getPublicApiBase();
+  const API_BASE = new URL(API).origin;
 
   const apiFetch = useCallback(async (url: string, options: RequestInit = {}, overrideSiteId?: string): Promise<unknown> => {
     const token = getToken();
     const targetSiteId = overrideSiteId || selectedSiteId;
+    if (!token) {
+      const returnPath = targetSiteId ? `/builder/${targetSiteId}` : "/sites";
+      router.push(`/login?next=${encodeURIComponent(returnPath)}`);
+      throw new Error("Please sign in to use the site builder.");
+    }
     const headers = new Headers(options.headers);
     headers.set("Content-Type", "application/json");
-    if (token) headers.set("Authorization", `Bearer ${token}`);
+    headers.set("Authorization", `Bearer ${token}`);
     const targetUrl = targetSiteId ? `${API}/sites/${targetSiteId}${url}` : `${API}${url}`;
     const response = await fetch(targetUrl, { ...options, headers });
     if (response.status === 401) {
-      localStorage.clear(); sessionStorage.clear();
-      router.push(`/login?redirect=/builder/${targetSiteId || ""}`);
+      for (const key of ["accessToken", "token", "access_token", "authToken", "refreshToken", "user"]) {
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+      }
+      router.push(`/login?next=${encodeURIComponent(targetSiteId ? `/builder/${targetSiteId}` : "/sites")}`);
       throw new Error("Session expired");
     }
     if (!response.ok) { const text = await response.text(); throw new Error(`API Error ${response.status}: ${text}`); }
@@ -141,19 +151,25 @@ export default function PremiumWebbuilderEngine() {
 
   const fetchDashboardData = useCallback(async (): Promise<Site[]> => {
       const token = getToken();
+      if (!token) {
+        router.push(`/login?next=${encodeURIComponent(explicitSiteId ? `/builder/${explicitSiteId}` : "/sites")}`);
+        throw new Error("Please sign in to view your sites.");
+      }
       const res = await fetch(`${API}/sites`, { headers: { Authorization: `Bearer ${token}` } });
       if (!res.ok) throw new Error(`Could not load sites (${res.status}).`);
       const data: unknown = await res.json();
       if (!Array.isArray(data) || !data.every(isSite)) throw new Error("The sites response has an invalid shape.");
       return data;
-  }, [API, getToken]);
+  }, [API, explicitSiteId, getToken, router]);
 
   const loadDashboardData = useCallback(async () => {
     setLoadingDashboard(true);
+    setDashboardError("");
     try {
       setSites(await fetchDashboardData());
     } catch (error) {
       console.error("Dashboard core connectivity broken:", error);
+      setDashboardError(errorMessage(error));
     } finally {
       setLoadingDashboard(false);
     }
@@ -164,7 +180,12 @@ export default function PremiumWebbuilderEngine() {
     let active = true;
     void fetchDashboardData()
       .then((data) => { if (active) setSites(data); })
-      .catch((error: unknown) => { if (active) console.error("Dashboard core connectivity broken:", error); })
+      .catch((error: unknown) => {
+        if (active) {
+          console.error("Dashboard core connectivity broken:", error);
+          setDashboardError(errorMessage(error));
+        }
+      })
       .finally(() => { if (active) setLoadingDashboard(false); });
     return () => { active = false; };
   }, [activeView, fetchDashboardData]);
@@ -212,6 +233,10 @@ export default function PremiumWebbuilderEngine() {
     let settings: NonNullable<Site["settings"]> = { industry: withAi ? aiIndustry : "Corporate Consulting", tone: withAi ? aiTone : "Professional" };
     try {
       const token = getToken();
+      if (!token) {
+        router.push(`/login?next=${encodeURIComponent(explicitSiteId ? `/builder/${explicitSiteId}` : "/sites")}`);
+        throw new Error("Please sign in to create a site.");
+      }
       if (withAi) {
         setAiGenerating(true);
         try {
@@ -282,7 +307,21 @@ export default function PremiumWebbuilderEngine() {
       await apiFetch(`/pages/${cleanSlug}`, {
         method: "PUT",
         body: JSON.stringify({
-          content: { root: { props: { siteName: activeSite?.name } }, content: [{ type: "Heading", props: { id: "h1", text: displayTitle.toUpperCase(), level: "h1", align: "center" } }] },
+          content: {
+            root: { props: { siteName: activeSite?.name } },
+            content: [{
+              type: "Hero",
+              props: {
+                id: "hero",
+                title: displayTitle,
+                subtitle: `Learn more about ${displayTitle} and how we can help your business.`,
+                ctaText: "Contact us",
+                ctaLink: "/contact",
+                bg: "#0a2540",
+                textColor: "#ffffff",
+              },
+            }],
+          },
           meta: { title: displayTitle }
         })
       });
@@ -412,7 +451,12 @@ export default function PremiumWebbuilderEngine() {
             </div>
           </div>
 
-          {loadingDashboard ? (
+          {dashboardError && !loadingDashboard ? (
+            <div role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
+              <p>{dashboardError}</p>
+              <button onClick={() => void loadDashboardData()} className="mt-3 rounded-lg bg-zinc-800 px-3 py-1.5 text-xs font-semibold text-white hover:bg-zinc-700">Retry</button>
+            </div>
+          ) : loadingDashboard ? (
             <div className="py-20 text-center text-zinc-500 text-sm flex flex-col items-center gap-2"><Loader2 className="h-6 w-6 animate-spin" /> Querying network configurations...</div>
           ) : sites.length === 0 ? (
             <div className="py-20 text-center border border-dashed border-zinc-800 rounded-2xl">

@@ -1,9 +1,6 @@
 export const dynamic = 'force-dynamic';
-
 import Link from "next/link";
-import Image from "next/image";
 import { Suspense } from "react";
-import { isExternalMedia, mediaUrl } from "@/lib/content-management";
 import { defaultHomepageContent, type HomepageContent } from "@/lib/homepage-content";
 import PublishedMediaSection from "@/components/published-media-section";
 
@@ -11,36 +8,17 @@ async function loadHomepageContent(): Promise<HomepageContent> {
   try {
     const base = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
     if (!base) return defaultHomepageContent;
-    const response = await fetch(`${base}/content/homepage`, {
-      cache: "no-store",
-      signal: AbortSignal.timeout(1_500),
-    });
+    const response = await fetch(`${base}/content/homepage`, { cache: "no-store", signal: AbortSignal.timeout(1500) });
     if (!response.ok) return defaultHomepageContent;
     const body = await response.text();
     if (!body.trim()) return defaultHomepageContent;
     const value = JSON.parse(body) as Partial<HomepageContent>;
-    if (!value) return defaultHomepageContent;
-    return {
-      ...defaultHomepageContent,
-      ...value,
-      hero: { ...defaultHomepageContent.hero, ...value.hero },
-      quickCard: { ...defaultHomepageContent.quickCard, ...value.quickCard },
-      services: { ...defaultHomepageContent.services, ...value.services },
-      about: { ...defaultHomepageContent.about, ...value.about },
-      testimonials: { ...defaultHomepageContent.testimonials, ...value.testimonials },
-      cta: { ...defaultHomepageContent.cta, ...value.cta },
-    };
-  } catch {
-    return defaultHomepageContent;
-  }
+    return { ...defaultHomepageContent, ...value, hero: { ...defaultHomepageContent.hero, ...value.hero }, services: { ...defaultHomepageContent.services, ...value.services } };
+  } catch { return defaultHomepageContent; }
 }
 
 export default function Home() {
-  return (
-    <Suspense fallback={<HomeSkeleton />}>
-      <LiveHomepageContent />
-    </Suspense>
-  );
+  return <Suspense fallback={<div className="h-[600px] bg-slate-900" />}><LiveHomepageContent /></Suspense>;
 }
 
 async function LiveHomepageContent() {
@@ -48,124 +26,150 @@ async function LiveHomepageContent() {
   return <HomePageContent content={content} />;
 }
 
-function HomeSkeleton() {
-  return (
-    <div className="animate-pulse">
-      <div className="h-[600px] bg-slate-900/20" />
-      <div className="max-w-7xl mx-auto px-6 py-16 grid md:grid-cols-4 gap-6">
-        {[1,2,3,4].map(i => <div key={i} className="h-48 bg-slate-200 rounded-2xl" />)}
-      </div>
-    </div>
-  );
-}
-
 function HomePageContent({ content }: { content: HomepageContent }) {
-  const heroImageUrl = content.hero.imageUrl ? mediaUrl(content.hero.imageUrl) : "";
-  const optimizeHeroImage = !isExternalMedia(content.hero.imageUrl) || isConfiguredApiImage(content.hero.imageUrl);
-
   return (
-    <div className="w-full">
-      <section className="text-white" style={{ background: `linear-gradient(135deg, var(--header-bg), var(--primary))` }}>
-        <div className="mx-auto px-6 py-24 grid md:grid-cols-2 gap-12 items-center" style={{ maxWidth: "var(--container-max)" }}>
+    <div className="w-full bg-white">
+      {/* HERO - Stripe/Linear style */}
+      <section className="relative overflow-hidden text-white" style={{ background: "#0F172A" }}>
+        <div className="mx-auto px-6 py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center" style={{ maxWidth: "1200px" }}>
           <div>
-            <div className="inline-block border px-3 py-1 rounded-full text-xs mb-4 font-bold" style={{ background: "color-mix(in srgb, var(--gold) 20%, transparent)", borderColor: "var(--gold)", color: "var(--gold)" }}>
-              {content.hero.kicker}
+            <div className="inline-flex items-center gap-2 border px-3 py-1.5 rounded-full text-[11px] font-bold tracking-wide mb-6" style={{ borderColor: "rgba(255,255,255,0.3)", color: "#FFFFFF", background: "rgba(255,255,255,0.08)" }}>
+              <span className="h-2 w-2 rounded-full bg-[#D4AF37] animate-pulse" /> {content.hero.kicker}
             </div>
-            <h1 className="font-bold leading-tight" style={{ fontSize: "var(--h1-size)" }}>
-              {content.hero.title} <span style={{ color: "var(--gold)" }}>{content.hero.highlight}</span>
+            <h1 className="font-black leading-[0.9] tracking-tight text-[40px] md:text-[64px]" style={{ color: "#FFFFFF" }}>
+              {content.hero.title}<br />
+              <span style={{ color: "#D4AF37" }}>{content.hero.highlight}</span>
             </h1>
-            <p className="mt-6 text-lg opacity-80">{content.hero.description}</p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {["Power BI","Advanced Excel","Microsoft 365","AI Automation"].map(t => (
+                <span key={t} className="px-3 py-1 rounded-full text-xs font-semibold border border-white bg-white text-black">{t}</span>
+              ))}
+            </div>
+            <p className="mt-6 text-[17px] leading-7 text-white font-medium max-w-xl">{content.hero.description}</p>
             <div className="mt-8 flex flex-wrap gap-4">
-              <Link href={content.hero.primaryHref} className="px-8 py-3 font-bold" style={{ background: "var(--gold)", color: "#000", borderRadius: "var(--button-radius)" }}>{content.hero.primaryText}</Link>
-              <Link href={content.hero.secondaryHref} className="border border-white px-8 py-3" style={{ borderRadius: "var(--button-radius)" }}>{content.hero.secondaryText}</Link>
+              <Link href={content.hero.primaryHref} className="px-8 py-4 rounded-full font-black text-sm bg-[#D4AF37] text-black hover:opacity-100 transition">{content.hero.primaryText}</Link>
+              <Link href={content.hero.secondaryHref} className="px-8 py-4 rounded-full font-bold text-sm bg-white text-black hover:bg-slate-100 transition">{content.hero.secondaryText}</Link>
             </div>
+            <p className="mt-4 text-[11px] text-white uppercase tracking-widest font-bold">No in-person required • Secure portal • Loom + Docs</p>
           </div>
-          <div className="p-8 shadow-2xl" style={{ background: "var(--card-bg)", borderRadius: "var(--radius)", color: "var(--foreground)" }}>
-            {heroImageUrl ? (
-              <div className="relative mb-6 h-48 w-full overflow-hidden rounded-lg">
-                <Image
-                  src={heroImageUrl}
-                  alt={content.hero.imageAlt || ""}
-                  fill
-                  priority
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  unoptimized={!optimizeHeroImage}
-                  className="rounded-lg object-cover"
-                />
+
+          {/* RIGHT - Dashboard Mock Bento */}
+          <div className="relative">
+            
+            <div className="relative bg-white text-black rounded-[24px] shadow-2xl p-5 md:p-6 border border-white/20">
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex gap-1.5"><span className="h-3 w-3 rounded-full bg-red-400" /><span className="h-3 w-3 rounded-full bg-yellow-400" /><span className="h-3 w-3 rounded-full bg-green-400" /></div>
+                <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-white text-black border border-[#0F172A]">{content.quickCard.title}</span>
               </div>
-            ) : (
-              <div className="flex justify-center mb-6">
-                <Image src="/logo.png" alt="TMG" width={200} height={70} className="h-16 w-auto" />
+              {/* Fake Power BI Dashboard */}
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="col-span-2 h-[90px] rounded-xl bg-gradient-to-br from-slate-900 to-slate-700 p-3 text-white flex flex-col justify-between"><span className="text-[10px] opacity-100">Revenue KPI</span><span className="text-xl font-black">$124k</span><span className="text-[10px] text-white">▲ 23% vs last month</span></div>
+                <div className="h-[90px] rounded-xl bg-[#F8FAFC] border p-3"><span className="text-[10px] font-bold text-black">Excel Automation</span><div className="mt-2 space-y-1"><div className="h-2 w-full bg-slate-200 rounded" /><div className="h-2 w-3/4 bg-[#D4AF37] rounded" /><div className="h-2 w-1/2 bg-slate-900 rounded" /></div></div>
               </div>
-            )}
-            <h3 className="font-bold text-xl">{content.quickCard.title}</h3>
-            <p className="text-sm mt-2 mb-6 opacity-70">{content.quickCard.description}</p>
-            <Link href={content.quickCard.buttonHref} className="block text-center py-3 font-semibold" style={{ background: "var(--primary)", color: "#fff", borderRadius: "var(--button-radius)" }}>{content.quickCard.buttonText}</Link>
-            <div className="mt-6 grid grid-cols-2 gap-3 text-xs">
-              {content.statistics.map((stat) => <div key={`${stat.value}-${stat.label}`} className="p-3 rounded border" style={{ background: "var(--background)", borderColor: "var(--border-color)" }}><strong>{stat.value}</strong> {stat.label}</div>)}
+              <div className="h-[90px] rounded-xl bg-[#0F172A] p-3 text-white mb-4 flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-white/10 grid place-items-center">📊</div>
+                <div><p className="text-xs font-bold">Power BI Dashboard Live</p><p className="text-[11px] opacity-100">Sales • Inventory • Finance • Updated 2m ago</p></div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-[11px]">
+                <div className="rounded-xl bg-slate-50 border p-3"><p className="font-bold">M365 Setup</p><p className="opacity-100">Teams + SharePoint</p></div>
+                <div className="rounded-xl bg-white border border-[#0F172A] p-3"><p className="font-bold text-black">AI Workflow</p><p className="opacity-100">Automated → Saved 30h/mo</p></div>
+              </div>
+              <Link href={content.quickCard.buttonHref} className="mt-5 block text-center py-3.5 rounded-full font-bold text-sm bg-[#0F172A] text-white">{content.quickCard.buttonText}</Link>
+              <div className="mt-4 grid grid-cols-4 gap-2 text-center text-[10px] font-bold">
+                {content.statistics.map(s => <div key={s.label} className="rounded-lg bg-slate-50 border p-2"><div className="text-[14px] font-black">{s.value}</div><div className="text-[9px] opacity-100 uppercase">{s.label}</div></div>)}
+              </div>
             </div>
           </div>
         </div>
+
+        {/* TRUST BAR */}
+        <div className="border-t border-white/30 bg-black/20 backdrop-blur">
+          <div className="mx-auto px-6 py-4 flex flex-wrap justify-center md:justify-between gap-4 text-[11px] font-bold tracking-widest uppercase" style={{ maxWidth: "1200px", color: "#FFFFFF" }}>
+            <span>500+ Projects Delivered</span><span className="hidden md:block opacity-100">•</span><span>200+ Global Clients</span><span className="hidden md:block opacity-100">•</span><span>Power BI • Excel • M365</span><span className="hidden md:block opacity-100">•</span><span>2h Response Time</span><span className="hidden md:block opacity-100">•</span><span className="text-[#D4AF37]">Operated from Doha, Serving Worldwide</span>
+          </div>
+        </div>
       </section>
-      <PublishedMediaSection location="homepage" title="From our work" />
-      <section className="mx-auto px-6 py-16" style={{ maxWidth: "var(--container-max)" }}>
+
+      {/* SERVICES - Bento Grid */}
+      <section className="mx-auto px-6 py-16 md:py-20" style={{ maxWidth: "1200px" }}>
         <div className="text-center max-w-3xl mx-auto">
-          <p className="font-semibold uppercase tracking-[0.2em] text-xs" style={{ color: "var(--gold)" }}>Our Services</p>
-          <h2 className="font-bold mt-3" style={{ fontSize: "var(--h1-size)" }}>{content.services.heading}</h2>
+          <p className="font-bold uppercase tracking-[0.2em] text-xs" style={{ color: "#D4AF37" }}>Services • Online Delivery</p>
+          <h2 className="font-black tracking-tight text-3xl md:text-5xl mt-3">{content.services.heading}</h2>
+          <p className="mt-4 text-black font-medium">{content.services.subheading}</p>
         </div>
-        <div className="mt-10 grid md:grid-cols-2 xl:grid-cols-4 gap-6">
-          {content.services.cards.map((service) => (
-            <div key={service.title} className="p-6 shadow-sm hover:shadow-lg transition" style={{ background: "var(--card-bg)", borderColor: "var(--border-color)", borderWidth: "var(--border-width)", borderRadius: "var(--radius)" }}>
-              <div className="font-bold text-sm uppercase tracking-wide" style={{ color: "var(--gold)" }}>TMG</div>
-              <h3 className="mt-4 font-bold">{service.title}</h3>
-              <p className="mt-3 opacity-70">{service.description}</p>
-            </div>
-          ))}
+
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-12 gap-5">
+          {/* BIG - BI */}
+          <Link href="/booking?service=bi-analytics" className="md:col-span-8 group relative overflow-hidden rounded-[24px] border bg-gradient-to-br from-white to-slate-50 p-8 hover:shadow-xl transition">
+            <div className="flex justify-between"><span className="px-3 py-1 rounded-full text-[10px] font-bold bg-white text-black border border-[#0F172A] border">Power BI • Excel • Most Popular</span><span className="text-xl">📊</span></div>
+            <h3 className="mt-5 text-2xl font-black">Business Intelligence & Analytics</h3>
+            <p className="mt-3 text-sm text-black font-medium max-w-xl">Power BI dashboards, Advanced Excel modeling, KPI tracking - turn data into decisions. DAX, Power Query, automation.</p>
+            <div className="mt-6 flex gap-2 flex-wrap"><span className="px-3 py-1.5 rounded-full bg-slate-900 text-white text-xs font-bold">Power BI Dashboards</span><span className="px-3 py-1.5 rounded-full bg-white border text-xs font-bold">Advanced Excel</span><span className="px-3 py-1.5 rounded-full bg-white border text-xs font-bold">KPI Analysis</span></div>
+            <div className="mt-8 font-bold text-sm group-hover:gap-2 flex gap-1">Request Quote →</div>
+          </Link>
+          {/* SMALL - M365 */}
+          <Link href="/booking?service=m365-productivity" className="md:col-span-4 group rounded-[24px] border bg-[#0F172A] text-white p-8 hover:shadow-xl transition">
+            <span className="text-xl">📧</span><h3 className="mt-4 text-xl font-black">Microsoft 365 Digital Workplace</h3><p className="mt-3 text-sm opacity-100">Teams, SharePoint, Outlook, documentation - work smarter.</p><div className="mt-6 px-4 py-2 rounded-full bg-white/10 w-fit text-xs font-bold">M365 Suite • Excel Productivity</div><div className="mt-8 text-sm font-bold opacity-100">Request Quote →</div>
+          </Link>
+          {/* AI */}
+          <Link href="/booking?service=ai-automation" className="md:col-span-4 group rounded-[24px] border bg-white p-8 hover:shadow-xl transition">
+            <span className="text-xl">🤖</span><h3 className="mt-4 text-lg font-black">AI Consulting & Automation</h3><p className="mt-3 text-sm text-black font-medium">AI opportunity mapping, process automation, workflow design.</p><div className="mt-6 text-sm font-bold">Request Quote →</div>
+          </Link>
+          <Link href="/booking?service=company-formation" className="md:col-span-4 group rounded-[24px] border bg-[#FFF9E5] p-8 hover:shadow-xl transition">
+            <span className="text-xl">🌍</span><h3 className="mt-4 text-lg font-black">Company Formation - Global</h3><p className="mt-3 text-sm text-black">US LLC, UK LTD, UAE, Qatar hub - online.</p><div className="mt-6 text-sm font-bold">Request Quote →</div>
+          </Link>
+          <Link href="/booking?service=website-growth" className="md:col-span-4 group rounded-[24px] border bg-white p-8 hover:shadow-xl transition">
+            <span className="text-xl">🚀</span><h3 className="mt-4 text-lg font-black">Website & Digital Growth</h3><p className="mt-3 text-sm text-black font-medium">Audit, messaging, conversion improvements.</p><div className="mt-6 text-sm font-bold">Request Quote →</div>
+          </Link>
         </div>
       </section>
-      <section style={{ background: "var(--background)" }}>
-        <div className="mx-auto px-6 py-16 grid md:grid-cols-2 gap-12 items-center" style={{ maxWidth: "var(--container-max)" }}>
+
+      <PublishedMediaSection location="homepage" title="From our work - Power BI, Excel, M365" />
+
+      {/* ABOUT - Process */}
+      <section className="bg-[#F8FAFC] border-t">
+        <div className="mx-auto px-6 py-16 md:py-20 grid md:grid-cols-2 gap-12 items-start" style={{ maxWidth: "1200px" }}>
           <div>
-            <p className="uppercase tracking-[0.2em] text-xs font-semibold" style={{ color: "var(--gold)" }}>About TMG</p>
-            <h2 className="font-bold mt-3" style={{ fontSize: "var(--h1-size)" }}>{content.about.title}</h2>
-            <p className="mt-5 leading-7 opacity-70">{content.about.description}</p>
-            <div className="mt-8 space-y-4">
+            <p className="uppercase tracking-[0.2em] text-xs font-bold" style={{ color: "#D4AF37" }}>Process • Global</p>
+            <h2 className="font-black tracking-tight text-3xl md:text-4xl mt-3">{content.about.title}</h2>
+            <p className="mt-5 leading-7 text-black font-medium">{content.about.description}</p>
+            <div className="mt-8 space-y-5">
               {content.about.reasons.map((item) => (
-                <div key={item} className="flex items-start gap-3">
-                  <span className="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-black" style={{ background: "var(--gold)" }}>✓</span>
-                  <p>{item}</p>
-                </div>
+                <div key={item} className="flex gap-4"><span className="h-8 w-8 rounded-full bg-[#0F172A] text-white grid place-items-center text-xs font-black shrink-0">✓</span><p className="text-sm font-bold leading-6 text-black">{item}</p></div>
               ))}
             </div>
           </div>
-          <div className="p-8 text-white shadow-xl" style={{ background: "var(--primary)", borderRadius: "24px" }}>
-            <h3 className="font-bold">{content.about.asideTitle}</h3>
-            <ul className="mt-6 space-y-4 opacity-80">
-              {content.about.asideItems.map((item) => <li key={item}>• {item}</li>)}
+          <div className="rounded-[24px] bg-[#0F172A] text-white p-8 shadow-2xl">
+            <h3 className="font-black text-xl text-white" style={{ color: "#FFFFFF" }}>{content.about.asideTitle}</h3>
+            <ul className="mt-6 space-y-4 text-sm text-white font-medium">
+              {content.about.asideItems.map((item) => <li key={item} className="flex gap-3"><span className="text-[#D4AF37]">•</span>{item}</li>)}
             </ul>
-            <Link href="/about" className="mt-8 inline-block px-6 py-3 font-bold" style={{ background: "var(--gold)", color: "#000", borderRadius: "var(--button-radius)" }}>Learn more</Link>
+            <div className="mt-8 rounded-xl bg-white/10 border border-white/30 p-4 text-xs">
+              <p className="font-bold text-[#D4AF37]">100% Online Delivery Model</p>
+              <p className="mt-2 text-white font-medium leading-6" style={{ color: "#FFFFFF" }}>No office visits. Power BI files, Excel models, M365 setups delivered via secure portal, Teams & Loom. Operated from Doha, serving founders in US, UK, UAE & beyond.</p>
+            </div>
+            <Link href="/about" className="mt-8 inline-block px-6 py-3 rounded-full font-bold bg-[#D4AF37] text-black text-sm">Learn more about TMG</Link>
           </div>
         </div>
       </section>
-      <section className="text-white py-16" style={{ background: "var(--primary)" }}>
-        <div className="mx-auto px-6 text-center" style={{ maxWidth: "var(--container-max)" }}>
-          <h2 className="font-bold" style={{ fontSize: "var(--h1-size)" }}>{content.cta.heading}</h2>
-          <p className="mt-4 opacity-70">{content.cta.description}</p>
-          <div className="mt-8 flex justify-center flex-wrap gap-4">
-            <Link href={content.cta.primaryHref} className="px-8 py-3 font-bold" style={{ background: "var(--gold)", color: "#000", borderRadius: "var(--button-radius)" }}>{content.cta.primaryText}</Link>
-            <Link href={content.cta.secondaryHref} className="border border-white px-8 py-3" style={{ borderRadius: "var(--button-radius)" }}>{content.cta.secondaryText}</Link>
-          </div>
+
+      {/* CTA */}
+      <section className="text-white py-16" style={{ background: "#0F172A" }}>
+        <div className="mx-auto px-6 text-center" style={{ maxWidth: "800px" }}>
+          <h2 className="font-black text-3xl md:text-5xl text-white" style={{ color: "#FFFFFF" }}>{content.cta.heading}</h2>
+          <p className="mt-4 text-white font-medium text-base md:text-lg" style={{ color: "#FFFFFF" }}>{content.cta.description}</p>
+          <div className="mt-8 flex justify-center gap-4"><Link href={content.cta.primaryHref} className="px-8 py-4 rounded-full font-black bg-[#D4AF37] text-black text-sm">{content.cta.primaryText}</Link><Link href={content.cta.secondaryHref} className="px-8 py-4 rounded-full font-bold bg-white text-black text-sm">{content.cta.secondaryText}</Link></div>
+          <p className="mt-6 text-[11px] uppercase tracking-widest text-white font-bold" style={{ color: "#FFFFFF" }}>Global Delivery • Powered from Doha, Qatar • Power BI • Excel • M365 • AI</p>
         </div>
       </section>
     </div>
   );
 }
 
-function isConfiguredApiImage(imageUrl: string): boolean {
-  try {
-    const apiOrigin = new URL(process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000").origin;
-    return new URL(mediaUrl(imageUrl)).origin === apiOrigin;
-  } catch {
-    return false;
-  }
-}
+
+
+
+
+
+
+

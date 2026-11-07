@@ -8,9 +8,11 @@ import {
   Param,
   Post,
   Put,
+  UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { UserRole } from '@prisma/client';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { AuthenticatedUser } from '../auth/auth.service';
@@ -131,12 +133,13 @@ export class SitesController {
 
   @Post(':id/logo-upload')
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024 } }))
   uploadLogo(
     @Param('id') siteId: string,
-    @Body() body: unknown,
+    @UploadedFile() file: Express.Multer.File | undefined,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.sitesService.uploadLogo(siteId, user.id, body);
+    return this.sitesService.uploadLogo(siteId, user.id, file);
   }
 
   @Delete(':id')

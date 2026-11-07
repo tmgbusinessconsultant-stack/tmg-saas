@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:4000';
-const API_BASE = BACKEND_URL.endsWith('/api') ? BACKEND_URL : BACKEND_URL + '/api';
+import { getBackendApiBase } from '@/lib/backend-api';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ mode: string }> }) {
   const { mode } = await params;
@@ -10,7 +8,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ mod
   }
   try {
     const body = await req.text();
-    const backendRes = await fetch(API_BASE + '/auth/' + mode, {
+    const backendRes = await fetch(getBackendApiBase() + '/auth/' + mode, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: body || undefined,
@@ -26,15 +24,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ mod
     return res;
   } catch (e) {
     console.error('Auth proxy error:', e);
-    return NextResponse.json({ message: 'Could not connect to backend at ' + API_BASE }, { status: 502 });
+    return NextResponse.json({ message: 'Could not connect to the account service.' }, { status: 502 });
   }
 }
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ mode: string }> }) {
   const { mode } = await params;
   try {
-    const backendRes = await fetch(API_BASE + '/auth/' + mode, {
-      headers: { Cookie: req.headers.get('cookie') || '' },
+    const authorization = req.headers.get('authorization');
+    const backendRes = await fetch(getBackendApiBase() + '/auth/' + mode, {
+      headers: {
+        Cookie: req.headers.get('cookie') || '',
+        ...(authorization ? { Authorization: authorization } : {}),
+      },
+      cache: 'no-store',
     });
     const data = await backendRes.json();
     return NextResponse.json(data, { status: backendRes.status });

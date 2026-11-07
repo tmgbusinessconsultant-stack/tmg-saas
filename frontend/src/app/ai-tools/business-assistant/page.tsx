@@ -2,7 +2,9 @@
 
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import AiDataNotice from '../ai-data-notice';
+import TurnstileChallenge from '@/components/TurnstileChallenge';
 
 const COUNTRIES = [
   { country: 'Qatar', currency: 'QAR', symbol: 'QAR', law: 'Qatar Labour Law, QFC', tax: 'No Income Tax', suggestions: ['Check QFC LLC Requirements', 'Calculate End of Service Gratuity', 'Qatar Corporate Tax Rules'] },
@@ -15,15 +17,19 @@ const COUNTRIES = [
   { country: 'India', currency: 'INR', symbol: '₹', law: 'Companies Act', tax: 'GST 18%', suggestions: ['MCA Company Incorporation', 'PF & ESI Statutory Compliance', 'GST Input Tax Credit Guide'] },
 ] as const;
 
-type Message = { role: 'user' | 'assistant'; content: string; country?: string; currency?: string; };
+type Message = { role: 'user' | 'assistant'; content: string; country?: string; currency?: string; source?: 'local' | 'generated'; };
 
 export default function BusinessAssistantPage() {
+  const router = useRouter();
   const [selectedCountry, setSelectedCountry] = useState<(typeof COUNTRIES)[number]>(COUNTRIES[0]);
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: `Welcome to TMG Business Assistant.\n\nCurrently set to ${COUNTRIES[0].country} (${COUNTRIES[0].currency}). All figures will be in ${COUNTRIES[0].symbol} and compliant with ${COUNTRIES[0].law}.\n\nHow can I help with your ${COUNTRIES[0].country} business?`, country: 'Qatar', currency: 'QAR' }
+    { role: 'assistant', content: `Welcome to TMG Business Assistant.\n\nCurrently set to ${COUNTRIES[0].country} (${COUNTRIES[0].currency}). All figures will be in ${COUNTRIES[0].symbol} and compliant with ${COUNTRIES[0].law}.\n\nHow can I help with your ${COUNTRIES[0].country} business?`, country: 'Qatar', currency: 'QAR', source: 'local' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState('');
+  const [challengeVersion, setChallengeVersion] = useState(0);
+  const [requestError, setRequestError] = useState('');
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, loading]);
@@ -35,35 +41,74 @@ export default function BusinessAssistantPage() {
       role: 'assistant',
       content: `Market switched to ${c.country}.\n\nCurrency: ${c.symbol} ${c.currency}\nLaw: ${c.law}\nTax: ${c.tax}\n\nAll advice now tailored to ${c.country} with figures in ${c.symbol}.`,
       country: c.country, currency: c.currency
+      , source: 'local'
     }]);
   };
 
   const handleSend = async () => {
     if (!input.trim() || loading) return;
+    if (!captchaToken) {
+      setRequestError('Complete bot verification before sending your question.');
+      return;
+    }
     const userMsg: Message = { role: 'user', content: input, country: selectedCountry.country, currency: selectedCountry.currency };
+    const conversation = [
+      ...messages.filter((message) => message.role === 'user' || message.source === 'generated'),
+      userMsg,
+    ].slice(-20);
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setLoading(true);
+    setRequestError('');
     try {
+      const token = sessionStorage.getItem('accessToken')
+        || localStorage.getItem('accessToken')
+        || localStorage.getItem('token')
+        || localStorage.getItem('access_token')
+        || localStorage.getItem('authToken');
       const res = await fetch('/api/ai/business-assistant', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
-          prompt: userMsg.content,
+          messages: conversation.map(({ role, content }) => ({ role, content })),
           country: selectedCountry.country,
           currency: selectedCountry.currency,
-          symbol: selectedCountry.symbol,
           law: selectedCountry.law,
           tax: selectedCountry.tax,
-          compliance: selectedCountry.law,
+          turnstileToken: captchaToken,
         })
       });
-      const data = await res.json();
-      const assistantContent = data.message || `Guidance compiled for ${selectedCountry.country} under ${selectedCountry.law}.`;
-      setMessages(prev => [...prev, { role: 'assistant', content: assistantContent, country: selectedCountry.country, currency: selectedCountry.currency }]);
-    } catch {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Connection issue encountered. Please try your request again shortly.', country: selectedCountry.country, currency: selectedCountry.currency }]);
-    } finally { setLoading(false); }
+      const data: unknown = await res.json();
+      if (!res.ok) {
+        const message = typeof data === 'object' && data !== null && 'message' in data
+          ? data.message
+          : null;
+        throw new Error(typeof message === 'string' ? message : `Assistant request failed (${res.status}).`);
+      }
+      if (typeof data !== 'object' || data === null || !('message' in data) || typeof data.message !== 'string' || !data.message) {
+        throw new Error('The assistant returned an invalid response.');
+      }
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: (data as { message: string }).message,
+        country: selectedCountry.country,
+        currency: selectedCountry.currency,
+        source: 'generated',
+      }]);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'The assistant request failed.';
+      setRequestError(message);
+      if (message.includes('sign in')) {
+        router.push('/login?next=%2Fai-tools%2Fbusiness-assistant');
+      }
+    } finally {
+      setLoading(false);
+      // setCaptchaToken(''); // keep for chat flow
+      // setChallengeVersion...
+    }
   };
 
   return (
@@ -72,7 +117,7 @@ export default function BusinessAssistantPage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-200 pb-6">
           <div>
             <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-800 ring-1 ring-amber-600/20">AI Advisory Workspace</span>
-            <h1 className="text-3xl font-black tracking-tight text-zinc-900 mt-2">Business Assistant Console</h1>
+            <div className="flex items-center gap-2"><h1 className="text-3xl font-black tracking-tight text-zinc-900 mt-2">Business Assistant Console</h1><span className="text-xs bg-zinc-100 px-2 py-1 rounded-full">{messages.length}/20</span></div>
           </div>
           <Link href="/documents" className="rounded-xl border border-zinc-200 bg-white px-4 py-2 text-xs font-bold shadow-sm hover:bg-zinc-50 transition-all">Repository</Link>
         </div>
@@ -105,9 +150,13 @@ export default function BusinessAssistantPage() {
           </div>
 
           <div className="border-t border-zinc-200 p-3 bg-white">
+            {requestError && <p role="alert" className="mb-3 text-sm text-red-700">{requestError}</p>}
+            <div className="mb-3">
+              <TurnstileChallenge key={challengeVersion} onVerify={setCaptchaToken} />
+            </div>
             <div className="flex gap-2 items-center rounded-xl border border-zinc-200 bg-zinc-50 px-2 py-1.5 focus-within:bg-white focus-within:border-zinc-900 transition-all">
               <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSend()} placeholder={`Ask regarding ${selectedCountry.country} compliance criteria...`} className="flex-1 bg-transparent px-3 py-1.5 text-sm text-zinc-900 focus:outline-none" />
-              <button onClick={handleSend} disabled={!input.trim() || loading} className="rounded-xl bg-zinc-900 hover:bg-black text-white px-5 py-2 text-sm font-bold disabled:opacity-30">Execute</button>
+              <button onClick={handleSend} disabled={!input.trim() || loading || !captchaToken} className="rounded-xl bg-zinc-900 hover:bg-black text-white px-5 py-2 text-sm font-bold disabled:opacity-30">Execute</button>
             </div>
           </div>
         </div>
@@ -116,3 +165,7 @@ export default function BusinessAssistantPage() {
     </div>
   );
 }
+
+
+
+

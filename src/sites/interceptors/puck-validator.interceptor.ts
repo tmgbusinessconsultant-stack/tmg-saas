@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NestInterceptor,
   ExecutionContext,
@@ -24,15 +25,19 @@ export class PuckContentValidationInterceptor implements NestInterceptor {
             try {
               const parsed = JSON.parse(rawPayload);
               if (!Array.isArray(parsed)) {
-                component.props.itemsJson = JSON.stringify([]);
+                throw new BadRequestException('Component itemsJson must contain a JSON array.');
               }
-            } catch {
-              component.props.itemsJson = this.attemptHeuristicJsonRepair(rawPayload);
+            } catch (error) {
+              if (error instanceof BadRequestException) throw error;
+              throw new BadRequestException('Component itemsJson contains invalid JSON.');
             }
           } else if (typeof rawPayload === 'object' && rawPayload !== null) {
+            if (!Array.isArray(rawPayload)) {
+              throw new BadRequestException('Component itemsJson must contain an array.');
+            }
             component.props.itemsJson = JSON.stringify(rawPayload);
           } else {
-            component.props.itemsJson = JSON.stringify([]);
+            throw new BadRequestException('Component itemsJson must contain an array.');
           }
         }
         return component;
@@ -41,16 +46,4 @@ export class PuckContentValidationInterceptor implements NestInterceptor {
     return next.handle();
   }
 
-  private attemptHeuristicJsonRepair(raw: string): string {
-    let cleaned = raw.trim();
-    if (!cleaned.startsWith('[') && !cleaned.endsWith(']')) {
-      return JSON.stringify([]);
-    }
-    try {
-      cleaned = cleaned.replace(/\n/g, '\\n').replace(/\r/g, '\\r');
-      return JSON.stringify(JSON.parse(cleaned));
-    } catch {
-      return JSON.stringify([]);
-    }
-  }
 }

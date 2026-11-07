@@ -241,7 +241,7 @@ button.bg-black {
 }
 
 /* Selection */
-::selection {
-  background: var(--gold);
-  color: #000;
-}
+::selection { background: #0F172A !important; color: #FFFFFF !important; }
+
+::-moz-selection { background: #0F172A !important; color: #FFFFFF !important; }
+

@@ -446,3 +446,7 @@ export class AiService implements OnModuleInit, OnModuleDestroy {
     this.providerAvailabilityCache.lastChecked = Date.now();
   }
 }
+
+
+
+

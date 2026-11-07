@@ -8,8 +8,9 @@ const mobileLinks = [
   ["Home", "/"],
   ["Services", "/services"],
   ["Shop Templates", "/shop"],
+  ["🔍 SecureFind - Find Suppliers", "/securefind"],
   ["CV Builder Pro", "/cv-builder"],
-  ["AI Assistant Console", "/business-assistant"],
+  ["AI Assistant Console", "/ai-tools/business-assistant"],
   ["My Documents Vault", "/documents"],
   ["Pricing Plans", "/pricing"],
   ["🌐 My Websites", "/sites"],
@@ -96,3 +97,4 @@ export default function MobileNavigation() {
     </>
   );
 }
+

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import QuoteRequestForm from "@/components/quote-request-form";
 import { contactEmail, whatsappNumber } from "@/lib/contact-details";
@@ -67,7 +68,7 @@ export default function ContactPage() {
 
           {/* Form */}
           <div className="md:col-span-3 min-w-0 rounded-[24px] border border-zinc-200 bg-white p-6 md:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
-            <QuoteRequestForm />
+            <Suspense fallback={<div>Loading...</div>}><QuoteRequestForm /></Suspense>
           </div>
         </div>
       </div>

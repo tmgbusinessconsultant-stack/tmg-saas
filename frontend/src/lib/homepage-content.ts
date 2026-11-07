@@ -1,198 +1,102 @@
-// src/lib/homepage-content.ts - ADVANCED, ADMIN-READY
-
-export type MediaImage = {
-  url: string;
-  alt?: string;
-  uploadId?: string;
-};
-
+export type MediaImage = { url: string; alt?: string; uploadId?: string; };
 export type StatItem = { label: string; value: string; icon?: string };
-export type ServiceCard = { title: string; description: string; icon?: string; href?: string };
-export type TestimonialItem = {
-  id: string;
-  quote: string;
-  clientName: string;
-  company: string;
-  photoUrl: string;
-  rating: number; // 1-5
-  approved: boolean;
-  createdAt?: string;
-};
+export type ServiceCard = { title: string; description: string; icon?: string; href?: string; badge?: string };
+export type TestimonialItem = { id: string; quote: string; clientName: string; company: string; photoUrl: string; rating: number; approved: boolean; createdAt?: string; };
 export type FaqItem = { question: string; answer: string };
 export type CaseStudyItem = { title: string; description: string; imageUrl?: string; href?: string };
-
 export type HomepageContent = {
-  version: number;
-  updatedAt?: string;
-  meta: {
-    title: string;
-    description: string;
-    keywords: string[];
-  };
-  hero: {
-    kicker: string;
-    title: string;
-    highlight: string;
-    description: string;
-    primaryText: string;
-    primaryHref: string;
-    secondaryText: string;
-    secondaryHref: string;
-    imageUrl: string;
-    imageAlt?: string;
-  };
-  quickCard: {
-    title: string;
-    description: string;
-    buttonText: string;
-    buttonHref: string;
-    enabled?: boolean;
-  };
-  services: {
-    heading: string;
-    subheading?: string;
-    cards: ServiceCard[];
-  };
-  about: {
-    title: string;
-    description: string;
-    reasons: string[];
-    asideTitle: string;
-    asideItems: string[];
-    imageUrl?: string;
-  };
+  version: number; updatedAt?: string;
+  meta: { title: string; description: string; keywords: string[]; };
+  hero: { kicker: string; title: string; highlight: string; description: string; primaryText: string; primaryHref: string; secondaryText: string; secondaryHref: string; imageUrl: string; imageAlt?: string; };
+  quickCard: { title: string; description: string; buttonText: string; buttonHref: string; enabled?: boolean; };
+  services: { heading: string; subheading?: string; cards: ServiceCard[]; };
+  about: { title: string; description: string; reasons: string[]; asideTitle: string; asideItems: string[]; imageUrl?: string; };
   statistics: StatItem[];
-  testimonials: {
-    heading: string;
-    subheading?: string;
-    items: TestimonialItem[];
-  };
+  testimonials: { heading: string; subheading?: string; items: TestimonialItem[]; };
   caseStudies: CaseStudyItem[];
   faq: FaqItem[];
-  cta: {
-    heading: string;
-    description: string;
-    primaryText: string;
-    primaryHref: string;
-    secondaryText: string;
-    secondaryHref: string;
-  };
+  cta: { heading: string; description: string; primaryText: string; primaryHref: string; secondaryText: string; secondaryHref: string; };
 };
 
-// --- Default content used as fallback + for new installs ---
 export const defaultHomepageContent: HomepageContent = {
-  version: 2,
+  version: 3,
   updatedAt: new Date().toISOString(),
   meta: {
-    title: "TMG Business Consulting | AI Consulting, Strategy & Growth",
-    description: "TMG helps SMEs in Qatar and globally with strategy, AI tools, productivity training, and business growth.",
-    keywords: ["Qatar business consulting", "AI consulting", "business strategy"],
+    title: "TMG | Global Business Services - Power BI, Excel, M365, AI | Powered from Doha",
+    description: "Global business services powered from Doha: Power BI dashboards, Advanced Excel automation, Microsoft 365 productivity, AI workflows, company formation - 100% online delivery worldwide.",
+    keywords: ["Power BI consulting","Advanced Excel","Microsoft 365","AI automation","global business services","company formation"],
   },
   hero: {
-    kicker: "AI-Powered Business Consulting · Qatar & Global",
-    title: "Grow smarter with",
-    highlight: "strategy, AI, and execution",
-    description: "TMG Business Consulting helps founders, SMEs, and growing teams turn ideas into systems, offers, and scalable businesses.",
-    primaryText: "Get Quote",
-    primaryHref: "/quote",
-    secondaryText: "Try AI Assistant",
-    secondaryHref: "/ai-tools/business-assistant",
+    kicker: "Global Delivery • Powered from Doha, Qatar",
+    title: "Global Business Services,",
+    highlight: "Delivered Online",
+    description: "Power BI dashboards, Advanced Excel automation, Microsoft 365 productivity, AI workflows & company formation - for founders worldwide. 100% online, no in-person required.",
+    primaryText: "Get Proposal →",
+    primaryHref: "/booking",
+    secondaryText: "Explore Services",
+    secondaryHref: "/services",
     imageUrl: "",
-    imageAlt: "TMG Business Consulting hero",
+    imageAlt: "Power BI Dashboard + Excel + M365",
   },
   quickCard: {
-    title: "Start in 60 seconds",
-    description: "Tell us your business challenge and get a tailored next step.",
-    buttonText: "Launch AI Assistant →",
-    buttonHref: "/ai-tools/business-assistant",
+    title: "Power BI • Excel • M365 • AI",
+    description: "Select your service and get a proposal within 2 hours. Global delivery, operated from Doha.",
+    buttonText: "See Live Dashboards →",
+    buttonHref: "/services",
     enabled: true,
   },
   services: {
-    heading: "Everything your business needs to move faster",
-    subheading: "From AI to execution, we cover your growth stack",
+    heading: "One hub for Power BI, Excel, M365 & Growth",
+    subheading: "From data to delivery - everything online",
     cards: [
-      { title: "AI Consulting", description: "AI strategy, automation design, and digital transformation.", icon: "🤖", href: "/services/ai-consulting" },
-      { title: "Business Consulting", description: "Strategy, operations, and growth planning for founders.", icon: "📈", href: "/services/business-consulting" },
-      { title: "Productivity Training", description: "Workshops to improve systems, processes, and team efficiency.", icon: "⚡", href: "/services/training" },
-      { title: "Digital Products", description: "Turn ideas into templates, tools, and revenue-generating offers.", icon: "📦", href: "/services/digital-products" },
+      { title: "🔍 SecureFind - Verified Suppliers", description: "Find verified, trusted suppliers in Qatar & worldwide in 2 minutes. No more bad suppliers.", icon: "🔍", href: "/securefind/start", badge: "NEW • Try Free" },
+      { title: "Business Intelligence & Analytics", description: "Power BI dashboards, Advanced Excel modeling, KPI tracking - turn data into decisions.", icon: "📊", href: "/booking?service=bi-analytics", badge: "Power BI • Excel" },
+      { title: "Microsoft 365 Digital Workplace", description: "Teams, SharePoint, Outlook, documentation systems - work smarter with M365.", icon: "📧", href: "/booking?service=m365-productivity", badge: "M365 Suite" },
+      { title: "AI Consulting & Automation", description: "AI opportunity mapping, process automation, workflow design - delivered online.", icon: "🤖", href: "/booking?service=ai-automation", badge: "Online" },
+      { title: "Company Formation - Global", description: "US LLC, UK LTD, UAE, Qatar hub - documents, bank, compliance handled online.", icon: "🌍", href: "/booking?service=company-formation", badge: "Global" },
+      { title: "PRO & Document Clearing - Remote", description: "Administrative requirements handled via secure portal - no visit needed.", icon: "📄", href: "/booking?service=pro-services", badge: "Remote" },
+      { title: "Website & Digital Growth", description: "Audit, messaging, conversion - stronger digital presence.", icon: "🚀", href: "/booking?service=website-growth", badge: "Growth" },
     ],
   },
   about: {
-    title: "Built for founders, teams, and businesses ready to grow",
-    description: "We combine strategic consulting, AI tools, and practical operational guidance to help businesses move from idea to implementation with clarity.",
+    title: "Why global teams choose TMG",
+    description: "We combine Power BI, Excel mastery, M365 productivity and AI automation with practical execution - operated from Doha, serving worldwide.",
     reasons: [
-      "Practical advice grounded in real execution",
-      "AI-powered support that saves time",
-      "Fast turnaround for SOPs, proposals, and plans",
-      "Local expertise for Qatar and global markets",
+      "01 — Discover: Map your Power BI, Excel & process gaps",
+      "02 — Build: Dashboards, automations & M365 systems online",
+      "03 — Scale: Handover, training & ongoing support",
+      "Operated from Doha, serving US, UK, UAE & beyond - 100% online delivery",
     ],
-    asideTitle: "Why choose TMG",
+    asideTitle: "How we deliver online",
     asideItems: [
-      "Clear strategy and execution support",
-      "AI-powered workflows and document generation",
-      "Training for teams who want to work smarter",
-      "Documents designed to create trust",
+      "Power BI & Excel files via secure portal",
+      "M365 Teams / SharePoint setup live",
+      "Loom videos + documentation",
+      "2h response time, no in-person required",
     ],
   },
   statistics: [
     { label: "Projects Delivered", value: "500+", icon: "✅" },
-    { label: "Clients in Qatar", value: "120+", icon: "🇶🇦" },
-    { label: "Avg. Time Saved", value: "30%", icon: "⏱️" },
-    { label: "Satisfaction", value: "98%", icon: "⭐" },
+    { label: "Global Clients", value: "200+", icon: "🌍" },
+    { label: "Avg. Response", value: "2h", icon: "⚡" },
+    { label: "Online Delivery", value: "100%", icon: "💻" },
   ],
-  testimonials: {
-    heading: "What our clients say",
-    subheading: "Trusted by founders and SMEs",
-    items: [],
-  },
-  caseStudies: [
-    { title: "SOP Automation for Retail SME", description: "Reduced onboarding time by 60% with AI SOP generator.", href: "/case-studies" },
-  ],
+  testimonials: { heading: "Trusted by founders worldwide", subheading: "From Doha to global", items: [] },
+  caseStudies: [{ title: "Power BI Sales Dashboard for Retail", description: "Excel automation reduced reporting from 6h to 15min.", href: "/case-studies" }],
   faq: [
-    { question: "Do you work with businesses outside Qatar?", answer: "Yes, we work with clients globally via online consulting and AI tools." },
-    { question: "How fast is delivery?", answer: "Most documents and strategies are delivered within 24-48 hours." },
+    { question: "Is delivery 100% online?", answer: "Yes. All services are delivered online via Teams, portal & Loom. No need to visit Qatar." },
+    { question: "Do you handle Power BI & Advanced Excel?", answer: "Yes - Power BI dashboards, DAX, Power Query, advanced Excel modeling & automation are core services." },
   ],
-  cta: {
-    heading: "Let’s build your next business move",
-    description: "From AI-powered offers to consulting and growth planning, we move with clarity.",
-    primaryText: "Get Quote",
-    primaryHref: "/quote",
-    secondaryText: "Contact Us",
-    secondaryHref: "/contact",
-  },
+  cta: { heading: "Ready to build your next system?", description: "Power BI, Excel, M365, AI & company setup - one proposal, global delivery.", primaryText: "Get Proposal", primaryHref: "/booking", secondaryText: "Contact", secondaryHref: "/contact" },
 };
 
-// --- ADVANCED: Safe merge + validation helpers ---
 export function mergeHomepageContent(partial: Partial<HomepageContent> | null): HomepageContent {
   if (!partial) return defaultHomepageContent;
-  return {
-    ...defaultHomepageContent,
-    ...partial,
-    version: partial.version ?? defaultHomepageContent.version,
-    meta: { ...defaultHomepageContent.meta, ...partial.meta },
-    hero: { ...defaultHomepageContent.hero, ...partial.hero },
-    quickCard: { ...defaultHomepageContent.quickCard, ...partial.quickCard },
-    services: { ...defaultHomepageContent.services, ...partial.services, cards: partial.services?.cards ?? defaultHomepageContent.services.cards },
-    about: { ...defaultHomepageContent.about, ...partial.about },
-    statistics: partial.statistics ?? defaultHomepageContent.statistics,
-    testimonials: { ...defaultHomepageContent.testimonials, ...partial.testimonials, items: partial.testimonials?.items ?? [] },
-    caseStudies: partial.caseStudies ?? defaultHomepageContent.caseStudies,
-    faq: partial.faq ?? defaultHomepageContent.faq,
-    cta: { ...defaultHomepageContent.cta, ...partial.cta },
-  };
+  return { ...defaultHomepageContent, ...partial, version: partial.version ?? defaultHomepageContent.version, meta: { ...defaultHomepageContent.meta, ...partial.meta }, hero: { ...defaultHomepageContent.hero, ...partial.hero }, quickCard: { ...defaultHomepageContent.quickCard, ...partial.quickCard }, services: { ...defaultHomepageContent.services, ...partial.services, cards: partial.services?.cards ?? defaultHomepageContent.services.cards }, about: { ...defaultHomepageContent.about, ...partial.about }, statistics: partial.statistics ?? defaultHomepageContent.statistics, testimonials: { ...defaultHomepageContent.testimonials, ...partial.testimonials, items: partial.testimonials?.items ?? [] }, caseStudies: partial.caseStudies ?? defaultHomepageContent.caseStudies, faq: partial.faq ?? defaultHomepageContent.faq, cta: { ...defaultHomepageContent.cta, ...partial.cta }, };
 }
-
 export function isHomepageContentValid(data: unknown): data is HomepageContent {
   if (typeof data !== "object" || data === null || Array.isArray(data)) return false;
   const record = data as Record<string, unknown>;
-  const hero = record.hero;
-  const services = record.services;
-  return typeof hero === "object"
-    && hero !== null
-    && !Array.isArray(hero)
-    && typeof (hero as Record<string, unknown>).title === "string"
-    && typeof services === "object"
-    && services !== null
-    && !Array.isArray(services)
-    && Array.isArray((services as Record<string, unknown>).cards);
+  const hero = record.hero; const services = record.services;
+  return typeof hero === "object" && hero !== null && !Array.isArray(hero) && typeof (hero as Record<string, unknown>).title === "string" && typeof services === "object" && services !== null && !Array.isArray(services) && Array.isArray((services as Record<string, unknown>).cards);
 }

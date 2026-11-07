@@ -31,8 +31,8 @@ export default function BookingPage() {
               <h2 className="text-sm font-semibold text-zinc-900">What you can request</h2>
               <ul className="mt-4 space-y-3">
                 {[
-                  "Business consulting & strategy",
-                  "AI tool setup & automation",
+                  "Business Intelligence - Power BI, Advanced Excel",
+                  "Microsoft 365 Digital Workplace & AI Automation",
                   "Process and SOP creation",
                   "Website & digital growth support",
                   "Training & workshops",
@@ -61,4 +61,5 @@ export default function BookingPage() {
     </div>
   );
 }
+
 

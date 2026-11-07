@@ -13,7 +13,12 @@ type ApiError = { message?: string | string[] };
 export default function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next")?.startsWith("/") ? searchParams.get("next") : null;
+  const redirectCandidate = searchParams.get("next") || searchParams.get("redirect");
+  const next = redirectCandidate?.startsWith("/")
+    && !redirectCandidate.startsWith("//")
+    && !redirectCandidate.includes("\\")
+    ? redirectCandidate
+    : null;
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -64,7 +69,8 @@ export default function AuthForm({ mode }: AuthFormProps) {
       }
 
       if (mode === "register") {
-        router.push("/login?registered=1");
+        const returnPath = next ? `&next=${encodeURIComponent(next)}` : "";
+        router.push(`/login?registered=1${returnPath}`);
         return;
       }
 
@@ -205,4 +211,3 @@ export default function AuthForm({ mode }: AuthFormProps) {
     </div>
   );
 }
-
