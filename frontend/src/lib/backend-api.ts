@@ -1,6 +1,6 @@
 export function getApiBase(): string {
   const raw = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000").trim().replace(/\/+$/, "");
-  return raw.endsWith("/api") ? raw : `${raw}/api`;
+  return raw.replace(/\/api$/i, "") + "/api";
 }
 export function apiUrl(path: string): string {
   const clean = path.startsWith("/") ? path : `/${path}`;
