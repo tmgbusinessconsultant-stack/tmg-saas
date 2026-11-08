@@ -135,11 +135,11 @@ export function GlobalStyles() {
 
         // Secure formatting to protect cross-origin network operations
         const rawUrl = process.env.NEXT_PUBLIC_API_URL || "";
-        const apiUrl = rawUrl.trim().replace(/\/+$/, "");
+        const apiUrl = rawUrl.trim().replace(/\/+$/, "").replace(/\/api$/i, "") + "/api";
 
         if (apiUrl) {
             // Resolves fallback routing endpoints mapping settings directly
-            const targetEndpoint = apiUrl.endsWith("/api") ? `${apiUrl}/settings/public` : `${apiUrl}/api/settings/public`;
+            const targetEndpoint = `${apiUrl}/settings/public`;
 
             fetch(targetEndpoint, { cache: "no-store" })
                 .then(async (res) => (res.ok ? await res.json() as unknown : null))

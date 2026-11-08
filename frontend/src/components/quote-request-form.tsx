@@ -13,7 +13,7 @@ export default function QuoteRequestForm({ source = "contact" }: { source?: stri
   const update = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
   const submit = async (e: React.FormEvent) => {
     e.preventDefault(); setLoading(true);
-    try { let api = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").trim().replace(/\/+$/, ""); if (!api.endsWith("/api")) api = `${api}/api`; await fetch(`${api}/quote-requests`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, source, captchaToken }) }); setSuccess(true); } catch { setSuccess(true); } finally { setLoading(false); }
+    try { let api = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").trim().replace(/\/+$/, ""); api = api.replace(/\/api$/i, "") + "/api"; await fetch(`${api}/quote-requests`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, source, captchaToken }) }); setSuccess(true); } catch { setSuccess(true); } finally { setLoading(false); }
   };
   if (success) return <div className="text-center py-12"><div className="mx-auto h-14 w-14 rounded-full grid place-items-center font-bold" style={{ background: "#D4AF37" }}>✓</div><h3 className="mt-4 text-xl font-bold">Request Received</h3><p className="mt-2 text-sm text-zinc-500">We will respond within 2 hours - Global delivery from Doha.</p><button onClick={() => setSuccess(false)} className="mt-6 px-5 py-2.5 text-white text-sm font-bold rounded-full" style={{ background: "#0F172A" }}>Send Another</button></div>;
   return (
