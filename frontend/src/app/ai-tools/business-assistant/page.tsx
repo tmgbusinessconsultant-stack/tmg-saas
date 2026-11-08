@@ -106,8 +106,8 @@ export default function BusinessAssistantPage() {
       }
     } finally {
       setLoading(false);
-      // setCaptchaToken(''); // keep for chat flow
-      // setChallengeVersion...
+      setCaptchaToken('');
+      setChallengeVersion(v => v + 1);
     }
   };
 

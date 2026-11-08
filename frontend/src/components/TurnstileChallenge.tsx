@@ -19,5 +19,12 @@ export default function TurnstileChallenge({ onVerify }: { onVerify: (token: str
     return null;
   }
 
-  return <Turnstile siteKey={siteKey} onSuccess={onVerify} />;
+  return (
+    <Turnstile
+      siteKey={siteKey}
+      onSuccess={onVerify}
+      onExpire={() => onVerify("")}
+      onError={() => onVerify("")}
+    />
+  );
 }
