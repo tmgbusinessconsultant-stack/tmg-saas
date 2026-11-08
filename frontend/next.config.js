@@ -1,4 +1,4 @@
-﻿/** @type {import('next').NextConfig} */
+/** @type {import('next').NextConfig} */
 const apiUrl = new URL(process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000");
 const nextConfig = {
   outputFileTracingRoot: __dirname,
@@ -10,6 +10,10 @@ const nextConfig = {
       port: apiUrl.port,
       pathname: "/**",
     }],
+  },
+  async rewrites() {
+    const backend = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").replace(/\/+$/, "");
+    return [{ source: "/api/:path*", destination: `${backend}/:path*` }];
   },
   async redirects() {
     return [
@@ -29,3 +33,4 @@ const nextConfig = {
   },
 };
 module.exports = nextConfig;
+

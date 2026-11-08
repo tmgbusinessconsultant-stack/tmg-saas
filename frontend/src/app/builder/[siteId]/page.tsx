@@ -65,6 +65,13 @@ function errorMessage(error: unknown): string {
 }
 
 const emptyCanvasData: Data = { root: {}, content: [] };
+const BRAND_PRESETS: Record<string, { label: string; desc: string; props: any }> = {
+  vonix: { label: "VONIX Navy", desc: "Default - clean corporate", props: { bg: "#ffffff", headerBg: "#ffffff", headerColor: "#0a2540", footerBg: "#0a2540", footerColor: "#ffffff" } },
+  qatar: { label: "Qatar Maroon", desc: "National - bold + warm", props: { bg: "#FFF8F0", headerBg: "#8A1538", headerColor: "#ffffff", footerBg: "#5C0632", footerColor: "#ffffff" } },
+  gold: { label: "Luxury Gold", desc: "Premium - dark + gold", props: { bg: "#FFFBEB", headerBg: "#0F172A", headerColor: "#D4AF37", footerBg: "#0F172A", footerColor: "#D4AF37" } },
+  teal: { label: "Modern Teal", desc: "Fresh - teal + light", props: { bg: "#F0FDFA", headerBg: "#ffffff", headerColor: "#0F766E", footerBg: "#134E4A", footerColor: "#ffffff" } },
+  clean: { label: "Clean Light", desc: "Minimal - black + white", props: { bg: "#F9FAFB", headerBg: "#ffffff", headerColor: "#111827", footerBg: "#111827", footerColor: "#ffffff" } },
+};
 
 export default function PremiumWebbuilderEngine() {
   const router = useRouter();
@@ -82,6 +89,24 @@ export default function PremiumWebbuilderEngine() {
   const [saving, setSaving] = useState(false);
 
   const [showAiDrawer, setShowAiDrawer] = useState(false);
+const [showBrandKit, setShowBrandKit] = useState(false);
+const [showLeads, setShowLeads] = useState(false);
+const [showPublish, setShowPublish] = useState(false);
+  const [seoTitle, setSeoTitle] = useState("");
+  const [seoDesc, setSeoDesc] = useState("");
+  const [seoSlug, setSeoSlug] = useState("");
+  const [previewDevice, setPreviewDevice] = useState<"desktop"|"tablet"|"mobile">("desktop");
+  const liveUrl = typeof window !== "undefined" ? `${window.location.origin}/s/${selectedSiteId || explicitSiteId || ""}` : "";
+  const saveSeo = async () => { try { await apiFetch("/seo", { method: "PUT", body: JSON.stringify({ title: seoTitle, description: seoDesc, slug: seoSlug }) }, selectedSiteId || undefined); alert("SEO saved!"); } catch(e:any){ alert("SEO save failed: " + e.message); } };
+  const openPublish = async () => { setSeoTitle((activeSite as any)?.title || ""); setSeoDesc((activeSite as any)?.seo?.description || (activeSite as any)?.description || ""); setSeoSlug(activeSite?.subdomain || ""); setShowPublish(true); };
+  const [leads, setLeads] = useState<any[]>([]);
+  const [formsList, setFormsList] = useState<any[]>([]);
+  const [newFormName, setNewFormName] = useState("Contact Form");
+  const loadLeads = async () => { try { const r = await fetch(`${API}/sites/${selectedSiteId}/submissions`, { headers: { Authorization: `Bearer ${getToken()}` } }); const j = await r.json(); setLeads(Array.isArray(j) ? j : j.submissions || j.data || []); } catch {} };
+  const loadForms = async () => { try { const r = await fetch(`${API}/sites/${selectedSiteId}/forms`, { headers: { Authorization: `Bearer ${getToken()}` } }); const j = await r.json(); setFormsList(Array.isArray(j) ? j : j.forms || j.data || []); } catch {} };
+  const createForm = async () => { try { const r = await fetch(`${API}/sites/${selectedSiteId}/forms`, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` }, body: JSON.stringify({ name: newFormName, fields: [{ name: "name", label: "Full Name", type: "text", required: true, placeholder: "Your name" }, { name: "phone", label: "Phone / WhatsApp", type: "phone", required: true, placeholder: "+974..." }, { name: "email", label: "Email", type: "email", required: false, placeholder: "you@email.com" }, { name: "message", label: "Message", type: "textarea", required: true, placeholder: "How can we help?" }], settings: { submitText: "Send Message" } }) }); const j = await r.json(); alert("Form created! ID: " + (j.id || j._id || j.formId || "check list")); loadForms(); } catch(e:any){ alert("Create failed: " + e.message); } };
+  const [brandDraft, setBrandDraft] = useState({ bg: "#ffffff", headerBg: "#ffffff", headerColor: "#0a2540", footerBg: "#0a2540", footerColor: "#ffffff" });
+  const applyBrand = (props: any) => { setCanvasData((prev: any) => ({ ...prev, root: { ...prev.root, props: { ...(prev.root?.props || {}), ...props } } })); setBrandDraft((d: any) => ({ ...d, ...props })); };
   const [aiCompanyName, setAiCompanyName] = useState("");
   const [aiIndustry, setAiIndustry] = useState("Corporate Consulting");
   const [aiTone, setAiTone] = useState("Professional");
@@ -214,10 +239,13 @@ export default function PremiumWebbuilderEngine() {
         }
       })
       .catch((error: unknown) => {
-        if (active) {
-          console.error("Layout canvas recovery sync fault:", error);
-          setSavingStatus("error");
+        if (!active) return;
+        console.error("Layout canvas recovery sync fault:", error);
+        if (errorMessage(error).includes("API Error 404")) {
+          router.push("/sites?error=" + encodeURIComponent("That site no longer exists - pick a site below."));
+          return;
         }
+        setSavingStatus("error");
       })
       .finally(() => { if (active) setLoadingCanvas(false); });
     return () => { active = false; };
@@ -530,6 +558,9 @@ export default function PremiumWebbuilderEngine() {
                 {savingStatus === "saving" ? "syncing..." : savingStatus}
               </span>
               <a href={`/s/${activeSite?.subdomain}${currentSlug === "home" ? "" : "/" + currentSlug}`} target="_blank" rel="noreferrer" className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs font-medium text-zinc-200 transition">Preview <ExternalLink className="h-3 w-3" /></a>
+              <button onClick={() => { setBrandDraft({ bg: (canvasData as any)?.root?.props?.bg || "#ffffff", headerBg: (canvasData as any)?.root?.props?.headerBg || "#ffffff", headerColor: (canvasData as any)?.root?.props?.headerColor || "#0a2540", footerBg: (canvasData as any)?.root?.props?.footerBg || "#0a2540", footerColor: (canvasData as any)?.root?.props?.footerColor || "#ffffff" }); setShowBrandKit(true); }} className="flex items-center gap-1.5 px-3 py-2 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-700">🎨 Brand Kit</button>
+              <button onClick={() => { loadLeads(); loadForms(); setShowLeads(true); }} className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700">📩 Leads / Forms</button>
+              <button onClick={openPublish} className="flex items-center gap-1.5 px-3 py-2 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-700">🚀 Publish / Share</button>
               <button onClick={handleProductionPublishPipeline} className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-white text-black text-xs font-bold hover:bg-zinc-100 transition"><CloudLightning className="h-3.5 w-3.5" /> Ship Live</button>
             </div>
           </div>
@@ -540,6 +571,57 @@ export default function PremiumWebbuilderEngine() {
             ) : (
               <div className="h-full w-full transition-all duration-300 ease-in-out bg-white" style={{ maxWidth: viewport === "desktop" ? "100%" : viewport === "tablet" ? "768px" : "390px", borderLeft: viewport !== "desktop" ? "1px solid rgba(63,63,70,0.4)" : "none", borderRight: viewport !== "desktop" ? "1px solid rgba(63,63,70,0.4)" : "none", boxShadow: viewport !== "desktop" ? "0 25px 50px -12px rgba(0,0,0,0.7)" : "none" }}>
                 <Puck config={config} data={canvasData} onPublish={handleProductionPublishPipeline} onChange={handleCanvasChange} />
+{showPublish && (
+  <div className="fixed inset-0 z-[9999] flex justify-end">
+    <div className="absolute inset-0 bg-black/40" onClick={() => setShowPublish(false)} />
+    <div className="relative w-[480px] max-w-[95vw] bg-white h-full shadow-2xl p-5 overflow-y-auto">
+      <div className="flex justify-between items-center mb-3"><h2 className="text-lg font-bold">🚀 Publish & Share</h2><button onClick={() => setShowPublish(false)} className="text-2xl px-2">×</button></div>
+      <div className="border rounded-xl p-4 mb-4 bg-violet-50"><div className="text-xs text-zinc-500 mb-1">LIVE URL</div><div className="text-sm font-mono break-all mb-3">{liveUrl}</div><div className="flex gap-2"><button onClick={()=>{navigator.clipboard.writeText(liveUrl); alert("Link copied!");}} className="bg-black text-white px-3 py-2 rounded-lg text-sm font-bold flex-1">📋 Copy Link</button><a href={liveUrl} target="_blank" className="bg-violet-600 text-white px-3 py-2 rounded-lg text-sm font-bold flex-1 text-center">Open Live ↗</a></div><button onClick={async()=>{await handleProductionPublishPipeline();}} className="w-full mt-2 bg-emerald-600 text-white px-3 py-2 rounded-lg text-sm font-bold">Publish Now - Go Live</button><p className="text-[11px] text-zinc-500 mt-2">Publish saves current canvas + makes it live at the URL above.</p></div>
+      <h3 className="font-semibold text-sm mb-2">🔍 SEO - Google Search</h3>
+      <div className="space-y-3 border rounded-xl p-3 mb-4"><div><label className="text-xs font-semibold">SEO Title (shows in Google)</label><input value={seoTitle} onChange={(e)=>setSeoTitle(e.target.value)} placeholder="TMG - Company Formation in Qatar" className="w-full border rounded-lg px-3 py-2 text-sm mt-1" /><p className="text-[11px] text-zinc-400">{seoTitle.length}/60 chars - keep under 60</p></div><div><label className="text-xs font-semibold">SEO Description</label><textarea value={seoDesc} onChange={(e)=>setSeoDesc(e.target.value)} placeholder="We help you start your business in Qatar..." className="w-full border rounded-lg px-3 py-2 text-sm mt-1" rows={3} /><p className="text-[11px] text-zinc-400">{seoDesc.length}/160 chars - keep under 160</p></div><div><label className="text-xs font-semibold">Subdomain / Slug</label><input value={seoSlug} onChange={(e)=>setSeoSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g,"-"))} className="w-full border rounded-lg px-3 py-2 text-sm mt-1" /><p className="text-[11px] text-zinc-400">Live at /s/{seoSlug || "..."}</p></div><button onClick={saveSeo} className="w-full bg-black text-white py-2 rounded-lg text-sm font-bold">Save SEO</button></div>
+      <h3 className="font-semibold text-sm mb-2">📱 Preview Device</h3>
+      <div className="flex gap-2"><button onClick={()=>setPreviewDevice("desktop")} className={`flex-1 py-2 rounded-lg text-sm font-bold border ${previewDevice==="desktop"?"bg-black text-white":"bg-white"}`}>🖥 Desktop</button><button onClick={()=>setPreviewDevice("tablet")} className={`flex-1 py-2 rounded-lg text-sm font-bold border ${previewDevice==="tablet"?"bg-black text-white":"bg-white"}`}>📱 Tablet</button><button onClick={()=>setPreviewDevice("mobile")} className={`flex-1 py-2 rounded-lg text-sm font-bold border ${previewDevice==="mobile"?"bg-black text-white":"bg-white"}`}>📱 Mobile</button></div>
+      <p className="text-[11px] text-zinc-500 mt-2">Tip: 80% of Qatar clients view on mobile. Check Mobile before you Publish.</p>
+    </div>
+  </div>
+)}
+      {showLeads && (
+  <div className="fixed inset-0 z-[9999] flex justify-end">
+    <div className="absolute inset-0 bg-black/40" onClick={() => setShowLeads(false)} />
+    <div className="relative w-[480px] max-w-[95vw] bg-white h-full shadow-2xl p-5 overflow-y-auto">
+      <div className="flex justify-between items-center mb-1"><h2 className="text-lg font-bold">📩 Leads & Forms</h2><button onClick={() => setShowLeads(false)} className="text-2xl px-2">×</button></div>
+      <div className="border rounded-xl p-3 mb-4 bg-zinc-50"><div className="font-semibold text-sm mb-2">+ Create New Form</div><div className="flex gap-2"><input value={newFormName} onChange={(e)=>setNewFormName(e.target.value)} className="flex-1 border rounded-lg px-3 py-2 text-sm" /><button onClick={createForm} className="bg-black text-white px-3 py-2 rounded-lg text-sm font-bold">Create</button></div><p className="text-[11px] text-zinc-500 mt-2">After create, copy its ID below, drag Form block into page, paste ID in block settings.</p></div>
+      <h3 className="font-semibold text-sm mb-2">Your Forms ({formsList.length})</h3>
+      <div className="space-y-2 mb-5">{formsList.length===0 && <p className="text-xs text-zinc-400">No forms yet. Create one above.</p>}{formsList.map((f:any)=>(<div key={f.id||f._id} className="border rounded-lg p-2.5 text-sm flex justify-between gap-2"><div><div className="font-semibold">{f.name}</div><div className="text-[11px] text-zinc-500 break-all">ID: {f.id||f._id}</div></div><button onClick={()=>navigator.clipboard.writeText(String(f.id||f._id))} className="text-xs bg-zinc-100 px-2 py-1 rounded h-fit">Copy ID</button></div>))}</div>
+      <h3 className="font-semibold text-sm mb-2">Leads ({leads.length}) - <button onClick={loadLeads} className="text-violet-600 underline">Refresh</button></h3>
+      <div className="space-y-2">{leads.length===0 && <p className="text-xs text-zinc-400">No leads yet. Submit test form on live site.</p>}{leads.map((l:any,i:number)=>(<div key={i} className="border rounded-lg p-3 text-sm"><div className="font-semibold">{l.data?.name || l.name || "No name"} - {l.data?.phone || l.phone || ""}</div><div className="text-xs text-zinc-500">{l.data?.email || l.email || ""} • {new Date(l.createdAt||l.created_at||Date.now()).toLocaleString()}</div><div className="mt-1 text-zinc-700">{l.data?.message || l.message || JSON.stringify(l.data||l)}</div>{(l.data?.phone||l.phone) && <a href={`https://wa.me/${String(l.data?.phone||l.phone).replace(/[^0-9]/g,"")}`} target="_blank" className="inline-block mt-2 text-xs bg-[#25D366] text-white px-2 py-1 rounded">Reply on WhatsApp →</a>}</div>))}</div>
+    </div>
+  </div>
+)}
+      {showBrandKit && (
+  <div className="fixed inset-0 z-[9999] flex justify-end">
+    <div className="absolute inset-0 bg-black/40" onClick={() => setShowBrandKit(false)} />
+    <div className="relative w-[360px] max-w-[90vw] bg-white h-full shadow-2xl p-5 overflow-y-auto">
+      <div className="flex justify-between items-center mb-1"><h2 className="text-lg font-bold">🎨 Brand Kit</h2><button onClick={() => setShowBrandKit(false)} className="text-2xl leading-none px-2">×</button></div>
+      <p className="text-xs text-zinc-500 mb-4">One click changes header, footer & page for whole site.</p>
+      <div className="space-y-2 mb-6">
+        {Object.entries(BRAND_PRESETS).map(([key, p]) => (
+          <button key={key} onClick={() => applyBrand(p.props)} className="w-full text-left border rounded-xl p-3 hover:border-violet-500 hover:shadow-sm flex items-center gap-3">
+            <div className="flex -space-x-1"><span className="w-6 h-6 rounded-full border" style={{ background: p.props.headerBg }} /><span className="w-6 h-6 rounded-full border" style={{ background: p.props.footerBg }} /><span className="w-6 h-6 rounded-full border" style={{ background: p.props.bg }} /></div>
+            <div><div className="font-semibold text-sm">{p.label}</div><div className="text-[11px] text-zinc-500">{p.desc}</div></div>
+          </button>
+        ))}
+      </div>
+      <h3 className="font-semibold text-sm mb-3">Custom Colors</h3>
+      <div className="space-y-3">
+        {(["bg", "headerBg", "headerColor", "footerBg", "footerColor"] as const).map((k) => (
+          <label key={k} className="flex items-center justify-between text-sm"><span>{k === "bg" ? "Page Background" : k === "headerBg" ? "Header BG" : k === "headerColor" ? "Header Text" : k === "footerBg" ? "Footer BG" : "Footer Text"}</span><input type="color" value={(brandDraft as any)[k] || "#ffffff"} onChange={(e) => { const v = e.target.value; setBrandDraft((d: any) => ({ ...d, [k]: v })); applyBrand({ [k]: v }); }} className="w-10 h-8 cursor-pointer" /></label>
+        ))}
+      </div>
+      <p className="text-[11px] text-zinc-400 mt-6">Changes apply instantly. Click Publish to save live.</p>
+    </div>
+  </div>
+)}
               </div>
             )}
           </div>
@@ -632,3 +714,11 @@ export default function PremiumWebbuilderEngine() {
     </div>
   );
 }
+
+
+
+
+
+
+
+

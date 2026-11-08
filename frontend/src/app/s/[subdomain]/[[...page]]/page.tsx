@@ -13,6 +13,8 @@ interface PublicSitePage {
   slug: string;
   title?: string;
   seoTitle?: string;
+  seoDesc?: string;
+  description?: string;
   order: number;
   content?: unknown;
 }
@@ -84,6 +86,16 @@ export default function PublicSite({ params }: { params: Promise<{ subdomain: st
     const [error, setError] = useState<string | null>(null);
     const [currentPageMeta, setCurrentPageMeta] = useState<PublicSitePage | null>(null);
 
+    // STEP 7 - SEO: push seoTitle/seoDesc into browser tab + Google meta
+    useEffect(() => {
+        if (!currentPageMeta) return;
+        const title = currentPageMeta.seoTitle || currentPageMeta.title || site?.name || subdomain;
+        document.title = title;
+        const desc = currentPageMeta.seoDesc || currentPageMeta.description || "";
+        let meta = document.querySelector('meta[name="description"]');
+        if (!meta) { meta = document.createElement("meta"); meta.setAttribute("name", "description"); document.head.appendChild(meta); }
+        meta.setAttribute("content", desc);
+    }, [currentPageMeta, site?.name, subdomain]);
     useEffect(() => {
         const apiBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").replace(/\/+$/, "");
         let active = true;
@@ -213,3 +225,4 @@ export default function PublicSite({ params }: { params: Promise<{ subdomain: st
         </div>
     );
 }
+

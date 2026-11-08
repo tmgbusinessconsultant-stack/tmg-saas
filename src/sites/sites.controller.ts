@@ -151,6 +151,13 @@ export class SitesController {
     return this.sitesService.deleteSite(id, user.id);
   }
 
+  @Put(':id/seo')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  updateSeo(@Param('id') siteId: string, @Body() body: { title?: string; description?: string; slug?: string }, @CurrentUser() user: AuthenticatedUser) {
+    return this.sitesService.updateSeo(siteId, user.id, body);
+  }
+
   @Put(':id/publish')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
@@ -158,4 +165,5 @@ export class SitesController {
     return this.sitesService.publish(siteId, user.id);
   }
 }
+
 

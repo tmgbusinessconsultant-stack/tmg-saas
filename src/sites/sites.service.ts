@@ -373,6 +373,19 @@ export class SitesService {
     }
   }
 
+
+  async updateSeo(siteId: string, userId: string, body: { title?: string; description?: string; slug?: string }) {
+    await this.assertOwner(siteId, userId);
+    const title = typeof body.title === "string" ? body.title.trim().slice(0, 60) : undefined;
+    const desc = typeof body.description === "string" ? body.description.trim().slice(0, 160) : undefined;
+    // Save SEO on home page (where Google reads it) + also update site name if title given
+    await this.prisma.sitePage.updateMany({
+      where: { siteId, slug: "home" },
+      data: { ...(title !== undefined ? { seoTitle: title, title } : {}), ...(desc !== undefined ? { seoDesc: desc, description: desc } : {}) },
+    });
+    if (title) await this.prisma.site.update({ where: { id: siteId }, data: { name: title } });
+    return { ok: true, seoTitle: title, seoDesc: desc };
+  }
   async publish(siteId: string, userId: string) {
     await this.assertOwner(siteId, userId);
     const homepage = await this.prisma.sitePage.findUnique({
@@ -399,3 +412,4 @@ export class SitesService {
     if (!site) throw new NotFoundException('Site not found.');
   }
 }
+
