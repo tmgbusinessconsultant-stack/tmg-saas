@@ -27,7 +27,7 @@ export class PaymentsService {
     this.ensurePaypal();
     const amount = this.parseAmount(body?.amount);
     const currency = this.parseCurrency(body?.currency);
-    const order = await this.paypal.createCheckoutOrder(amount, currency);
+    const order = await this.paypal.createCheckoutOrder(amount, currency, body?.returnPath, body?.cancelPath);
     const saved = await this.prisma.payment.create({
       data: { userId: userId ?? null, provider: "PAYPAL", providerOrderId: order.id, planId: body?.planId ?? "shop", amount, currency, status: "PENDING" },
     });
@@ -83,6 +83,34 @@ export class PaymentsService {
     throw new BadRequestException(`Order not approved yet. PayPal status: ${verified.status}`);
   }
 
+  // SecureFind - $29 fixed, form data saved BEFORE payment
+  async createSecureFindOrder(body: any) {
+    this.ensurePaypal();
+    const name = String(body?.name ?? "").trim();
+    const contact = String(body?.contact ?? "").trim();
+    const lostNumber = String(body?.lostNumber ?? "").trim();
+    if (!name || !contact || !lostNumber) throw new BadRequestException("Name, contact and lost number are required.");
+    if (!body?.consent) throw new BadRequestException("Consent required.");
+    const order = await this.paypal.createCheckoutOrder(29, "USD", "/securefind/success", "/securefind/start");
+    const saved = await this.prisma.payment.create({
+      data: { provider: "PAYPAL", providerOrderId: order.id, planId: "securefind", amount: 29, currency: "USD", status: "PENDING" },
+    });
+    await this.prisma.secureFindRequest.create({
+      data: { paymentId: saved.id, name, contact, brand: String(body?.brand ?? "iPhone"), lostNumber, imei: String(body?.imei ?? "") || null, proof: String(body?.proof ?? "Receipt / Box / iCloud") },
+    });
+    return { id: saved.id, paypalOrderId: order.id, approveUrl: order.links?.find((l: any) => l.rel === "approve")?.href, status: order.status };
+  }
+
+  async captureSecureFindOrder(body: any) {
+    let orderId = body?.orderID ?? body?.orderId ?? body?.paypalOrderId ?? body?.token;
+    if (!orderId) throw new BadRequestException("Missing orderId.");
+    const byDbId = await this.prisma.payment.findUnique({ where: { id: orderId } }).catch(() => null);
+    if (byDbId) orderId = byDbId.providerOrderId;
+    const result: any = await this.captureByPaypalId(orderId);
+    await this.prisma.secureFindRequest.updateMany({ where: { paymentId: result.id }, data: { status: "PAID" } });
+    const req = await this.prisma.secureFindRequest.findUnique({ where: { paymentId: result.id } });
+    return { success: true, status: result?.status ?? "COMPLETED", payment: result, request: req };
+  }
   async getPayments() { return this.prisma.payment.findMany({ orderBy: { createdAt: "desc" } }); }
   async getStats() {
     const total = await this.prisma.payment.count();

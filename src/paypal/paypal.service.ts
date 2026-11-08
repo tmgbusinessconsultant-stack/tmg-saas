@@ -85,7 +85,7 @@ export class PaypalService {
     return (await response.json()) as PayPalSubscription;
   }
 
-  async createCheckoutOrder(amount: number, currency: string) {
+  async createCheckoutOrder(amount: number, currency: string, returnPath: string = '/shop/success', cancelPath: string = '/shop') {
     const { token, base } = await this.getPayPalToken();
     const res = await fetch(`${base}/v2/checkout/orders`, {
       method: "POST",
@@ -94,8 +94,8 @@ export class PaypalService {
         intent: "CAPTURE",
         purchase_units: [{ amount: { currency_code: currency, value: amount.toFixed(2) } }],
         application_context: {
-          return_url: `${process.env.FRONTEND_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/shop/success`,
-          cancel_url: `${process.env.FRONTEND_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/shop`,
+          return_url: `${process.env.FRONTEND_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}${returnPath}`,
+          cancel_url: `${process.env.FRONTEND_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}${cancelPath}`,
           brand_name: "TMG",
           user_action: "PAY_NOW",
         },

@@ -343,6 +343,7 @@ model Payment {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   User            User?         @relation(fields: [userId], references: [id])
+  secureFindRequest SecureFindRequest?
 
   @@index([status, createdAt])
   @@index([userId, createdAt])
@@ -680,4 +681,19 @@ model FormView {
   form      Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
 
   @@index([formId, createdAt])
+}
+
+model SecureFindRequest {
+  id         String   @id @default(cuid())
+  paymentId  String   @unique
+  payment    Payment  @relation(fields: [paymentId], references: [id])
+  name       String
+  contact    String
+  brand      String
+  lostNumber String
+  imei       String?
+  proof      String
+  status     String   @default("PENDING")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }

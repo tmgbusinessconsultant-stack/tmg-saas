@@ -29,6 +29,13 @@ export class PaymentsController {
   @Public()
   async captureShopOrder(@Body() body: any) { return this.payments.captureShopOrder(body); }
 
+  @Post('securefind/orders')
+  @Public()
+  async createSecureFindOrder(@Body() body: any) { return this.payments.createSecureFindOrder(body); }
+
+  @Post('securefind/capture')
+  @Public()
+  async captureSecureFindOrder(@Body() body: any) { return this.payments.captureSecureFindOrder(body); }
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPER_ADMIN')
