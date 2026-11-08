@@ -8,12 +8,21 @@ export async function seedAdmin() {
   const prisma = new PrismaClient();
   try {
     const existing = await prisma.user.findUnique({ where: { email } });
+    const passwordHash = await bcrypt.hash(password, 12);
     if (existing) {
-      if (!existing.isActive) { await prisma.user.update({ where: { email }, data: { isActive: true } }); console.log('[seed-admin] Reactivated admin ' + email); }
-      else console.log('[seed-admin] Admin already exists: ' + email);
+      const matches = await bcrypt.compare(password, existing.passwordHash);
+      const data: any = {};
+      if (!matches) data.passwordHash = passwordHash;
+      if (!existing.isActive) data.isActive = true;
+      if (existing.role !== UserRole.SUPER_ADMIN) data.role = UserRole.SUPER_ADMIN;
+      if (Object.keys(data).length > 0) {
+        await prisma.user.update({ where: { email }, data });
+        console.log('[seed-admin] UPDATED admin: ' + email + ' (password reset=' + (!matches) + ')');
+      } else {
+        console.log('[seed-admin] Admin already exists: ' + email);
+      }
       return;
     }
-    const passwordHash = await bcrypt.hash(password, 12);
     await prisma.user.create({ data: { email, name: 'Admin', passwordHash, role: UserRole.SUPER_ADMIN, isActive: true, permissions: [] } });
     console.log('[seed-admin] CREATED admin: ' + email);
   } catch (e) { console.log('[seed-admin] ERROR', (e as Error).message); }
