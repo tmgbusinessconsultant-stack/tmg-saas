@@ -28,6 +28,7 @@ import { CvDocumentsModule } from './cv-documents/cv-documents.module';
 import { BusinessPlansModule } from './business-plans/business-plans.module';
 import { RiskAssessmentsModule } from './risk-assessments/risk-assessments.module';
 import { ProductivityPlansModule } from './productivity-plans/productivity-plans.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { PaypalModule } from './paypal/paypal.module';
 
 @Module({
@@ -56,6 +57,7 @@ import { PaypalModule } from './paypal/paypal.module';
     RiskAssessmentsModule,
     ProductivityPlansModule,
     PaypalModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [

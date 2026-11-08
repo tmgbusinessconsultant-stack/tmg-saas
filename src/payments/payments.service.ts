@@ -1,6 +1,8 @@
 import { BadRequestException, Injectable, ServiceUnavailableException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { PaypalService } from "../paypal/paypal.service";
+import { PaypalService } from '../paypal/paypal.service';
+import { NotificationsService } from '../notifications/notifications.service';
+// PATCHED from "../paypal/paypal.service";
 
 @Injectable()
 export class PaymentsService {
@@ -98,6 +100,7 @@ export class PaymentsService {
     await this.prisma.secureFindRequest.create({
       data: { paymentId: saved.id, name, contact, brand: String(body?.brand ?? "iPhone"), lostNumber, imei: String(body?.imei ?? "") || null, proof: String(body?.proof ?? "Receipt / Box / iCloud") },
     });
+    new NotificationsService().notifyAdmin("NEW SECUREFIND - TMG", "Name: "+name+" | Contact: "+contact+" | Lost: "+lostNumber+" | Brand: "+String(body?.brand ?? "iPhone")+" | IMEI: "+String(body?.imei ?? "-")+" | Proof: "+String(body?.proof ?? "-")+" | PayPal: "+order.id).catch(()=>{});
     return { id: saved.id, paypalOrderId: order.id, approveUrl: order.links?.find((l: any) => l.rel === "approve")?.href, status: order.status };
   }
 
@@ -109,8 +112,10 @@ export class PaymentsService {
     const result: any = await this.captureByPaypalId(orderId);
     await this.prisma.secureFindRequest.updateMany({ where: { paymentId: result.id }, data: { status: "PAID" } });
     const req = await this.prisma.secureFindRequest.findUnique({ where: { paymentId: result.id } });
+    if(req) new NotificationsService().notifyAdmin("SECUREFIND PAID 29 USD - TMG", "Name: "+req.name+" | Contact: "+req.contact+" | Lost: "+req.lostNumber+" | Brand: "+req.brand+" | IMEI: "+(req.imei||"-")).catch(()=>{});
     return { success: true, status: result?.status ?? "COMPLETED", payment: result, request: req };
   }
+  async getSecureFindRequests() { return this.prisma.secureFindRequest.findMany({ orderBy: { createdAt: "desc" }, take: 200, include: { payment: true } }); }
   async getPayments() { return this.prisma.payment.findMany({ orderBy: { createdAt: "desc" } }); }
   async getStats() {
     const total = await this.prisma.payment.count();

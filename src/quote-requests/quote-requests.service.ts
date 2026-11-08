@@ -2,13 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { QuoteStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateQuoteRequestDto } from './dto/create-quote-request.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class QuoteRequestsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(dto: CreateQuoteRequestDto) {
-    return this.prisma.quoteRequest.create({
+  async create(dto: CreateQuoteRequestDto) {
+    const saved = await this.prisma.quoteRequest.create({
       data: {
         fullName: dto.name.trim(),
         email: dto.email.trim().toLowerCase(),
@@ -27,6 +28,8 @@ export class QuoteRequestsService {
         createdAt: true,
       },
     });
+    new NotificationsService().notifyAdmin('NEW QUOTE - TMG', `Name: ${dto.name} | Email: ${dto.email} | Phone: ${dto.phone || '-'} | Company: ${dto.company || '-'} | Service: ${dto.serviceType} | Source: ${(dto as any).source || 'website'} | Details: ${(dto.details || '').slice(0,500)}`).catch(()=>{});
+    return saved;
   }
 
   findAll() {
@@ -47,4 +50,3 @@ export class QuoteRequestsService {
     return this.prisma.quoteRequest.findUniqueOrThrow({ where: { id } });
   }
 }
-

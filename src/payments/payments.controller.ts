@@ -36,6 +36,11 @@ export class PaymentsController {
   @Post('securefind/capture')
   @Public()
   async captureSecureFindOrder(@Body() body: any) { return this.payments.captureSecureFindOrder(body); }
+  @Get('admin/securefind')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('SUPER_ADMIN')
+  async listSecureFind() { return this.payments.getSecureFindRequests(); }
+
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('SUPER_ADMIN')

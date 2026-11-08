@@ -26,6 +26,8 @@ type Payment = {
   createdAt: string;
 };
 
+type SecureFindRequest = { id: string; name: string; contact: string; brand: string; lostNumber: string; imei: string | null; proof: string; status: string; createdAt: string; payment?: { amount: number; currency: string; status: string } | null };
+
 type PaymentStats = {
   currency: string;
   total: number;
@@ -51,6 +53,8 @@ function getToken() {
 export default function AdminDashboardPage() {
   const [quotes, setQuotes] = useState<QuoteRequest[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [secureFinds, setSecureFinds] = useState<SecureFindRequest[]>([]);
+  const [secureFindSearch, setSecureFindSearch] = useState("");
   const [paymentStats, setPaymentStats] = useState<PaymentStats>({ currency: "USD", total: 0, completedPayments: 0 });
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState("");
@@ -80,29 +84,32 @@ export default function AdminDashboardPage() {
 
     try {
       const headers = { Authorization: `Bearer ${accessToken}` };
-      const [quotesResponse, paymentsResponse, statsResponse] = await Promise.all([
+      const [quotesResponse, paymentsResponse, secureFindResponse, statsResponse] = await Promise.all([
         fetch(`${apiUrl}/quote-requests`, { headers, cache: "no-store" }),
         fetch(`${apiUrl}/payments`, { headers, cache: "no-store" }),
+        fetch(`${apiUrl}/payments/admin/securefind`, { headers, cache: "no-store" }),
         fetch(`${apiUrl}/payments/stats`, { headers, cache: "no-store" }),
       ]);
 
-      if ([quotesResponse, paymentsResponse, statsResponse].some((r) => r.status === 401 || r.status === 403)) {
+      if ([quotesResponse, paymentsResponse, secureFindResponse, statsResponse].some((r) => r.status === 401 || r.status === 403)) {
         sessionStorage.removeItem("accessToken");
         localStorage.removeItem("token");
         localStorage.removeItem("accessToken");
         setToken("");
         throw new Error("Admin access required. Sign in again.");
       }
-      if (!quotesResponse.ok || !paymentsResponse.ok || !statsResponse.ok) {
+      if (!quotesResponse.ok || !paymentsResponse.ok || !secureFindResponse.ok || !statsResponse.ok) {
         throw new Error(`Load failed (quotes ${quotesResponse.status}, payments ${paymentsResponse.status}, stats ${statsResponse.status})`);
       }
 
-      const [quoteData, paymentData, statsData] = await Promise.all([
+      const [quoteData, paymentData, secureFindData, statsData] = await Promise.all([
         quotesResponse.json() as Promise<QuoteRequest[]>,
         paymentsResponse.json() as Promise<Payment[]>,
+        secureFindResponse.json() as Promise<SecureFindRequest[]>,
         statsResponse.json() as Promise<PaymentStats>,
       ]);
       setQuotes(quoteData);
+      setSecureFinds(secureFindData);
       setPayments(paymentData);
       setPaymentStats(statsData);
     } catch (requestError) {
@@ -211,6 +218,7 @@ export default function AdminDashboardPage() {
     );
   }
 
+  const filteredSecureFinds = secureFinds.filter(s => !secureFindSearch || (s.name+" "+s.contact+" "+s.lostNumber+" "+s.brand).toLowerCase().includes(secureFindSearch.toLowerCase()));
   const pendingQuotes = quotes.filter((quote) => quote.status === "PENDING").length;
 
   return (
@@ -299,6 +307,33 @@ export default function AdminDashboardPage() {
               <tbody>
                 {filteredPayments.map((payment) => (
                   <tr key={payment.id} className="border-t"><td className="px-4 py-4">{new Date(payment.createdAt).toLocaleDateString()}</td><td className="px-4 py-4 capitalize">{payment.planId}</td><td className="px-4 py-4 font-mono text-xs">{payment.orderID}</td><td className="px-4 py-4 font-semibold">{new Intl.NumberFormat("en-US", { style: "currency", currency: payment.currency }).format(payment.amount)}</td><td className="px-4 py-4">{payment.status}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      
+      <section className="mt-8 overflow-hidden rounded-2xl border bg-white shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b p-5">
+          <div><h2 className="text-xl font-bold">SecureFind - $29</h2><p className="text-sm text-slate-500">{filteredSecureFinds.length} / {secureFinds.length} - PAID = ready to work</p></div>
+          <input value={secureFindSearch} onChange={e => setSecureFindSearch(e.target.value)} placeholder="Search name, contact, lost number..." className="px-3 py-2 text-sm border rounded-lg w-64" />
+        </div>
+        {filteredSecureFinds.length === 0 ? <p className="p-8 text-slate-500">No SecureFind requests</p> : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[900px] text-left text-sm">
+              <thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="px-4 py-3">Date</th><th className="px-4 py-3">Customer</th><th className="px-4 py-3">Lost Phone</th><th className="px-4 py-3">Proof / IMEI</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Action</th></tr></thead>
+              <tbody>
+                {filteredSecureFinds.map((s) => (
+                  <tr key={s.id} className="border-t align-top">
+                    <td className="whitespace-nowrap px-4 py-4">{new Date(s.createdAt).toLocaleDateString()}</td>
+                    <td className="px-4 py-4"><div className="font-semibold">{s.name}</div><div>{s.contact}</div></td>
+                    <td className="px-4 py-4"><div className="font-medium">{s.brand}</div><div>{s.lostNumber}</div></td>
+                    <td className="px-4 py-4"><div>{s.proof}</div>{s.imei && <div className="text-xs text-slate-500">IMEI: {s.imei}</div>}</td>
+                    <td className="px-4 py-4"><span className={s.status === "PAID" ? "rounded bg-green-100 px-2 py-1 text-xs font-bold text-green-800" : "rounded bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800"}>{s.status}</span>{s.payment && <div className="mt-1 text-xs">{s.payment.status} - {s.payment.amount} {s.payment.currency}</div>}</td>
+                    <td className="px-4 py-4"><a href={'https://wa.me/' + s.contact.replace(/[^0-9]/g, '')} target="_blank" rel="noreferrer" className="mr-3 text-xs font-bold text-green-700 underline">WhatsApp</a><a href={'tel:' + s.contact} className="text-xs font-bold underline">Call</a></td>
+                  </tr>
                 ))}
               </tbody>
             </table>
