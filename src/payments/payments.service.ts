@@ -1,10 +1,14 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, ServiceUnavailableException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { PaypalService } from "../paypal/paypal.service";
 
 @Injectable()
 export class PaymentsService {
   constructor(private prisma: PrismaService, private paypal: PaypalService) {}
+
+  private ensurePaypal() {
+    if (!this.paypal) throw new ServiceUnavailableException("PayPal is not configured.");
+  }
 
   private parseAmount(v: unknown): number {
     const n = typeof v === "string" ? parseFloat(v) : typeof v === "number" ? v : NaN;
@@ -20,6 +24,7 @@ export class PaymentsService {
 
   // Generic one-time order (logged-in user)
   async createOrder(body: any, userId?: string) {
+    this.ensurePaypal();
     const amount = this.parseAmount(body?.amount);
     const currency = this.parseCurrency(body?.currency);
     const order = await this.paypal.createCheckoutOrder(amount, currency);
@@ -30,6 +35,7 @@ export class PaymentsService {
   }
 
   async captureOrder(body: any) {
+    this.ensurePaypal();
     const orderId = body?.orderId || body?.paypalOrderId;
     if (!orderId) throw new BadRequestException("Missing orderId.");
     return this.captureByPaypalId(orderId);
