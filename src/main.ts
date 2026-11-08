@@ -17,6 +17,8 @@ async function bootstrap() {
 
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
+  // Trust Render proxy - so request.ip = real user IP, not 10.x.x.x
+  app.getHttpAdapter().getInstance().set('trust proxy', 1);
 
   app.use(json({ limit: '50mb' }));
   app.use(urlencoded({ limit: '50mb', extended: true }));

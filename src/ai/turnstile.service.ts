@@ -43,7 +43,7 @@ export class TurnstileService {
     }
 
     const body = new URLSearchParams({ secret, response: token.trim() });
-    if (remoteIp) body.set('remoteip', remoteIp);
+    // DO NOT send remoteip - Render proxy IP != user IP, Cloudflare rejects
 
     let response: Response;
     try {
