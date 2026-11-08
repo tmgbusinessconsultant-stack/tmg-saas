@@ -25,7 +25,7 @@ export default function SecureFindStart() {
                 <h1 className="text-2xl font-black">Request Sent! ✅</h1>
                 <p className="mt-3 text-slate-600">WhatsApp opened. Send the message to us.</p>
                 <p className="mt-4 font-bold">Step 2: Pay $29 to start</p>
-                <a href="https://paypal.me/tmgconsultant/29" target="_blank" className="mt-4 inline-block bg-[#FFC439] text-black font-bold px-6 py-3 rounded-full">Pay $29 with PayPal</a>
+                <a href="https://www.paypal.com/ncp/payment/LXQGCZJR3TJTE" target="_blank" className="mt-4 inline-block bg-[#FFC439] text-black font-bold px-6 py-3 rounded-full">Pay $29 with PayPal</a>
                 <p className="mt-3 text-xs text-slate-500">After payment, send us screenshot on WhatsApp. We start within 15-30 mins.</p>
                 <a href="/securefind" className="mt-4 inline-block text-sm underline">← Back</a>
             </div>
