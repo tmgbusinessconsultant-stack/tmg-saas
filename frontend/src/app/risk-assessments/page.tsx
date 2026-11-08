@@ -25,7 +25,7 @@ export default function Page(){
     const token = getToken() || localStorage.getItem('accessToken') || '';
     fetch(`${API_URL}/risk-assessments`,{
       headers:{Authorization: `Bearer ${token}` },
-      cache:"no-store"
+      next: { revalidate: 300 }
     }).then(r=>r.json()).then(j=>{
       const arr = Array.isArray(j) ? j : isRecord(j) && Array.isArray(j.data) ? j.data : [];
       setData(arr.filter(isRiskRecord));

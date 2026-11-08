@@ -25,7 +25,7 @@ export default function Page() {
     const token = getToken() || localStorage.getItem('accessToken') || '';
     fetch(`${API_URL}/productivity-plans`, {
       headers: { Authorization: `Bearer ${token}` },
-      cache: "no-store",
+      next: { revalidate: 300 },
     })
       .then((r) => r.json())
       .then((j) => {

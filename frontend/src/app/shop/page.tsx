@@ -25,7 +25,7 @@ async function loadShopProducts(): Promise<ShopData> {
     const apiBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").trim().replace(/\/+$/, "");
     const base = apiBase.endsWith("/api") ? apiBase : `${apiBase}/api`;
 
-    const res = await fetch(`${base}/settings/public`, { cache: "no-store" });
+    const res = await fetch(`${base}/settings/public`, { next: { revalidate: 300 } });
     if (!res.ok) throw new Error(`HTTP fetch error code: ${res.status}`);
 
     const data: unknown = await res.json();

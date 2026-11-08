@@ -20,7 +20,7 @@ async function getCmsPosts(): Promise<PublishedPost[]> {
   const base = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
   if (!base) return [];
   try {
-    const response = await fetch(`${base}/blog`, { cache: "no-store" });
+    const response = await fetch(`${base}/blog`, { next: { revalidate: 300 } });
     if (!response.ok) return [];
     return (await response.json()) as PublishedPost[];
   } catch {

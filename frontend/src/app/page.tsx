@@ -7,7 +7,7 @@ import { apiUrl } from "@/lib/backend-api";
 
 async function loadHomepageContent(): Promise<HomepageContent> {
   try {
-    const response = await fetch(apiUrl("/content/homepage"), { cache: "no-store", signal: AbortSignal.timeout(1500) });
+    const response = await fetch(apiUrl("/content/homepage"), { next: { revalidate: 300 }, signal: AbortSignal.timeout(1500) });
     if (!response.ok) return defaultHomepageContent;
     const body = await response.text();
     if (!body.trim()) return defaultHomepageContent;

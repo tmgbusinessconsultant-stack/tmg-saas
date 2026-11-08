@@ -57,7 +57,7 @@ function isPublicGalleryItem(value: unknown): value is PublicGalleryItem {
 
 async function loadGalleryItems(): Promise<{ items: PublicGalleryItem[]; error: string | null }> {
   try {
-    const response = await fetch(contentApiUrl("/gallery"), { cache: "no-store", next: { revalidate: 0 } });
+    const response = await fetch(contentApiUrl("/gallery"), { next: { revalidate: 300 }, next: { revalidate: 0 } });
     if (!response.ok) return { items: [], error: `Gallery request failed (${response.status}).` };
     const data: unknown = await response.json();
     if (!Array.isArray(data) || !data.every(isPublicGalleryItem)) {
