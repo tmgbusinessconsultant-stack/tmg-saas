@@ -48,7 +48,7 @@ export default function ShopClient({ products, title, subtitle }: { products: Sh
         try {
             setBuying(product.id);
             const apiBase = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "") || "http://localhost:4000";
-            const base = apiBase.endsWith("/api") ? apiBase : `${apiBase}/api`;
+            const base = apiBase.replace(/\/api$/i, "") + "/api";
 
             // UPGRADE: Track analytics
             fetch(`${base}/ai/search-analytics`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: `shop_buy_${product.id}`, resultCount: 1 }) }).catch(() => { });

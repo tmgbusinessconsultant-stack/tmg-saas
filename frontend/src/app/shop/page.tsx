@@ -23,7 +23,7 @@ async function loadShopProducts(): Promise<ShopData> {
   try {
     // Standardize URL parsing to guarantee structural endpoint routing integrity
     const apiBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").trim().replace(/\/+$/, "");
-    const base = apiBase.endsWith("/api") ? apiBase : `${apiBase}/api`;
+    const base = apiBase.replace(/\/api$/i, "") + "/api";
 
     const res = await fetch(`${base}/settings/public`, { next: { revalidate: 300 } });
     if (!res.ok) throw new Error(`HTTP fetch error code: ${res.status}`);

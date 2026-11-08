@@ -11,7 +11,7 @@ function SuccessContent() {
   const [copied, setCopied] = useState(false);
 
   const apiBase = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "") || "http://localhost:4000";
-  const base = apiBase.endsWith("/api") ? apiBase : `${apiBase}/api`;
+  const base = apiBase.replace(/\/api$/i, "") + "/api";
   const paypalToken = params.get("token");
   const [captureState, setCaptureState] = useState<"idle"|"capturing"|"done"|"failed">("idle");
   const [downloadToken, setDownloadToken] = useState<string | null>(params.get("token"));

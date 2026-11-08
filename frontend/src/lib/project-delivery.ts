@@ -38,7 +38,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function apiBaseUrl(): string {
   const value = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
   if (!value) throw new Error("The API URL is not configured.");
-  return value.endsWith("/api") ? value : `${value}/api`;
+  return value.replace(/\/api$/i, "") + "/api";
 }
 
 export async function apiRequest<T>(

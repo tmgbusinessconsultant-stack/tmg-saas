@@ -79,7 +79,7 @@ export default function ShopAdminFinalV3BestMatched() {
   const [searchAdmin, setSearchAdmin] = useState("");
 
   const apiBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").replace(/\/+$/, "");
-  const base = apiBase.endsWith("/api") ? apiBase : `${apiBase}/api`;
+  const base = apiBase.replace(/\/api$/i, "") + "/api";
   const getToken = () => localStorage.getItem("access_token") || localStorage.getItem("token") || "";
 
   const load = useCallback(async () => {

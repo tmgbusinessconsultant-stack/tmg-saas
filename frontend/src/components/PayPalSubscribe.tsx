@@ -9,7 +9,7 @@ export default function PayPalSubscribe({ planId, onSuccess }: { planId: string;
   const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
   const currency = process.env.NEXT_PUBLIC_PAYPAL_CURRENCY || "USD";
   const configuredApiUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000").trim().replace(/\/+$/, "");
-  const apiUrl = configuredApiUrl.endsWith("/api") ? configuredApiUrl : `${configuredApiUrl}/api`;
+  const apiUrl = configuredApiUrl.replace(/\/api$/i, "") + "/api";
 
   if (!clientId || !planId) {
     return <p role="status" className="text-sm text-red-600">PayPal is not configured for this plan.</p>;

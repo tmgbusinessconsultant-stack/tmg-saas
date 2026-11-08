@@ -24,7 +24,7 @@ type PlanKey = keyof typeof PAYPAL_PLANS;
 
 function apiBaseUrl(): string {
   const configured = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000").trim().replace(/\/+$/, "");
-  return configured.endsWith("/api") ? configured : `${configured}/api`;
+  return configured.replace(/\/api$/i, "") + "/api";
 }
 
 function getSessionIdentity(): { token: string; userId: string } | null {
