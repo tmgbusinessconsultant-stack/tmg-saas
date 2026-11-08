@@ -4,7 +4,7 @@ export default function SecureFindStart() {
     const [form, setForm] = useState({ name: "", contact: "", brand: "iPhone", lostNumber: "", imei: "", proof: "Receipt / Box / iCloud", consent: false });
     const [paying, setPaying] = useState(false);
     const [cancelled, setCancelled] = useState(false);
-    useEffect(() => { if (window.location.search.includes('cancelled=true')) setCancelled(true); }, []);
+    useEffect(() => { const t = setTimeout(() => { if (window.location.search.includes('cancelled=true')) setCancelled(true); }, 0); return () => clearTimeout(t); }, []);
     const update = (k: string, v: string | boolean) => setForm({ ...form, [k]: v });
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
