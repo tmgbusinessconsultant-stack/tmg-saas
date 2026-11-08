@@ -5,6 +5,7 @@ function SuccessInner() {
     const params = useSearchParams();
     const [state, setState] = useState<"loading"|"done"|"error">("loading");
     const [req, setReq] = useState<{ name?: string; brand?: string; lostNumber?: string } | null>(null);
+    const [countdown, setCountdown] = useState(4);
     useEffect(() => {
         const run = async () => {
             const token = params.get("token");
@@ -22,6 +23,16 @@ function SuccessInner() {
         };
         run();
     }, [params]);
+    useEffect(() => {
+        if (state !== "done") return;
+        if (countdown <= 0) {
+            const msg = `Hi TMG, I just paid $29 for SecureFind. Please start. Name: ${req?.name || ""} | Phone: ${req?.brand || ""} | Lost Number: ${req?.lostNumber || ""}`;
+            window.location.href = `https://wa.me/97470454450?text=${encodeURIComponent(msg)}`;
+            return;
+        }
+        const t = setTimeout(() => setCountdown(c => c - 1), 1000);
+        return () => clearTimeout(t);
+    }, [state, countdown, req]);
     if (state === "loading") return <div className="min-h-screen flex items-center justify-center">Verifying payment with PayPal...</div>;
     if (state === "error") return <div className="min-h-screen flex items-center justify-center px-6 text-center"><div><h1 className="text-2xl font-black">Payment not confirmed</h1><p className="mt-2 text-slate-500">Send your PayPal receipt on WhatsApp: 974 7045 4450</p></div></div>;
     return (
@@ -30,7 +41,8 @@ function SuccessInner() {
                 <h1 className="text-2xl font-black">Payment Confirmed! ✅</h1>
                 <p className="mt-3 text-slate-600">We received $29. We start within 15-30 mins.</p>
                 {req && <p className="mt-4 text-sm">Request for: <b>{req.name}</b> • {req.brand} • {req.lostNumber}</p>}
-                <a href={`https://wa.me/97470454450?text=${encodeURIComponent("Hi TMG, I just paid $29 for SecureFind. Please start.")}`} target="_blank" className="mt-6 inline-block bg-green-500 text-white font-bold px-6 py-3 rounded-full">Message us on WhatsApp →</a>
+                <p className="mt-4 text-sm text-green-600 font-bold">Opening WhatsApp in {countdown}...</p>
+                <a href={`https://wa.me/97470454450?text=${encodeURIComponent(`Hi TMG, I just paid $29 for SecureFind. Please start. Name: ${req?.name || ""} | Phone: ${req?.brand || ""} | Lost Number: ${req?.lostNumber || ""}`)}`} target="_blank" className="mt-4 inline-block bg-green-500 text-white font-bold px-6 py-3 rounded-full">Message us on WhatsApp →</a>
             </div>
         </div>
     );
