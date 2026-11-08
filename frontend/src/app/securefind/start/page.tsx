@@ -1,8 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 export default function SecureFindStart() {
     const [form, setForm] = useState({ name: "", contact: "", brand: "iPhone", lostNumber: "", imei: "", proof: "Receipt / Box / iCloud", consent: false });
     const [paying, setPaying] = useState(false);
+    const [cancelled, setCancelled] = useState(false);
+    useEffect(() => { if (window.location.search.includes('cancelled=true')) setCancelled(true); }, []);
     const update = (k: string, v: string | boolean) => setForm({ ...form, [k]: v });
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -29,6 +31,7 @@ export default function SecureFindStart() {
         <div className="min-h-screen bg-[#0A1628] text-white px-6 pt-32 pb-16">
             <div className="max-w-lg mx-auto bg-white text-slate-900 rounded-2xl p-6 md:p-8">
                 <h1 className="text-2xl font-black text-center">Start Recovery - $29</h1>
+                {cancelled && (<div className="mt-4 bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl text-sm text-center font-bold">Payment cancelled - No money was taken. You can try again.</div>)}
                 <p className="text-center text-sm text-slate-500 mt-1">Proof required. We only help with YOUR OWN phone.</p>
                 <form onSubmit={submit} className="mt-6 space-y-4">
                     <input required placeholder="Your Name" className="w-full border rounded-lg px-3 py-3" value={form.name} onChange={e => update("name", e.target.value)} />

@@ -91,7 +91,7 @@ export class PaymentsService {
     const lostNumber = String(body?.lostNumber ?? "").trim();
     if (!name || !contact || !lostNumber) throw new BadRequestException("Name, contact and lost number are required.");
     if (!body?.consent) throw new BadRequestException("Consent required.");
-    const order = await this.paypal.createCheckoutOrder(29, "USD", "/securefind/success", "/securefind/start");
+    const order = await this.paypal.createCheckoutOrder(29, "USD", "/securefind/success", "/securefind/start?cancelled=true");
     const saved = await this.prisma.payment.create({
       data: { provider: "PAYPAL", providerOrderId: order.id, planId: "securefind", amount: 29, currency: "USD", status: "PENDING" },
     });
