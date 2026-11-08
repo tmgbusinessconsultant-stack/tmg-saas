@@ -15,7 +15,7 @@ services:
       - key: JWT_SECRET
         sync: false
       - key: ADMIN_EMAIL
-        value: admin@tmgbusinessconsulting.com
+        value: admin@tmg.qa
       - key: ADMIN_PASSWORD
         sync: false
   - type: web

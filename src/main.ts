@@ -1,4 +1,4 @@
-﻿import './common/sentry';
+import './common/sentry';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { configureApp } from './configure-app';
@@ -9,6 +9,7 @@ import { join } from 'path';
 import * as express from 'express';
 import { resolvePayPalMode } from './paypal/paypal-config';
 import { createPayPalWebhookRateLimit } from './paypal/paypal-webhook-rate-limit';
+import { seedAdmin } from './seed-admin';
 
 async function bootstrap() {
   resolvePayPalMode();
@@ -49,6 +50,7 @@ async function bootstrap() {
 
   const port = Number(process.env.PORT) || 4000;
   await app.listen(port, '0.0.0.0');
+  await seedAdmin();
 
   logger.log(`ðŸš€ Production Stack Engine Active on http://localhost:${port}/api`);
   logger.log(`ðŸ“ Uploads served at http://localhost:${port}/uploads`);
