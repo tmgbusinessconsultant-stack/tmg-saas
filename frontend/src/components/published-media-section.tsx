@@ -51,10 +51,10 @@ async function loadPublishedImages(location: string): Promise<PublishedImage[] |
     if (!base) return null;
 
     const response = await fetch(contentApiUrl(`/content/media?location=${encodeURIComponent(location)}`), {
-      cache: "no-store",
+      next: { revalidate: 300 },
     });
 
-    if (!response.ok) throw new Error(`Published media request failed (${response.status}).`);
+    if (response.status === 429) return null; if (!response.ok) throw new Error(`Published media request failed (${response.status}).`);
     const data: unknown = await response.json();
     if (!Array.isArray(data) || !data.every(isPublishedImage)) throw new Error("Published media response has an invalid format.");
     return data;
