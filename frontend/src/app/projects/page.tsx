@@ -6,7 +6,7 @@ type ProjectSummary = { id: string; title?: string; name?: string };
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
-  useEffect(()=>{ fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/projects`,{headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}}).then(r=>r.json()).then(d=>setProjects(d.data||[])).catch(()=>{}); },[]);
+  useEffect(()=>{ fetch(`${(process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").replace(/\/+$/, "")}/projects`,{headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}}).then(r=>r.json()).then(d=>setProjects(d.data||[])).catch(()=>{}); },[]);
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex justify-between items-center"><h1 className="text-3xl font-bold">Projects</h1><Link href="/upload" className="bg-black text-white px-4 py-2 rounded">New Project</Link></div>

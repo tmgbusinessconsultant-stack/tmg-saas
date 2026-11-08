@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: tmg-saas
+    env: node
+    plan: free
+    buildCommand: npm install && npx prisma generate && npx prisma migrate deploy && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: ADMIN_EMAIL
+        value: admin@tmgbusinessconsulting.com
+      - key: ADMIN_PASSWORD
+        sync: false
+  - type: web
+    name: tmg_frontend
+    env: node
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://tmg-saas.onrender.com/api
+      - key: NEXT_PUBLIC_BACKEND_URL
+        value: https://tmg-saas.onrender.com
+      - key: NEXT_PUBLIC_PAYPAL_CLIENT_ID
+        value: BAA8bu6zmvig-nnhJwVGT4zBPQ36am9C21iCgBNMDMvLf7SGlELs29GIlE47OKO9mn-Z7GBJ0f0MduvSCw
+      - key: NEXT_PUBLIC_TURNSTILE_SITE_KEY
+        value: 0x4AAAAAAFdiNqpWqISkOtBL
+      - key: NEXT_PUBLIC_PAYPAL_CURRENCY
+        value: USD
