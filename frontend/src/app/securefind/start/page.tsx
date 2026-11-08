@@ -20,7 +20,7 @@ export default function SecureFindStart() {
                 return;
             }
             throw new Error("No approveUrl");
-        } catch (err) {
+        } catch {
             const msg = `SECUREFIND - NEW REQUEST\nName: ${form.name}\nContact: ${form.contact}\nPhone: ${form.brand}\nLost Number: ${form.lostNumber}\nIMEI/Serial: ${form.imei}\nProof: ${form.proof}\nI confirm this is MY OWN phone.`;
             window.open(`https://wa.me/97470454450?text=${encodeURIComponent(msg)}`, "_blank");
         } finally { setPaying(false); }

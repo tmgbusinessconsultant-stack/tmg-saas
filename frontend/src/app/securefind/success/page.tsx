@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 function SuccessInner() {
     const params = useSearchParams();
     const [state, setState] = useState<"loading"|"done"|"error">("loading");
-    const [req, setReq] = useState<any>(null);
+    const [req, setReq] = useState<{ name?: string; brand?: string; lostNumber?: string } | null>(null);
     useEffect(() => {
         const run = async () => {
             const token = params.get("token");

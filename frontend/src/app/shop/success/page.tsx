@@ -21,7 +21,6 @@ function SuccessContent() {
     fetch(`${base}/payments/shop/capture`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orderID: paypalToken }) })
       .then(r => r.json()).then(d => { if (d?.status === "COMPLETED" || d?.success) { setCaptureState("done"); if (d.downloadToken) setDownloadToken(d.downloadToken); } else setCaptureState("failed"); })
       .catch(() => setCaptureState("failed"));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paypalToken]);
 
   // BEST: Use same endpoint as ShopClient + fallback
