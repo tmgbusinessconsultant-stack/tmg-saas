@@ -575,7 +575,7 @@ const [showPublish, setShowPublish] = useState(false);
 {showPublish && (
   <div className="fixed inset-0 z-[9999] flex justify-end">
     <div className="absolute inset-0 bg-black/40" onClick={() => setShowPublish(false)} />
-    <div className="relative w-[480px] max-w-[95vw] bg-white h-full shadow-2xl p-5 overflow-y-auto">
+    <div className="relative w-[480px] max-w-[95vw] bg-white text-slate-900 h-full shadow-2xl p-5 overflow-y-auto">
       <div className="flex justify-between items-center mb-3"><h2 className="text-lg font-bold">🚀 Publish & Share</h2><button onClick={() => setShowPublish(false)} className="text-2xl px-2">×</button></div>
       <div className="border rounded-xl p-4 mb-4 bg-violet-50"><div className="text-xs text-zinc-500 mb-1">LIVE URL</div><div className="text-sm font-mono break-all mb-3">{liveUrl}</div><div className="flex gap-2"><button onClick={()=>{navigator.clipboard.writeText(liveUrl); alert("Link copied!");}} className="bg-black text-white px-3 py-2 rounded-lg text-sm font-bold flex-1">📋 Copy Link</button><a href={liveUrl} target="_blank" className="bg-violet-600 text-white px-3 py-2 rounded-lg text-sm font-bold flex-1 text-center">Open Live ↗</a></div><button onClick={async()=>{await handleProductionPublishPipeline();}} className="w-full mt-2 bg-emerald-600 text-white px-3 py-2 rounded-lg text-sm font-bold">Publish Now - Go Live</button><p className="text-[11px] text-zinc-500 mt-2">Publish saves current canvas + makes it live at the URL above.</p></div>
       <h3 className="font-semibold text-sm mb-2">🔍 SEO - Google Search</h3>
@@ -589,7 +589,7 @@ const [showPublish, setShowPublish] = useState(false);
       {showLeads && (
   <div className="fixed inset-0 z-[9999] flex justify-end">
     <div className="absolute inset-0 bg-black/40" onClick={() => setShowLeads(false)} />
-    <div className="relative w-[480px] max-w-[95vw] bg-white h-full shadow-2xl p-5 overflow-y-auto">
+    <div className="relative w-[480px] max-w-[95vw] bg-white text-slate-900 h-full shadow-2xl p-5 overflow-y-auto">
       <div className="flex justify-between items-center mb-1"><h2 className="text-lg font-bold">📩 Leads & Forms</h2><button onClick={() => setShowLeads(false)} className="text-2xl px-2">×</button></div>
       <div className="border rounded-xl p-3 mb-4 bg-zinc-50"><div className="font-semibold text-sm mb-2">+ Create New Form</div><div className="flex gap-2"><input value={newFormName} onChange={(e)=>setNewFormName(e.target.value)} className="flex-1 border rounded-lg px-3 py-2 text-sm" /><button onClick={createForm} className="bg-black text-white px-3 py-2 rounded-lg text-sm font-bold">Create</button></div><p className="text-[11px] text-zinc-500 mt-2">After create, copy its ID below, drag Form block into page, paste ID in block settings.</p></div>
       <h3 className="font-semibold text-sm mb-2">Your Forms ({formsList.length})</h3>
@@ -602,7 +602,7 @@ const [showPublish, setShowPublish] = useState(false);
       {showBrandKit && (
   <div className="fixed inset-0 z-[9999] flex justify-end">
     <div className="absolute inset-0 bg-black/40" onClick={() => setShowBrandKit(false)} />
-    <div className="relative w-[360px] max-w-[90vw] bg-white h-full shadow-2xl p-5 overflow-y-auto">
+    <div className="relative w-[360px] max-w-[90vw] bg-white text-slate-900 h-full shadow-2xl p-5 overflow-y-auto">
       <div className="flex justify-between items-center mb-1"><h2 className="text-lg font-bold">🎨 Brand Kit</h2><button onClick={() => setShowBrandKit(false)} className="text-2xl leading-none px-2">×</button></div>
       <p className="text-xs text-zinc-500 mb-4">One click changes header, footer & page for whole site.</p>
       <div className="space-y-2 mb-6">
