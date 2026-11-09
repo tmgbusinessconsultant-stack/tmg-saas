@@ -17,6 +17,8 @@ const services = [
   { name: "Company Formation & Global Setup", description: "Global business setup guidance: US LLC, UK LTD, UAE, Qatar hub - documents, bank, compliance handled online.", benefits: ["Setup Pathway Guidance","Documents & Compliance Overview","Remote Execution"], href: "/booking?service=company-formation", badge: "Global • Qatar Hub" },
   { name: "PRO & Document Clearing - Remote", description: "Administrative requirements and document processing handled remotely via secure portal.", benefits: ["Requirements Guidance","Document Preparation","Process Coordination"], href: "/booking?service=pro-services", badge: "Remote Handling" },
   { name: "Website & Digital Growth", description: "Website audit, messaging strategy and conversion improvements for stronger digital presence.", benefits: ["Website Audit","Messaging & Conversion Strategy","Lead Generation Improvements"], href: "/booking?service=website-growth", badge: "Online Delivery" },
+  { name: "SecureFind - Find Verified Suppliers", description: "Find verified suppliers and business partners safely. 100% legal, owner-only verification - no middlemen, no scams.", benefits: ["Verified Suppliers Only","100% Legal & Owner Only","Direct Contact - No Middlemen"], href: "/securefind", badge: "100% Legal • Owner Only" },
+  { name: "TMG Academy - Training & Workshops", description: "Practical leadership, AI, business analysis and productivity training for teams in Qatar and worldwide. Tailored workshops for your organization.", benefits: ["Leadership & Team Development","AI Tools & Responsible Adoption","Productivity & Workflow Improvement"], href: "/training", badge: "Workshops • Teams" },
 ];
 
 export default function ServicesPage() {
@@ -33,7 +35,7 @@ export default function ServicesPage() {
             <div className="flex justify-between gap-4"><h2 className="text-xl font-bold">{s.name}</h2><span className="px-3 py-1 rounded-full text-[10px] font-bold" style={{ background: "#FFF9E5", color: "#D4AF37" }}>{s.badge}</span></div>
             <p className="mt-4 text-slate-600 text-sm flex-1">{s.description}</p>
             <ul className="mt-6 space-y-2 text-sm text-slate-700">{s.benefits.map(b => <li key={b} className="flex gap-2"><span style={{ color: "#D4AF37" }}>✓</span>{b}</li>)}</ul>
-            <Link href={s.href} className="mt-8 inline-flex px-6 py-3 text-white text-sm font-bold rounded-full w-fit" style={{ background: "var(--primary)" }}>Request Quote</Link>
+            <Link href={s.href} className="mt-8 inline-flex px-6 py-3 text-white text-sm font-bold rounded-full w-fit" style={{ background: "var(--primary)" }}>{s.href === "/securefind" ? "Explore SecureFind" : s.href === "/training" ? "View Training Programs" : "Request Quote"}</Link>
           </div>
         ))}
       </div>
@@ -41,3 +43,5 @@ export default function ServicesPage() {
     </div>
   );
 }
+
+

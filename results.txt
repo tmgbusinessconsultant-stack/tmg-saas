@@ -1,0 +1,661 @@
+=== TMG CHECK 2 ===
+--- FRONTEND FILES ---
+C:\tmg-saas\frontend\src\instrumentation-client.ts
+C:\tmg-saas\frontend\src\instrumentation.ts
+C:\tmg-saas\frontend\src\app\auth-form.tsx
+C:\tmg-saas\frontend\src\app\favicon.ico
+C:\tmg-saas\frontend\src\app\globals.css
+C:\tmg-saas\frontend\src\app\globals.css.backup-selection
+C:\tmg-saas\frontend\src\app\layout.tsx
+C:\tmg-saas\frontend\src\app\layout.tsx.backup-footer
+C:\tmg-saas\frontend\src\app\page.tsx
+C:\tmg-saas\frontend\src\app\page.tsx.backup-cta-fix
+C:\tmg-saas\frontend\src\app\page.tsx.backup-professional
+C:\tmg-saas\frontend\src\app\page.tsx.backup-professional2
+C:\tmg-saas\frontend\src\app\page.tsx.backup-pure-black-white
+C:\tmg-saas\frontend\src\app\robots.ts
+C:\tmg-saas\frontend\src\app\sitemap.ts
+C:\tmg-saas\frontend\src\app\about\page.tsx
+C:\tmg-saas\frontend\src\app\admin\AdminPlansPanel.tsx
+C:\tmg-saas\frontend\src\app\admin\page.tsx
+C:\tmg-saas\frontend\src\app\admin\activity\page.tsx
+C:\tmg-saas\frontend\src\app\admin\ai-center\page.tsx
+C:\tmg-saas\frontend\src\app\admin\analytics\page.tsx
+C:\tmg-saas\frontend\src\app\admin\content\page.tsx
+C:\tmg-saas\frontend\src\app\admin\content\blog\page.tsx
+C:\tmg-saas\frontend\src\app\admin\content\blog\rich-text-editor.tsx
+C:\tmg-saas\frontend\src\app\admin\content\categories\page.tsx
+C:\tmg-saas\frontend\src\app\admin\content\gallery\page.tsx
+C:\tmg-saas\frontend\src\app\admin\content\homepage\page.tsx
+C:\tmg-saas\frontend\src\app\admin\content\media\page.tsx
+C:\tmg-saas\frontend\src\app\admin\content\seo\page.tsx
+C:\tmg-saas\frontend\src\app\admin\content\shop\page.tsx
+C:\tmg-saas\frontend\src\app\admin\integrations\page.tsx
+C:\tmg-saas\frontend\src\app\admin\projects\page.tsx
+C:\tmg-saas\frontend\src\app\admin\settings\page.tsx
+C:\tmg-saas\frontend\src\app\admin\shop\page.tsx
+C:\tmg-saas\frontend\src\app\admin\sites\page.tsx
+C:\tmg-saas\frontend\src\app\admin\superapp\page.tsx
+C:\tmg-saas\frontend\src\app\admin\users\page.tsx
+C:\tmg-saas\frontend\src\app\ai\page.tsx
+C:\tmg-saas\frontend\src\app\ai-tools\ai-data-notice.tsx
+C:\tmg-saas\frontend\src\app\ai-tools\layout.tsx
+C:\tmg-saas\frontend\src\app\ai-tools\page.tsx
+C:\tmg-saas\frontend\src\app\ai-tools\business-assistant\page.tsx
+C:\tmg-saas\frontend\src\app\ai-tools\business-contracts\page.tsx
+C:\tmg-saas\frontend\src\app\ai-tools\business-plan\page.tsx
+C:\tmg-saas\frontend\src\app\ai-tools\cover-letter\page.tsx
+C:\tmg-saas\frontend\src\app\ai-tools\cv-builder\page.tsx
+C:\tmg-saas\frontend\src\app\ai-tools\document-review\page.tsx
+C:\tmg-saas\frontend\src\app\ai-tools\policy-generator\page.tsx
+C:\tmg-saas\frontend\src\app\ai-tools\productivity-planner\page.tsx
+C:\tmg-saas\frontend\src\app\ai-tools\proposal-packs\page.tsx
+C:\tmg-saas\frontend\src\app\ai-tools\risk-assessment\page.tsx
+C:\tmg-saas\frontend\src\app\ai-tools\sop-builder\page.tsx
+C:\tmg-saas\frontend\src\app\api\route.ts
+C:\tmg-saas\frontend\src\app\api\ai\business-assistant\route.ts
+C:\tmg-saas\frontend\src\app\api\ai\business-contracts\route.ts
+C:\tmg-saas\frontend\src\app\api\ai\business-plan\route.ts
+C:\tmg-saas\frontend\src\app\api\ai\cover-letter\route.ts
+C:\tmg-saas\frontend\src\app\api\ai\cv-builder\route.ts
+C:\tmg-saas\frontend\src\app\api\ai\document-review\route.ts
+C:\tmg-saas\frontend\src\app\api\ai\policy-generator\route.ts
+C:\tmg-saas\frontend\src\app\api\ai\productivity-planner\route.ts
+C:\tmg-saas\frontend\src\app\api\ai\proposal-packs\route.ts
+C:\tmg-saas\frontend\src\app\api\ai\risk-assessment\route.ts
+C:\tmg-saas\frontend\src\app\api\ai\sop-builder\route.ts
+C:\tmg-saas\frontend\src\app\api\auth\[mode]\route.ts
+C:\tmg-saas\frontend\src\app\api\cv-documents\file\[id]\route.ts
+C:\tmg-saas\frontend\src\app\api\indexnow\route.ts
+C:\tmg-saas\frontend\src\app\api\paypal\orders\route.ts
+C:\tmg-saas\frontend\src\app\api\paypal\orders\capture\route.ts
+C:\tmg-saas\frontend\src\app\api\search\route.ts
+C:\tmg-saas\frontend\src\app\api\search-suggestions\route.ts
+C:\tmg-saas\frontend\src\app\blog\article-share.tsx
+C:\tmg-saas\frontend\src\app\blog\blog-content.ts
+C:\tmg-saas\frontend\src\app\blog\page.tsx
+C:\tmg-saas\frontend\src\app\blog\[slug]\page.tsx
+C:\tmg-saas\frontend\src\app\booking\page.tsx
+C:\tmg-saas\frontend\src\app\builder\[siteId]\config.tsx
+C:\tmg-saas\frontend\src\app\builder\[siteId]\config.tsx.bak2
+C:\tmg-saas\frontend\src\app\builder\[siteId]\page.tsx
+C:\tmg-saas\frontend\src\app\business-assistant\page.tsx
+C:\tmg-saas\frontend\src\app\business-plans\page.tsx
+C:\tmg-saas\frontend\src\app\case-studies\page.tsx
+C:\tmg-saas\frontend\src\app\contact\page.tsx
+C:\tmg-saas\frontend\src\app\cv-builder\page.tsx
+C:\tmg-saas\frontend\src\app\cv-documents\page.tsx
+C:\tmg-saas\frontend\src\app\dashboard\dashboard-inner.tsx
+C:\tmg-saas\frontend\src\app\dashboard\page-wrapper.tsx
+C:\tmg-saas\frontend\src\app\dashboard\page.tsx
+C:\tmg-saas\frontend\src\app\dashboard\cvs\page.tsx
+C:\tmg-saas\frontend\src\app\dashboard\forms\page.tsx
+C:\tmg-saas\frontend\src\app\dashboard\sites\[siteId]\page.tsx
+C:\tmg-saas\frontend\src\app\documents\page.tsx
+C:\tmg-saas\frontend\src\app\gallery\page.tsx
+C:\tmg-saas\frontend\src\app\login\page.tsx
+C:\tmg-saas\frontend\src\app\portfolio\page.tsx
+C:\tmg-saas\frontend\src\app\pricing\page.tsx
+C:\tmg-saas\frontend\src\app\privacy\page.tsx
+C:\tmg-saas\frontend\src\app\productivity-plans\page.tsx
+C:\tmg-saas\frontend\src\app\projects\page.tsx
+C:\tmg-saas\frontend\src\app\quote\page.tsx
+C:\tmg-saas\frontend\src\app\register\page.tsx
+C:\tmg-saas\frontend\src\app\risk-assessments\page.tsx
+C:\tmg-saas\frontend\src\app\s\[subdomain]\[[...page]]\page.tsx
+C:\tmg-saas\frontend\src\app\search\page.tsx
+C:\tmg-saas\frontend\src\app\search\search-center.tsx
+C:\tmg-saas\frontend\src\app\securefind\page.tsx
+C:\tmg-saas\frontend\src\app\securefind\start\page.tsx
+C:\tmg-saas\frontend\src\app\securefind\success\page.tsx
+C:\tmg-saas\frontend\src\app\services\page.tsx
+C:\tmg-saas\frontend\src\app\services\ai-consulting\page.tsx
+C:\tmg-saas\frontend\src\app\services\business-analysis\page.tsx
+C:\tmg-saas\frontend\src\app\services\business-consulting\page.tsx
+C:\tmg-saas\frontend\src\app\services\company-formation\page.tsx
+C:\tmg-saas\frontend\src\app\services\pro-services\page.tsx
+C:\tmg-saas\frontend\src\app\services\website-consulting\page.tsx
+C:\tmg-saas\frontend\src\app\shop\page.tsx
+C:\tmg-saas\frontend\src\app\shop\shop-client.tsx
+C:\tmg-saas\frontend\src\app\shop\success\page.tsx
+C:\tmg-saas\frontend\src\app\sites\page.tsx
+C:\tmg-saas\frontend\src\app\success\page.tsx
+C:\tmg-saas\frontend\src\app\terms\page.tsx
+C:\tmg-saas\frontend\src\app\testimonials\page.tsx
+C:\tmg-saas\frontend\src\app\training\page.tsx
+C:\tmg-saas\frontend\src\app\upload\page.tsx
+C:\tmg-saas\frontend\src\components\admin-media-preview.tsx
+C:\tmg-saas\frontend\src\components\authenticated-admin-link.tsx
+C:\tmg-saas\frontend\src\components\desktop-navigation.tsx
+C:\tmg-saas\frontend\src\components\GlobalStyles.tsx
+C:\tmg-saas\frontend\src\components\mobile-navigation.tsx
+C:\tmg-saas\frontend\src\components\PayPalSubscribe.tsx
+C:\tmg-saas\frontend\src\components\published-media-section.tsx
+C:\tmg-saas\frontend\src\components\quote-request-form.tsx
+C:\tmg-saas\frontend\src\components\QuoteRequestForm.tsx
+C:\tmg-saas\frontend\src\components\site-header.tsx
+C:\tmg-saas\frontend\src\components\turnstile-challenge.tsx
+C:\tmg-saas\frontend\src\components\TurnstileChallenge.tsx
+C:\tmg-saas\frontend\src\components\upgrade-modal.tsx
+C:\tmg-saas\frontend\src\components\superapp\ChatPanel.tsx
+C:\tmg-saas\frontend\src\components\superapp\PreviewPanel.tsx
+C:\tmg-saas\frontend\src\components\superapp\QuickActions.tsx
+C:\tmg-saas\frontend\src\components\superapp\SidebarPanel.tsx
+C:\tmg-saas\frontend\src\hooks\use-paywall.ts
+C:\tmg-saas\frontend\src\lib\api.ts
+C:\tmg-saas\frontend\src\lib\auth-guard.ts
+C:\tmg-saas\frontend\src\lib\backend-api.ts
+C:\tmg-saas\frontend\src\lib\contact-details.ts
+C:\tmg-saas\frontend\src\lib\content-management.ts
+C:\tmg-saas\frontend\src\lib\homepage-content.ts
+C:\tmg-saas\frontend\src\lib\indexnow.ts
+C:\tmg-saas\frontend\src\lib\json-ld.ts
+C:\tmg-saas\frontend\src\lib\payment-plans.ts
+C:\tmg-saas\frontend\src\lib\project-delivery.ts
+
+--- FRONTEND: quote-request ---
+C:\tmg-saas\frontend\src\app\admin\page.tsx:88 =>         fetch(`${apiUrl}/quote-requests`, { headers, cache: "no-store" }),
+C:\tmg-saas\frontend\src\app\admin\page.tsx:156 =>       const response = await fetch(`${apiUrl}/quote-requests/${encodeURIComponent(id)}/status`, {
+C:\tmg-saas\frontend\src\app\admin\page.tsx:177 =>       const res = await fetch(`${apiUrl}/quote-requests/${encodeURIComponent(id)}`, {
+C:\tmg-saas\frontend\src\app\booking\page.tsx:3 => import QuoteRequestForm from "@/components/quote-request-form";
+C:\tmg-saas\frontend\src\app\contact\page.tsx:3 => import QuoteRequestForm from "@/components/quote-request-form";
+C:\tmg-saas\frontend\src\app\quote\page.tsx:5 => import QuoteRequestForm from "@/components/quote-request-form";
+C:\tmg-saas\frontend\src\components\quote-request-form.tsx:16 =>     try { let api = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").trim().replace(/\/+$/, ""); api = api.replace(/\/api$/i, "") + "/api"; await fetch(`${api}/quote-requests`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, source, captchaToken }) }); setSuccess(true); } catch { setSuccess(true); } finally { setLoading(false); }
+
+--- FRONTEND: fetch / api url ---
+C:\tmg-saas\frontend\src\app\admin\content\blog\page.tsx:174 => <select value="" onChange={e => setForm({ ...form, featuredImage: e.target.value })} className="mt-2 block w-full rounded-md border p-2"><option value="">Choose media…</option>{media.filter(m => m.status === "AVAILABLE").map(item => <option key={item.id} value={`${process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "")}${item.url}`}>{item.originalName}</option>)}</select>
+C:\tmg-saas\frontend\src\app\admin\content\shop\page.tsx:81 => const apiBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\app\admin\shop\page.tsx:81 => const apiBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\app\admin\sites\page.tsx:35 => const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+C:\tmg-saas\frontend\src\app\admin\superapp\page.tsx:23 => const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tmg-saas.onrender.com/api';
+C:\tmg-saas\frontend\src\app\admin\AdminPlansPanel.tsx:4 => const API = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "http://localhost:3001";
+C:\tmg-saas\frontend\src\app\admin\AdminPlansPanel.tsx:73 => res = await fetch(`${API}/api/user-plans/admin/all`, {
+C:\tmg-saas\frontend\src\app\admin\AdminPlansPanel.tsx:101 => const baseApi = `${API}/api/user-plans/admin`;
+C:\tmg-saas\frontend\src\app\admin\page.tsx:78 => const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\app\admin\page.tsx:152 => const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\app\admin\page.tsx:174 => const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\app\admin\page.tsx:186 => const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\app\ai-tools\business-assistant\page.tsx:69 => const res = await fetch('/api/ai/business-assistant', {
+C:\tmg-saas\frontend\src\app\ai-tools\business-contracts\page.tsx:56 => const base = process.env.NEXT_PUBLIC_API_URL || '/api';
+C:\tmg-saas\frontend\src\app\ai-tools\business-plan\page.tsx:11 => const res=await fetch(`${process.env.NEXT_PUBLIC_API_URL||"http://localhost:4000"}/api/ai/business-plan`,{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${localStorage.getItem("token")}`},body:JSON.stringify({idea})});
+C:\tmg-saas\frontend\src\app\ai-tools\business-plan\page.tsx:19 => <p className="text-gray-500">Connected to /api/ai/business-plan + Documents Hub</p>
+C:\tmg-saas\frontend\src\app\ai-tools\cover-letter\page.tsx:68 => const base = process.env.NEXT_PUBLIC_API_URL || '/api';
+C:\tmg-saas\frontend\src\app\ai-tools\cv-builder\page.tsx:29 => return process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "") || "http://localhost:4000";
+C:\tmg-saas\frontend\src\app\ai-tools\document-review\page.tsx:48 => const res = await fetch(`/api/cv-documents/file/${savedDoc.id}`, { headers: { Authorization: `Bearer ${token}` } });
+C:\tmg-saas\frontend\src\app\ai-tools\policy-generator\page.tsx:42 => const res = await fetch(`/api/cv-documents/file/${savedDoc.id}`, { headers: { Authorization: `Bearer ${token}` } });
+C:\tmg-saas\frontend\src\app\ai-tools\proposal-packs\page.tsx:42 => const res = await fetch(`/api/cv-documents/file/${savedDoc.id}`, { headers: { Authorization: `Bearer ${token}` } });
+C:\tmg-saas\frontend\src\app\ai-tools\sop-builder\page.tsx:41 => const res = await fetch(`/api/cv-documents/file/${savedDoc.id}`, { headers: { Authorization: `Bearer ${token}` } });
+C:\tmg-saas\frontend\src\app\ai-tools\page.tsx:49 => const apiUrl = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\app\api\cv-documents\file\[id]\route.ts:12 => const apiBase = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "") || "http://localhost:4000/api";
+C:\tmg-saas\frontend\src\app\api\paypal\orders\capture\route.ts:20 => const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\app\api\paypal\orders\route.ts:15 => const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\app\api\search\route.ts:166 => const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\app\blog\[slug]\page.tsx:58 => const url = `${(process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000").replace(/\/+$/, "")}/api/blog/${encodeURIComponent(slug)}`;
+C:\tmg-saas\frontend\src\app\blog\page.tsx:20 => const base = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\app\builder\[siteId]\config.tsx:47 => fetch(`/api/forms/${formId}`).then(r => r.json()).then(f => { setForm(f); setLoading(false); }).catch(() => setLoading(false));
+C:\tmg-saas\frontend\src\app\builder\[siteId]\config.tsx:51 => try { await fetch(`/api/forms/${formId}/submit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data: values }) }); setDone(true); }
+C:\tmg-saas\frontend\src\app\cv-documents\page.tsx:8 => useEffect(()=>{ fetch(`${process.env.NEXT_PUBLIC_API_URL||"http://localhost:4000"}/api/cv-documents`,{headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}}).then(r=>r.json()).then(d=>setDocs(d.data||d||[])).catch(()=>{}); },[]);
+C:\tmg-saas\frontend\src\app\dashboard\cvs\page.tsx:67 => const res = await fetch(`/api/cv-documents/file/${encodeURIComponent(selectedDocumentId)}`, {
+C:\tmg-saas\frontend\src\app\dashboard\cvs\page.tsx:88 => const res = await fetch(`/api/cv-documents/file/${selectedDocument.id}?download=1`, {
+C:\tmg-saas\frontend\src\app\dashboard\forms\page.tsx:16 => fetch("http://localhost:4000/api/sites", { headers: { Authorization: `Bearer ${token}` } })
+C:\tmg-saas\frontend\src\app\dashboard\forms\page.tsx:23 => const res = await fetch(`http://localhost:4000/api/sites/${siteId}/forms`, { headers: { Authorization: `Bearer ${token}` } });
+C:\tmg-saas\frontend\src\app\dashboard\forms\page.tsx:30 => const res = await fetch(`http://localhost:4000/api/sites/${selectedSite}/forms`, {
+C:\tmg-saas\frontend\src\app\dashboard\sites\[siteId]\page.tsx:80 => const API = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\app\pricing\page.tsx:26 => const configured = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000").trim().replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\app\projects\page.tsx:9 => useEffect(()=>{ fetch(`${(process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").replace(/\/+$/, "")}/projects`,{headers:{Authorization:`Bearer ${localStorage.getItem("token")}`}}).then(r=>r.json()).then(d=>setProjects(d.data||[])).catch(()=>{}); },[]);
+C:\tmg-saas\frontend\src\app\s\[subdomain]\[[...page]]\page.tsx:100 => const apiBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:40 => // Popular from same API — no NEXT_PUBLIC_API_URL exposure
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:41 => fetch("/api/search-suggestions", { cache: "no-store" })
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:57 => const res = await fetch(`/api/search?q=${encodeURIComponent(submittedQuery)}`, { signal: ctrl.signal, cache: "no-store" });
+C:\tmg-saas\frontend\src\app\securefind\start\page.tsx:14 => const apiBase = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "") || "http://localhost:4000";
+C:\tmg-saas\frontend\src\app\securefind\success\page.tsx:16 => const apiBase = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "") || "http://localhost:4000";
+C:\tmg-saas\frontend\src\app\shop\success\page.tsx:13 => const apiBase = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "") || "http://localhost:4000";
+C:\tmg-saas\frontend\src\app\shop\page.tsx:25 => const apiBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").trim().replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\app\shop\shop-client.tsx:50 => const apiBase = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "") || "http://localhost:4000";
+C:\tmg-saas\frontend\src\app\testimonials\page.tsx:7 => const base = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\app\auth-form.tsx:52 => const response = await fetch(`/api/auth/${mode}`, {
+C:\tmg-saas\frontend\src\app\robots.ts:9 => disallow: ["/admin/", "/dashboard/", "/api/", "/login"],
+C:\tmg-saas\frontend\src\app\robots.ts:14 => disallow: ["/admin/", "/dashboard/", "/api/"],
+C:\tmg-saas\frontend\src\components\GlobalStyles.tsx:137 => const rawUrl = process.env.NEXT_PUBLIC_API_URL || "";
+C:\tmg-saas\frontend\src\components\PayPalSubscribe.tsx:11 => const configuredApiUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000").trim().replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\components\published-media-section.tsx:50 => const base = process.env.NEXT_PUBLIC_API_URL?.trim();
+C:\tmg-saas\frontend\src\components\quote-request-form.tsx:16 => try { let api = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").trim().replace(/\/+$/, ""); api = api.replace(/\/api$/i, "") + "/api"; await fetch(`${api}/quote-requests`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, source, captchaToken }) }); setSuccess(true); } catch { setSuccess(true); } finally { setLoading(false); }
+C:\tmg-saas\frontend\src\lib\api.ts:1 => const _raw = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").trim().replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\lib\backend-api.ts:2 => const raw = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000").trim().replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\lib\backend-api.ts:7 => if (clean.startsWith("/api/") || clean === "/api") {
+C:\tmg-saas\frontend\src\lib\content-management.ts:61 => const base = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\lib\content-management.ts:64 => throw new Error("NEXT_PUBLIC_API_URL not configured");
+C:\tmg-saas\frontend\src\lib\project-delivery.ts:39 => const value = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
+
+--- BACKEND: quote-requests controller ---
+C:\tmg-saas\src\quote-requests\quote-requests.controller.ts
+C:\tmg-saas\src\quote-requests\quote-requests.module.ts
+C:\tmg-saas\src\quote-requests\quote-requests.service.ts
+import { Body, Controller, Get, Param, Patch, Post, Req } from '@nestjs/common';
+import type { Request } from 'express';
+import { Public } from '../auth/public.decorator';
+import { Permissions } from '../auth/permissions.decorator';
+import { TurnstileService } from '../common/turnstile/turnstile.service'; // FIX: was ../ai/turnstile.service
+import { CreateQuoteRequestDto } from './dto/create-quote-request.dto';
+import { UpdateQuoteStatusDto } from './dto/update-quote-status.dto';
+import { QuoteRequestsService } from './quote-requests.service';
+
+@Controller('quote-requests')
+export class QuoteRequestsController {
+  constructor(
+    private readonly service: QuoteRequestsService,
+    private readonly turnstile: TurnstileService,
+  ) { }
+
+  @Public()
+  @Post()
+  async create(@Body() dto: CreateQuoteRequestDto, @Req() request: Request) {
+    // FIX: pass action 'quote_submit' for Spin validation + use request.ip
+    const ip = (request.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || request.ip;
+    await this.turnstile.verify(dto.turnstileToken, ip, 'quote_submit');
+    return this.service.create(dto);
+  }
+
+  @Permissions('finance:manage')
+  @Get()
+  findAll() {
+    return this.service.findAll();
+  }
+
+  @Permissions('finance:manage')
+  @Patch(':id/status')
+  updateStatus(@Param('id') id: string, @Body() dto: UpdateQuoteStatusDto) {
+    return this.service.updateStatus(id, dto.status);
+  }
+}
+
+--- BACKEND: forms controller ---
+C:\tmg-saas\src\forms\forms.controller.ts
+C:\tmg-saas\src\forms\forms.module.ts
+C:\tmg-saas\src\forms\forms.service.ts
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
+@Controller()
+export class FormsController {
+  @Post('sites/:id/forms')
+  @Get('sites/:id/forms')
+  @Get('forms/:formId/submissions')
+  getSubs(@Param('formId') formId: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.formsService.getSubmissions(formId, user);
+  @Get('sites/:id/submissions')
+  getSiteSubs(@Param('id') siteId: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.formsService.getSubmissionsBySite(siteId, user);
+  @Post('forms/:formId/submit')
+  @Get('forms/:formId')
+import { FormsController } from './forms.controller';
+  controllers: [FormsController],
+  async getSubmissions(formId: string, user: AuthenticatedUser) {
+  async getSubmissionsBySite(siteId: string, user: AuthenticatedUser) {
+
+--- FRONTEND ADMIN FILES CONTENT: fetch ---
+C:\tmg-saas\frontend\src\app\admin\AdminPlansPanel.tsx
+C:\tmg-saas\frontend\src\app\admin\page.tsx
+C:\tmg-saas\frontend\src\app\admin\activity\page.tsx
+C:\tmg-saas\frontend\src\app\admin\ai-center\page.tsx
+C:\tmg-saas\frontend\src\app\admin\analytics\page.tsx
+C:\tmg-saas\frontend\src\app\admin\content\page.tsx
+C:\tmg-saas\frontend\src\app\admin\content\blog\page.tsx
+C:\tmg-saas\frontend\src\app\admin\content\blog\rich-text-editor.tsx
+C:\tmg-saas\frontend\src\app\admin\content\categories\page.tsx
+C:\tmg-saas\frontend\src\app\admin\content\gallery\page.tsx
+C:\tmg-saas\frontend\src\app\admin\content\homepage\page.tsx
+C:\tmg-saas\frontend\src\app\admin\content\media\page.tsx
+C:\tmg-saas\frontend\src\app\admin\content\seo\page.tsx
+C:\tmg-saas\frontend\src\app\admin\content\shop\page.tsx
+C:\tmg-saas\frontend\src\app\admin\integrations\page.tsx
+C:\tmg-saas\frontend\src\app\admin\projects\page.tsx
+C:\tmg-saas\frontend\src\app\admin\settings\page.tsx
+C:\tmg-saas\frontend\src\app\admin\shop\page.tsx
+C:\tmg-saas\frontend\src\app\admin\sites\page.tsx
+C:\tmg-saas\frontend\src\app\admin\superapp\page.tsx
+C:\tmg-saas\frontend\src\app\admin\users\page.tsx
+C:\tmg-saas\frontend\src\app\admin\activity\page.tsx:3 => import { apiRequest } from "@/lib/project-delivery";
+C:\tmg-saas\frontend\src\app\admin\activity\page.tsx:47 => void apiRequest<unknown>("/admin/activity", token)
+C:\tmg-saas\frontend\src\app\admin\activity\page.tsx:49 => console.log("Activity API raw:", response);
+C:\tmg-saas\frontend\src\app\admin\activity\page.tsx:55 => if (!Array.isArray(list)) throw new Error("The activity API returned an invalid response.");
+C:\tmg-saas\frontend\src\app\admin\ai-center\page.tsx:4 => import { apiRequest } from "@/lib/project-delivery";
+C:\tmg-saas\frontend\src\app\admin\ai-center\page.tsx:41 => apiRequest<KnowledgeDocument[]>("/ai/admin/knowledge", accessToken),
+C:\tmg-saas\frontend\src\app\admin\ai-center\page.tsx:42 => apiRequest<AiData>("/ai/admin/conversations", accessToken),
+C:\tmg-saas\frontend\src\app\admin\ai-center\page.tsx:73 => await apiRequest<KnowledgeDocument>("/ai/admin/knowledge", token, { method: "POST", body: form });
+C:\tmg-saas\frontend\src\app\admin\ai-center\page.tsx:89 => const result = await apiRequest<{ status: string }>(`/ai/admin/knowledge/${encodeURIComponent(id)}/scan`, token, { method: "POST" });
+C:\tmg-saas\frontend\src\app\admin\ai-center\page.tsx:104 => await apiRequest(`/ai/admin/knowledge/${encodeURIComponent(id)}`, token, { method: "DELETE" });
+C:\tmg-saas\frontend\src\app\admin\ai-center\page.tsx:118 => await apiRequest(`/ai/admin/conversations/${encodeURIComponent(id)}`, token, { method: "DELETE" });
+C:\tmg-saas\frontend\src\app\admin\analytics\page.tsx:4 => import { apiRequest } from "@/lib/project-delivery";
+C:\tmg-saas\frontend\src\app\admin\analytics\page.tsx:11 => quoteRequests: number;
+C:\tmg-saas\frontend\src\app\admin\analytics\page.tsx:12 => acceptedQuotes: number;
+C:\tmg-saas\frontend\src\app\admin\analytics\page.tsx:30 => void apiRequest<Analytics>("/ai/admin/analytics", token)
+C:\tmg-saas\frontend\src\app\admin\analytics\page.tsx:50 => ["Quote requests", data.quoteRequests],
+C:\tmg-saas\frontend\src\app\admin\analytics\page.tsx:51 => ["Accepted quotes", data.acceptedQuotes],
+C:\tmg-saas\frontend\src\app\admin\content\blog\page.tsx:5 => import { apiRequest, type CmsCategory, type CmsMedia, type CmsPost } from "@/lib/content-management";
+C:\tmg-saas\frontend\src\app\admin\content\blog\page.tsx:77 => apiRequest<CmsPost[]>("/admin/content/blog", accessToken),
+C:\tmg-saas\frontend\src\app\admin\content\blog\page.tsx:78 => apiRequest<CmsCategory[]>("/admin/content/categories", accessToken),
+C:\tmg-saas\frontend\src\app\admin\content\blog\page.tsx:79 => apiRequest<CmsMedia[]>("/admin/content/media?type=image/", accessToken),
+C:\tmg-saas\frontend\src\app\admin\content\blog\page.tsx:116 => await apiRequest(editingId ? `/admin/content/blog/${encodeURIComponent(editingId)}` : "/admin/content/blog", token, { method: editingId ? "PUT" : "POST", body: JSON.stringify(body) });
+C:\tmg-saas\frontend\src\app\admin\content\blog\page.tsx:123 => try { await apiRequest(`/admin/content/blog/${encodeURIComponent(post.id)}`, token, { method: "DELETE" }); await refresh(token); if (editingId === post.id) newPost(); setNotice("Article deleted."); }
+C:\tmg-saas\frontend\src\app\admin\content\blog\page.tsx:137 => const cat = await apiRequest<CmsCategory>("/admin/content/categories", token, { method: "POST", body: JSON.stringify({ name: article.category }) });
+C:\tmg-saas\frontend\src\app\admin\content\blog\page.tsx:140 => await apiRequest("/admin/content/blog", token, {
+C:\tmg-saas\frontend\src\app\admin\content\blog\page.tsx:174 => <select value="" onChange={e => setForm({ ...form, featuredImage: e.target.value })} className="mt-2 block w-full rounded-md border p-2"><option value="">Choose media…</option>{media.filter(m => m.status === "AVAILABLE").map(item => <option key={item.id} value={`${process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "")}${item.url}`}>{item.originalName}</option>)}</select>
+C:\tmg-saas\frontend\src\app\admin\content\blog\rich-text-editor.tsx:84 => {button("Quote", activeEditor.isActive("blockquote"), () => activeEditor.chain().focus().toggleBlockquote().run())}
+C:\tmg-saas\frontend\src\app\admin\content\categories\page.tsx:4 => import { apiRequest, type CmsCategory } from "@/lib/content-management";
+C:\tmg-saas\frontend\src\app\admin\content\categories\page.tsx:14 => setCategories(await apiRequest<CmsCategory[]>("/admin/content/categories", accessToken));
+C:\tmg-saas\frontend\src\app\admin\content\categories\page.tsx:33 => await apiRequest("/admin/content/categories", token, { method: "POST", body: JSON.stringify({ name }) });
+C:\tmg-saas\frontend\src\app\admin\content\categories\page.tsx:46 => await apiRequest(`/admin/content/categories/${encodeURIComponent(category.id)}`, token, { method: "DELETE" });
+C:\tmg-saas\frontend\src\app\admin\content\gallery\page.tsx:4 => import { apiRequest, type CmsGalleryItem, type CmsMedia } from "@/lib/content-management";
+C:\tmg-saas\frontend\src\app\admin\content\gallery\page.tsx:21 => apiRequest<CmsGalleryItem[]>("/admin/content/gallery", accessToken),
+C:\tmg-saas\frontend\src\app\admin\content\gallery\page.tsx:22 => apiRequest<CmsMedia[]>("/admin/content/media?type=image/", accessToken),
+C:\tmg-saas\frontend\src\app\admin\content\gallery\page.tsx:50 => await apiRequest(editingId ? `/admin/content/gallery/${encodeURIComponent(editingId)}` : "/admin/content/gallery", token, {
+C:\tmg-saas\frontend\src\app\admin\content\gallery\page.tsx:66 => await apiRequest(`/admin/content/gallery/${encodeURIComponent(item.id)}`, token, { method: "DELETE" });
+C:\tmg-saas\frontend\src\app\admin\content\homepage\page.tsx:4 => import { apiRequest, type CmsMedia } from "@/lib/content-management";
+C:\tmg-saas\frontend\src\app\admin\content\homepage\page.tsx:60 => quote: typeof legacy.quote === "string" ? legacy.quote : "",
+C:\tmg-saas\frontend\src\app\admin\content\homepage\page.tsx:126 => apiRequest<CmsMedia[]>("/admin/content/media?type=image/", accessToken),
+C:\tmg-saas\frontend\src\app\admin\content\homepage\page.tsx:127 => apiRequest<HomepageContent | null>("/admin/content/settings/homepage", accessToken),
+C:\tmg-saas\frontend\src\app\admin\content\homepage\page.tsx:142 => await apiRequest("/admin/content/settings/homepage", token, { method: "PUT", body: JSON.stringify({ value: toContent(form) }) });
+C:\tmg-saas\frontend\src\app\admin\content\homepage\page.tsx:179 => <div className="flex justify-between"><h3 className="font-semibold">Client Reviews ({form.testimonials.length})</h3><button type="button" onClick={() => setForm({ ...form, testimonials: [...form.testimonials, { id: crypto.randomUUID(), quote: "", clientName: "", company: "", photoUrl: "", rating: 5, approved: true }] })} className="rounded border px-3 py-2 text-sm font-semibold">+ Add</button></div>
+C:\tmg-saas\frontend\src\app\admin\content\homepage\page.tsx:184 => <label className="text-sm font-medium md:col-span-2">Quote<textarea required maxLength={2000} rows={3} value={item.quote} onChange={(e) => setForm({ ...form, testimonials: form.testimonials.map(c => c.id === item.id ? { ...c, quote: e.target.value } : c) })} className="mt-1 block w-full rounded border p-2" /></label>
+C:\tmg-saas\frontend\src\app\admin\content\media\page.tsx:4 => import { apiRequest, type CmsMedia, mediaUrl } from "@/lib/content-management";
+C:\tmg-saas\frontend\src\app\admin\content\media\page.tsx:44 => setItems(await apiRequest<CmsMedia[]>(`/admin/content/media${suffix}`, accessToken));
+C:\tmg-saas\frontend\src\app\admin\content\media\page.tsx:64 => apiRequest(`/admin/content/media/${encodeURIComponent(item.id)}/scan`, token, { method: "POST" }),
+C:\tmg-saas\frontend\src\app\admin\content\media\page.tsx:78 => await apiRequest<CmsMedia>("/admin/content/media", token, { method: "POST", body: form });
+C:\tmg-saas\frontend\src\app\admin\content\media\page.tsx:90 => await apiRequest(`/admin/content/media/${encodeURIComponent(item.id)}`, token, { method: "PATCH", body: JSON.stringify({ locations: next }) });
+C:\tmg-saas\frontend\src\app\admin\content\media\page.tsx:100 => await apiRequest(`/admin/content/media/${encodeURIComponent(item.id)}`, token, { method: "DELETE" });
+C:\tmg-saas\frontend\src\app\admin\content\media\page.tsx:109 => await apiRequest<CmsMedia>(`/admin/content/media/${encodeURIComponent(item.id)}/file`, token, { method: "PUT", body: form });
+C:\tmg-saas\frontend\src\app\admin\content\seo\page.tsx:4 => import { apiRequest } from "@/lib/content-management";
+C:\tmg-saas\frontend\src\app\admin\content\seo\page.tsx:30 => void apiRequest<Record<string, unknown> | null>("/admin/content/settings/seo", accessToken)
+C:\tmg-saas\frontend\src\app\admin\content\seo\page.tsx:57 => await apiRequest("/admin/content/settings/seo", token, {
+C:\tmg-saas\frontend\src\app\admin\content\shop\page.tsx:81 => const apiBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\app\admin\content\shop\page.tsx:82 => const base = apiBase.replace(/\/api$/i, "") + "/api";
+C:\tmg-saas\frontend\src\app\admin\content\shop\page.tsx:87 => const r = await fetch(`${base}/settings/public`, { cache: "no-store" });
+C:\tmg-saas\frontend\src\app\admin\content\shop\page.tsx:134 => const resp = await fetch(`${base}/media/upload`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: fd });
+C:\tmg-saas\frontend\src\app\admin\content\shop\page.tsx:151 => const resp = await fetch(`${base}/media/upload`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: fd });
+C:\tmg-saas\frontend\src\app\admin\content\shop\page.tsx:191 => const res = await fetch(`${base}/settings/shop_products_json`, {
+C:\tmg-saas\frontend\src\app\admin\integrations\page.tsx:4 => import { apiRequest } from "@/lib/project-delivery";
+C:\tmg-saas\frontend\src\app\admin\integrations\page.tsx:76 => void apiRequest<IntegrationStatus>("/integrations/status", accessToken)
+C:\tmg-saas\frontend\src\app\admin\integrations\page.tsx:90 => setDriveItems(await apiRequest<DriveItem[]>("/integrations/microsoft365/drive", token));
+C:\tmg-saas\frontend\src\app\admin\integrations\page.tsx:102 => setReports(await apiRequest<PowerBiReport[]>("/integrations/powerbi/reports", token));
+C:\tmg-saas\frontend\src\app\admin\integrations\page.tsx:117 => const result = await apiRequest<{ message: string }>("/integrations/microsoft365/email", token, {
+C:\tmg-saas\frontend\src\app\admin\integrations\page.tsx:145 => Microsoft 365 and Power BI are accessed through server-side APIs. Configuration status confirms environment values only; it does not verify tenant permissions.
+C:\tmg-saas\frontend\src\app\admin\projects\page.tsx:5 => apiRequest,
+C:\tmg-saas\frontend\src\app\admin\projects\page.tsx:35 => apiRequest<Project[]>("/projects", accessToken),
+C:\tmg-saas\frontend\src\app\admin\projects\page.tsx:36 => apiRequest<Staff[]>("/projects/staff", accessToken),
+C:\tmg-saas\frontend\src\app\admin\projects\page.tsx:51 => void apiRequest<{ maximumMegabytes: number }>("/settings/project-upload-limit", accessToken)
+C:\tmg-saas\frontend\src\app\admin\projects\page.tsx:68 => await apiRequest(`/projects/${encodeURIComponent(projectId)}/${path}`, token, { method: "PATCH", body: JSON.stringify(body) });
+C:\tmg-saas\frontend\src\app\admin\projects\page.tsx:77 => const report = await apiRequest<FileAnalysis>(`/ai/admin/projects/${encodeURIComponent(projectId)}/files/${encodeURIComponent(fileId)}/analyze`, token, {
+C:\tmg-saas\frontend\src\app\admin\projects\page.tsx:88 => const report = await apiRequest<FileAnalysis | null>(`/ai/admin/projects/${encodeURIComponent(projectId)}/files/${encodeURIComponent(fileId)}/analysis`, token);
+C:\tmg-saas\frontend\src\app\admin\projects\page.tsx:106 => await apiRequest(`/projects/${encodeURIComponent(projectId)}/messages`, token, { method: "POST", body: JSON.stringify({ body }) });
+C:\tmg-saas\frontend\src\app\admin\projects\page.tsx:114 => await apiRequest(`/projects/${encodeURIComponent(projectId)}/messages/${encodeURIComponent(messageId)}`, token, { method: "DELETE" });
+C:\tmg-saas\frontend\src\app\admin\projects\page.tsx:122 => await apiRequest(`/projects/${encodeURIComponent(projectId)}/files/${encodeURIComponent(fileId)}`, token, { method: "DELETE" });
+C:\tmg-saas\frontend\src\app\admin\projects\page.tsx:128 => try { await apiRequest(`/projects/${encodeURIComponent(projectId)}/files/${encodeURIComponent(fileId)}/scan-status`, token); await refresh(token); }
+C:\tmg-saas\frontend\src\app\admin\settings\page.tsx:4 => import { apiRequest } from "@/lib/project-delivery";
+C:\tmg-saas\frontend\src\app\admin\settings\page.tsx:163 => setLiveRows(await apiRequest<EffectiveRow[]>("/settings/public", accessToken));
+C:\tmg-saas\frontend\src\app\admin\settings\page.tsx:174 => setAudits(await apiRequest<AuditRow[]>("/settings/audit", accessToken));
+C:\tmg-saas\frontend\src\app\admin\settings\page.tsx:177 => setAudits(await apiRequest<AuditRow[]>("/admin/activity", accessToken));
+C:\tmg-saas\frontend\src\app\admin\settings\page.tsx:193 => const uploadLimit = await apiRequest<{ maximumMegabytes: number }>("/settings/project-upload-limit", accessToken);
+C:\tmg-saas\frontend\src\app\admin\settings\page.tsx:206 => const response: unknown = await apiRequest<unknown>("/settings/tmg_colors", accessToken);
+C:\tmg-saas\frontend\src\app\admin\settings\page.tsx:226 => await apiRequest(`/settings/${key}`, token, { method: "PUT", body: JSON.stringify({ value }) });
+C:\tmg-saas\frontend\src\app\admin\settings\page.tsx:236 => await apiRequest(`/settings/${key}`, token, { method: "DELETE" });
+C:\tmg-saas\frontend\src\app\admin\settings\page.tsx:245 => const result = await apiRequest<{ maximumMegabytes: number }>("/settings/project-upload-limit", token, { method: "PATCH", body: JSON.stringify({ maximumMegabytes: Number(maximumMegabytes) }) });
+C:\tmg-saas\frontend\src\app\admin\settings\page.tsx:260 => await apiRequest(`/settings/tmg_colors`, token, { method: "PUT", body: JSON.stringify({ value: JSON.stringify(colors) }) });
+C:\tmg-saas\frontend\src\app\admin\settings\page.tsx:263 => apiRequest(`/settings/design_${key}`, token, { method: "PUT", body: JSON.stringify({ value }) }),
+C:\tmg-saas\frontend\src\app\admin\shop\page.tsx:81 => const apiBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\app\admin\shop\page.tsx:82 => const base = apiBase.replace(/\/api$/i, "") + "/api";
+C:\tmg-saas\frontend\src\app\admin\shop\page.tsx:87 => const r = await fetch(`${base}/settings/public`, { cache: "no-store" });
+C:\tmg-saas\frontend\src\app\admin\shop\page.tsx:134 => const resp = await fetch(`${base}/media/upload`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: fd });
+C:\tmg-saas\frontend\src\app\admin\shop\page.tsx:151 => const resp = await fetch(`${base}/media/upload`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: fd });
+C:\tmg-saas\frontend\src\app\admin\shop\page.tsx:188 => const res = await fetch(`${base}/settings/shop_products_json`, {
+C:\tmg-saas\frontend\src\app\admin\sites\page.tsx:35 => const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+C:\tmg-saas\frontend\src\app\admin\sites\page.tsx:43 => const res = await fetch(`${API}/sites/admin/all`, {
+C:\tmg-saas\frontend\src\app\admin\sites\page.tsx:48 => if (!Array.isArray(data) || !data.every(isSite)) throw new Error('The sites API returned an invalid response.');
+C:\tmg-saas\frontend\src\app\admin\sites\page.tsx:55 => }, [API]);
+C:\tmg-saas\frontend\src\app\admin\sites\page.tsx:65 => await fetch(`${API}/sites`, {
+C:\tmg-saas\frontend\src\app\admin\superapp\page.tsx:23 => const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://tmg-saas.onrender.com/api';
+C:\tmg-saas\frontend\src\app\admin\superapp\page.tsx:33 => const res = await fetch(`${API_URL}/admin/superapp/chat`, {
+C:\tmg-saas\frontend\src\app\admin\superapp\page.tsx:83 => setMessages(prev => [...prev, { role: 'assistant', content: `❌ Error: ${message}\nCheck backend is live: ${API_URL}`, timestamp: new Date() }]);
+C:\tmg-saas\frontend\src\app\admin\users\page.tsx:3 => import { apiRequest } from "@/lib/project-delivery";
+C:\tmg-saas\frontend\src\app\admin\users\page.tsx:71 => const result: unknown = await apiRequest<unknown>("/admin/users", token);
+C:\tmg-saas\frontend\src\app\admin\users\page.tsx:77 => if (!Array.isArray(list) || !list.every(isManagedUser)) throw new Error("The users API returned an invalid response.");
+C:\tmg-saas\frontend\src\app\admin\users\page.tsx:108 => const updated = await apiRequest<ManagedUser>(`/admin/users/${encodeURIComponent(selectedId)}/access`, token, {
+C:\tmg-saas\frontend\src\app\admin\users\page.tsx:127 => const updated = await apiRequest<ManagedUser>(`/admin/users/${encodeURIComponent(selectedUser.id)}/status`, token, {
+C:\tmg-saas\frontend\src\app\admin\users\page.tsx:135 => const updated = await apiRequest<ManagedUser>(`/admin/users/${encodeURIComponent(selectedUser.id)}/access`, token, {
+C:\tmg-saas\frontend\src\app\admin\users\page.tsx:156 => await apiRequest(`/admin/users/${encodeURIComponent(selectedUser.id)}`, token, { method: "DELETE" });
+C:\tmg-saas\frontend\src\app\admin\AdminPlansPanel.tsx:4 => const API = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "http://localhost:3001";
+C:\tmg-saas\frontend\src\app\admin\AdminPlansPanel.tsx:63 => const fetchPlans = useCallback(async () => {
+C:\tmg-saas\frontend\src\app\admin\AdminPlansPanel.tsx:68 => let res = await fetch(`${API}/user-plans/admin/all`, {
+C:\tmg-saas\frontend\src\app\admin\AdminPlansPanel.tsx:72 => // fallback to your old /api prefix
+C:\tmg-saas\frontend\src\app\admin\AdminPlansPanel.tsx:73 => res = await fetch(`${API}/api/user-plans/admin/all`, {
+C:\tmg-saas\frontend\src\app\admin\AdminPlansPanel.tsx:80 => if (!Array.isArray(data) || !data.every(isPlan)) throw new Error("The plans API returned an invalid response.");
+C:\tmg-saas\frontend\src\app\admin\AdminPlansPanel.tsx:87 => void Promise.resolve().then(() => { if (active) return fetchPlans(); });
+C:\tmg-saas\frontend\src\app\admin\AdminPlansPanel.tsx:89 => }, [fetchPlans]);
+C:\tmg-saas\frontend\src\app\admin\AdminPlansPanel.tsx:100 => const base = `${API}/user-plans/admin`;
+C:\tmg-saas\frontend\src\app\admin\AdminPlansPanel.tsx:101 => const baseApi = `${API}/api/user-plans/admin`;
+C:\tmg-saas\frontend\src\app\admin\AdminPlansPanel.tsx:116 => let res = await fetch(path, {
+C:\tmg-saas\frontend\src\app\admin\AdminPlansPanel.tsx:122 => // fallback to /api prefix if 404
+C:\tmg-saas\frontend\src\app\admin\AdminPlansPanel.tsx:124 => const fallbackPath = path.replace(base, baseApi);
+C:\tmg-saas\frontend\src\app\admin\AdminPlansPanel.tsx:125 => res = await fetch(fallbackPath, {
+C:\tmg-saas\frontend\src\app\admin\AdminPlansPanel.tsx:136 => await fetchPlans();
+C:\tmg-saas\frontend\src\app\admin\AdminPlansPanel.tsx:163 => <button onClick={fetchPlans} className="px-3 py-2 text-sm border rounded-lg hover:bg-slate-50">Refresh</button>
+C:\tmg-saas\frontend\src\app\admin\page.tsx:6 => type QuoteRequest = {
+C:\tmg-saas\frontend\src\app\admin\page.tsx:37 => const quoteStatuses = ["PENDING", "REVIEWING", "QUOTED", "ACCEPTED", "DECLINED", "CLOSED"];
+C:\tmg-saas\frontend\src\app\admin\page.tsx:54 => const [quotes, setQuotes] = useState<QuoteRequest[]>([]);
+C:\tmg-saas\frontend\src\app\admin\page.tsx:64 => const [quoteSearch, setQuoteSearch] = useState("");
+C:\tmg-saas\frontend\src\app\admin\page.tsx:66 => const [quoteStatusFilter, setQuoteStatusFilter] = useState<string>("ALL");
+C:\tmg-saas\frontend\src\app\admin\page.tsx:78 => const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\app\admin\page.tsx:79 => if (!apiUrl) {
+C:\tmg-saas\frontend\src\app\admin\page.tsx:80 => setError("The API URL is not configured.");
+C:\tmg-saas\frontend\src\app\admin\page.tsx:87 => const [quotesResponse, paymentsResponse, secureFindResponse, statsResponse] = await Promise.all([
+C:\tmg-saas\frontend\src\app\admin\page.tsx:88 => fetch(`${apiUrl}/quote-requests`, { headers, cache: "no-store" }),
+C:\tmg-saas\frontend\src\app\admin\page.tsx:89 => fetch(`${apiUrl}/payments`, { headers, cache: "no-store" }),
+C:\tmg-saas\frontend\src\app\admin\page.tsx:90 => fetch(`${apiUrl}/payments/admin/securefind`, { headers, cache: "no-store" }),
+C:\tmg-saas\frontend\src\app\admin\page.tsx:91 => fetch(`${apiUrl}/payments/stats`, { headers, cache: "no-store" }),
+C:\tmg-saas\frontend\src\app\admin\page.tsx:94 => if ([quotesResponse, paymentsResponse, secureFindResponse, statsResponse].some((r) => r.status === 401 || r.status === 403)) {
+C:\tmg-saas\frontend\src\app\admin\page.tsx:101 => if (!quotesResponse.ok || !paymentsResponse.ok || !secureFindResponse.ok || !statsResponse.ok) {
+C:\tmg-saas\frontend\src\app\admin\page.tsx:102 => throw new Error(`Load failed (quotes ${quotesResponse.status}, payments ${paymentsResponse.status}, stats ${statsResponse.status})`);
+C:\tmg-saas\frontend\src\app\admin\page.tsx:105 => const [quoteData, paymentData, secureFindData, statsData] = await Promise.all([
+C:\tmg-saas\frontend\src\app\admin\page.tsx:106 => quotesResponse.json() as Promise<QuoteRequest[]>,
+C:\tmg-saas\frontend\src\app\admin\page.tsx:111 => setQuotes(quoteData);
+C:\tmg-saas\frontend\src\app\admin\page.tsx:136 => const filteredQuotes = useMemo(() => {
+C:\tmg-saas\frontend\src\app\admin\page.tsx:137 => return quotes.filter(q => {
+C:\tmg-saas\frontend\src\app\admin\page.tsx:138 => if (quoteStatusFilter !== "ALL" && q.status !== quoteStatusFilter) return false;
+C:\tmg-saas\frontend\src\app\admin\page.tsx:139 => if (!quoteSearch) return true;
+C:\tmg-saas\frontend\src\app\admin\page.tsx:140 => const s = quoteSearch.toLowerCase();
+C:\tmg-saas\frontend\src\app\admin\page.tsx:143 => }, [quotes, quoteSearch, quoteStatusFilter]);
+C:\tmg-saas\frontend\src\app\admin\page.tsx:152 => const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\app\admin\page.tsx:153 => if (!apiUrl || !token) return;
+C:\tmg-saas\frontend\src\app\admin\page.tsx:156 => const response = await fetch(`${apiUrl}/quote-requests/${encodeURIComponent(id)}/status`, {
+C:\tmg-saas\frontend\src\app\admin\page.tsx:166 => setQuotes((current) => current.map((quote) => quote.id === id ? { ...quote, status } : quote));
+C:\tmg-saas\frontend\src\app\admin\page.tsx:168 => setError(requestError instanceof Error ? requestError.message : "Could not update quote status.");
+C:\tmg-saas\frontend\src\app\admin\page.tsx:172 => async function deleteQuote(id: string) {
+C:\tmg-saas\frontend\src\app\admin\page.tsx:173 => if (!window.confirm("Delete this quote request permanently?")) return;
+C:\tmg-saas\frontend\src\app\admin\page.tsx:174 => const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\app\admin\page.tsx:175 => if (!apiUrl || !token) return;
+C:\tmg-saas\frontend\src\app\admin\page.tsx:177 => const res = await fetch(`${apiUrl}/quote-requests/${encodeURIComponent(id)}`, {
+C:\tmg-saas\frontend\src\app\admin\page.tsx:181 => setQuotes((c) => c.filter(q => q.id !== id));
+C:\tmg-saas\frontend\src\app\admin\page.tsx:182 => } catch (error: unknown) { setError(error instanceof Error ? error.message : "Could not delete quote request."); }
+C:\tmg-saas\frontend\src\app\admin\page.tsx:186 => const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "");
+C:\tmg-saas\frontend\src\app\admin\page.tsx:187 => if (apiUrl && token) {
+C:\tmg-saas\frontend\src\app\admin\page.tsx:188 => try { await fetch(`${apiUrl}/auth/logout`, { method: "POST", headers: { Authorization: `Bearer ${token}` } }); }catch { }
+C:\tmg-saas\frontend\src\app\admin\page.tsx:193 => setToken(""); setQuotes([]); setPayments([]);
+C:\tmg-saas\frontend\src\app\admin\page.tsx:197 => const exportQuotesCsv = () => {
+C:\tmg-saas\frontend\src\app\admin\page.tsx:199 => filteredQuotes.forEach(q => rows.push([new Date(q.createdAt).toISOString(), q.fullName, q.email, q.phone || "", q.company || "", q.service, q.status, q.details.replace(/\n/g, " ")]));
+C:\tmg-saas\frontend\src\app\admin\page.tsx:203 => const a = document.createElement("a"); a.href = url; a.download = `quotes-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+C:\tmg-saas\frontend\src\app\admin\page.tsx:222 => const pendingQuotes = quotes.filter((quote) => quote.status === "PENDING").length;
+C:\tmg-saas\frontend\src\app\admin\page.tsx:230 => <p className="mt-3 text-slate-600">Quotes, PayPal, Money Plans — Full Control</p>
+C:\tmg-saas\frontend\src\app\admin\page.tsx:251 => { label: "Pending enquiries", value: pendingQuotes.toString() },
+C:\tmg-saas\frontend\src\app\admin\page.tsx:252 => { label: "Total enquiries", value: quotes.length.toString() },
+C:\tmg-saas\frontend\src\app\admin\page.tsx:265 => <div><h2 className="text-xl font-bold">Quote requests</h2><p className="text-sm text-slate-500">{filteredQuotes.length} / {quotes.length}</p></div>
+C:\tmg-saas\frontend\src\app\admin\page.tsx:267 => <input value={quoteSearch} onChange={e => setQuoteSearch(e.target.value)} placeholder="Search name, email,service..." className="px-3 py-2 text-sm border rounded-lg w-64" />
+C:\tmg-saas\frontend\src\app\admin\page.tsx:268 => <select value={quoteStatusFilter} onChange={e => setQuoteStatusFilter(e.target.value)} className="px-3 py-2 text-sm border rounded-lg">
+C:\tmg-saas\frontend\src\app\admin\page.tsx:269 => <option value="ALL">All Status</option>{quoteStatuses.map(s => <option key={s} value={s}>{s}</option>)}
+C:\tmg-saas\frontend\src\app\admin\page.tsx:271 => <button onClick={exportQuotesCsv} className="px-3 py-2 text-sm border rounded-lg hover:bg-slate-50">ExportCSV</button>
+C:\tmg-saas\frontend\src\app\admin\page.tsx:274 => {filteredQuotes.length === 0 ? <p className="p-8 text-slate-500">No quote requests</p> : (
+C:\tmg-saas\frontend\src\app\admin\page.tsx:279 => {filteredQuotes.map((quote) => (
+C:\tmg-saas\frontend\src\app\admin\page.tsx:280 => <tr key={quote.id} className="border-t align-top">
+C:\tmg-saas\frontend\src\app\admin\page.tsx:281 => <td className="whitespace-nowrap px-4 py-4">{new Date(quote.createdAt).toLocaleDateString()}</td>
+C:\tmg-saas\frontend\src\app\admin\page.tsx:282 => <td className="px-4 py-4"><div className="font-semibold">{quote.fullName}</div><a href={`mailto:${quote.email}`} className="underline">{quote.email}</a>{quote.phone && <div>{quote.phone}</div>}{quote.company && <div className="text-slate-500">{quote.company}</div>}</td>
+C:\tmg-saas\frontend\src\app\admin\page.tsx:283 => <td className="max-w-md px-4 py-4"><div className="font-medium">{quote.service}</div><p className="mt-1 whitespace-pre-wrap text-slate-600 line-clamp-3">{quote.details}</p><p className="text-xs text-slate-400">Source:{quote.source}</p></td>
+C:\tmg-saas\frontend\src\app\admin\page.tsx:285 => <select value={quote.status} disabled={updatingId === quote.id} onChange={(e) => { void updateStatus(quote.id, e.target.value); }} className="rounded-md border bg-white px-2 py-2 text-sm disabled:opacity-60">
+C:\tmg-saas\frontend\src\app\admin\page.tsx:286 => {quoteStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
+C:\tmg-saas\frontend\src\app\admin\page.tsx:289 => <td className="px-4 py-4"><button onClick={() => void deleteQuote(quote.id)} className="text-xs text-red-600 hover:underline">Delete</button></td>
+C:\tmg-saas\frontend\src\app\admin\page.tsx:309 => <tr key={payment.id} className="border-t"><td className="px-4 py-4">{new Date(payment.createdAt).toLocaleDateString()}</td><td className="px-4 py-4 capitalize">{payment.planId}</td><td className="px-4 py-4 font-mono text-xs">{payment.orderID}</td><td className="px-4 py-4 font-semibold">{new Intl.NumberFormat("en-US", { style: "currency", currency: payment.currency }).format(payment.amount)}</td><td className="px-4 py-4">{payment.status}</td></tr>
+
+--- SEARCH ---
+C:\tmg-saas\frontend\src\app\admin\ai-center\page.tsx:100 => if (!window.confirm("Delete this knowledge document and remove it from AI search?")) return;
+C:\tmg-saas\frontend\src\app\admin\analytics\page.tsx:8 => search: { totalSearches: number; failedSearches: number; popularSearches: Array<{ query: string; count: number }> };
+C:\tmg-saas\frontend\src\app\admin\analytics\page.tsx:46 => ["Search volume", data.search.totalSearches],
+C:\tmg-saas\frontend\src\app\admin\analytics\page.tsx:47 => ["Failed searches", data.search.failedSearches],
+C:\tmg-saas\frontend\src\app\admin\analytics\page.tsx:58 => <h2 className="text-xl font-bold">Popular searches</h2>
+C:\tmg-saas\frontend\src\app\admin\analytics\page.tsx:59 => {data.search.popularSearches.length ? <ol className="mt-4 space-y-2">{data.search.popularSearches.map((item) => <li key={item.query} className="flex justify-between border-b py-2"><span>{item.query}</span><span className="font-semibold">{item.count}</span></li>)}</ol> : <p className="mt-3 text-slate-500">No search analytics yet.</p>}
+C:\tmg-saas\frontend\src\app\admin\content\gallery\page.tsx:38 => const mediaId = new URLSearchParams(window.location.search).get("mediaId");
+C:\tmg-saas\frontend\src\app\admin\content\homepage\page.tsx:113 => const [mediaSearch, setMediaSearch] = useState("");
+C:\tmg-saas\frontend\src\app\admin\content\homepage\page.tsx:163 => <input value={mediaSearch} onChange={(e) => setMediaSearch(e.target.value)} placeholder="Search images" className="mt-1 block w-full rounded border p-2" />
+C:\tmg-saas\frontend\src\app\admin\content\homepage\page.tsx:166 => {media.filter(m => m.originalName.toLowerCase().includes(mediaSearch.toLowerCase())).map((item) => <option key={item.id} value={item.url}>{item.originalName}</option>)}
+C:\tmg-saas\frontend\src\app\admin\content\media\page.tsx:31 => const [search, setSearch] = useState("");
+C:\tmg-saas\frontend\src\app\admin\content\media\page.tsx:40 => const query = new URLSearchParams();
+C:\tmg-saas\frontend\src\app\admin\content\media\page.tsx:41 => if (search.trim()) query.set("search", search.trim());
+C:\tmg-saas\frontend\src\app\admin\content\media\page.tsx:45 => }, [search, type]);
+C:\tmg-saas\frontend\src\app\admin\content\media\page.tsx:150 => <label className="text-sm font-medium">Search<input value={search} onChange={(e) => setSearch(e.target.value)} className="mt-1 block rounded-md border border-slate-300 p-2" /></label>
+C:\tmg-saas\frontend\src\app\admin\content\seo\page.tsx:77 => <div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8A6A00]">Content Management</p><h1 className="mt-2 text-4xl font-bold">SEO Settings</h1><p className="mt-3 text-slate-600">Site-wide search and social-sharing defaults. Individual blog posts can override these fields.</p></div><Link href="/admin/content" className="rounded-md border border-slate-300 px-4 py-2 font-semibold">Content menu</Link></div>
+C:\tmg-saas\frontend\src\app\admin\content\shop\page.tsx:79 => const [searchAdmin, setSearchAdmin] = useState("");
+C:\tmg-saas\frontend\src\app\admin\content\shop\page.tsx:111 => if (!searchAdmin) return products;
+C:\tmg-saas\frontend\src\app\admin\content\shop\page.tsx:112 => return products.filter(p => (p.title + p.description + p.category).toLowerCase().includes(searchAdmin.toLowerCase()));
+C:\tmg-saas\frontend\src\app\admin\content\shop\page.tsx:113 => }, [products, searchAdmin]);
+C:\tmg-saas\frontend\src\app\admin\content\shop\page.tsx:213 => <input value={searchAdmin} onChange={e => setSearchAdmin(e.target.value)} placeholder="Search admin..." className="border rounded-xl px-4 py-2 text-sm w-64" />
+C:\tmg-saas\frontend\src\app\admin\content\page.tsx:16 => { title: "SEO Settings", description: "Set site-wide search and social sharing metadata + OG + JSON-LD", href: "/admin/content/seo" },
+C:\tmg-saas\frontend\src\app\admin\content\page.tsx:20 => { title: "AI Analytics", description: "View AI conversations, search analytics, and fallback logs — V7-OMNI", href: "/admin/analytics", badge: "NEW" },
+C:\tmg-saas\frontend\src\app\admin\settings\page.tsx:66 => const [liveSearch, setLiveSearch] = useState("");
+C:\tmg-saas\frontend\src\app\admin\settings\page.tsx:68 => const [auditSearch, setAuditSearch] = useState("");
+C:\tmg-saas\frontend\src\app\admin\settings\page.tsx:311 => const filteredLive = useMemo(() => liveRows.filter(r => `${r.key} ${r.effectiveValue}`.toLowerCase().includes(liveSearch.toLowerCase())), [liveRows, liveSearch]);
+C:\tmg-saas\frontend\src\app\admin\settings\page.tsx:312 => const filteredAudits = useMemo(() => audits.filter(a => `${a.key} ${a.changedBy} ${a.newValue}`.toLowerCase().includes(auditSearch.toLowerCase())), [audits, auditSearch]);
+C:\tmg-saas\frontend\src\app\admin\settings\page.tsx:344 => <div className="flex gap-2 mb-4"><input value={liveSearch} onChange={e => setLiveSearch(e.target.value)} placeholder="Search key or value..." className="flex-1 max-w-md border rounded-lg px-3 py-2 text-sm bg-white text-black" /><button onClick={() => setLiveSearch("")} className="border px-3 py-2 rounded text-sm bg-white">Clear</button></div>
+C:\tmg-saas\frontend\src\app\admin\settings\page.tsx:357 => {filteredLive.length === 0 && <p className="text-center p-8 text-slate-500">No keys match search</p>}
+C:\tmg-saas\frontend\src\app\admin\settings\page.tsx:435 => <div className="p-4 bg-slate-50 border-b flex flex-wrap justify-between gap-3 items-center"><h2 className="font-bold text-slate-900">Audit Log — All Changes</h2><div className="flex gap-2"><input value={auditSearch} onChange={e => setAuditSearch(e.target.value)} placeholder="Search key, user, value..." className="border rounded-lg px-3 py-1.5 text-sm bg-white w-64" /><button onClick={() => void loadAudit(token)} className="text-xs border px-3 py-1.5 rounded-lg bg-white">Refresh</button></div></div>
+C:\tmg-saas\frontend\src\app\admin\shop\page.tsx:79 => const [searchAdmin, setSearchAdmin] = useState("");
+C:\tmg-saas\frontend\src\app\admin\shop\page.tsx:111 => if (!searchAdmin) return products;
+C:\tmg-saas\frontend\src\app\admin\shop\page.tsx:112 => return products.filter(p => (p.title + p.description + p.category).toLowerCase().includes(searchAdmin.toLowerCase()));
+C:\tmg-saas\frontend\src\app\admin\shop\page.tsx:113 => }, [products, searchAdmin]);
+C:\tmg-saas\frontend\src\app\admin\shop\page.tsx:210 => <input value={searchAdmin} onChange={e => setSearchAdmin(e.target.value)} placeholder="Search admin..." className="border rounded-xl px-4 py-2.5 text-sm w-64 focus:border-blue-500 outline-none" />
+C:\tmg-saas\frontend\src\app\admin\users\page.tsx:61 => const [search, setSearch] = useState("");
+C:\tmg-saas\frontend\src\app\admin\users\page.tsx:93 => if (!search.trim()) return users;
+C:\tmg-saas\frontend\src\app\admin\users\page.tsx:94 => const s = search.toLowerCase();
+C:\tmg-saas\frontend\src\app\admin\users\page.tsx:96 => }, [users, search]);
+C:\tmg-saas\frontend\src\app\admin\users\page.tsx:175 => <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name, email, role..." className="mt-3 w-full rounded-md border px-3 py-2 text-sm" />
+C:\tmg-saas\frontend\src\app\admin\AdminPlansPanel.tsx:55 => const [search, setSearch] = useState("");
+C:\tmg-saas\frontend\src\app\admin\AdminPlansPanel.tsx:141 => const matchSearch = `${p.user?.email} ${p.planId} ${p.userId}`.toLowerCase().includes(search.toLowerCase());
+C:\tmg-saas\frontend\src\app\admin\AdminPlansPanel.tsx:142 => if (!matchSearch) return false;
+C:\tmg-saas\frontend\src\app\admin\AdminPlansPanel.tsx:162 => <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search email, plan..." className="px-3 py-2 text-sm border rounded-lg w-64" />
+C:\tmg-saas\frontend\src\app\admin\page.tsx:57 => const [secureFindSearch, setSecureFindSearch] = useState("");
+C:\tmg-saas\frontend\src\app\admin\page.tsx:64 => const [quoteSearch, setQuoteSearch] = useState("");
+C:\tmg-saas\frontend\src\app\admin\page.tsx:65 => const [paymentSearch, setPaymentSearch] = useState("");
+C:\tmg-saas\frontend\src\app\admin\page.tsx:139 => if (!quoteSearch) return true;
+C:\tmg-saas\frontend\src\app\admin\page.tsx:140 => const s = quoteSearch.toLowerCase();
+C:\tmg-saas\frontend\src\app\admin\page.tsx:143 => }, [quotes, quoteSearch, quoteStatusFilter]);
+C:\tmg-saas\frontend\src\app\admin\page.tsx:146 => if (!paymentSearch) return payments;
+C:\tmg-saas\frontend\src\app\admin\page.tsx:147 => const s = paymentSearch.toLowerCase();
+C:\tmg-saas\frontend\src\app\admin\page.tsx:149 => }, [payments, paymentSearch]);
+C:\tmg-saas\frontend\src\app\admin\page.tsx:221 => const filteredSecureFinds = secureFinds.filter(s => !secureFindSearch || (s.name+" "+s.contact+" "+s.lostNumber+" "+s.brand).toLowerCase().includes(secureFindSearch.toLowerCase()));
+C:\tmg-saas\frontend\src\app\admin\page.tsx:267 => <input value={quoteSearch} onChange={e => setQuoteSearch(e.target.value)} placeholder="Search name, email,service..." className="px-3 py-2 text-sm border rounded-lg w-64" />
+C:\tmg-saas\frontend\src\app\admin\page.tsx:301 => <input value={paymentSearch} onChange={e => setPaymentSearch(e.target.value)} placeholder="Search order, plan..." className="px-3 py-2 text-sm border rounded-lg w-64" />
+C:\tmg-saas\frontend\src\app\admin\page.tsx:321 => <input value={secureFindSearch} onChange={e => setSecureFindSearch(e.target.value)} placeholder="Search name, contact, lost number..." className="px-3 py-2 text-sm border rounded-lg w-64" />
+C:\tmg-saas\frontend\src\app\api\cv-documents\file\[id]\route.ts:5 => const searchParams = req.nextUrl.searchParams;
+C:\tmg-saas\frontend\src\app\api\cv-documents\file\[id]\route.ts:6 => const isDownload = searchParams.get("download");
+C:\tmg-saas\frontend\src\app\api\cv-documents\file\[id]\route.ts:13 => const downloadQuery = isDownload ? `?${new URLSearchParams({ download: isDownload })}` : "";
+C:\tmg-saas\frontend\src\app\api\search\route.ts:3 => type SearchDocument = {
+C:\tmg-saas\frontend\src\app\api\search\route.ts:9 => searchableText?: string;
+C:\tmg-saas\frontend\src\app\api\search\route.ts:12 => const publicDocuments: SearchDocument[] = [
+C:\tmg-saas\frontend\src\app\api\search\route.ts:124 => function score(document: SearchDocument, terms: string[]): number {
+C:\tmg-saas\frontend\src\app\api\search\route.ts:129 => const searchableText = tokenize(document.searchableText ?? "");
+C:\tmg-saas\frontend\src\app\api\search\route.ts:140 => if (searchableText.has(term)) return total + 1;
+C:\tmg-saas\frontend\src\app\api\search\route.ts:146 => const query = new URL(request.url).searchParams.get("q")?.trim() ?? "";
+C:\tmg-saas\frontend\src\app\api\search\route.ts:160 => searchableText: article.sections
+C:\tmg-saas\frontend\src\app\api\search\route.ts:176 => console.error("Search could not load some public CMS content.", result.reason);
+C:\tmg-saas\frontend\src\app\api\search\route.ts:196 => searchableText: typeof post.content === "string" ? post.content.replace(/<[^>]*>/g, " ").slice(0, 20000) : "",
+C:\tmg-saas\frontend\src\app\blog\blog-content.ts:69 => { heading: "Where SMEs Get Value", paragraphs: ["AI reduces time on first drafts, routine summaries, categorization, and internal search. Benefit is not automatic — compare baseline time/error vs trial including review effort.", "Focus on tasks with volume, clear output, and low sensitivity."] },
+C:\tmg-saas\frontend\src\app\builder\[siteId]\page.tsx:581 => <h3 className="font-semibold text-sm mb-2">🔍 SEO - Google Search</h3>
+C:\tmg-saas\frontend\src\app\dashboard\sites\[siteId]\page.tsx:182 => <input value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Search submissions" placeholder="Search submissions…" className="w-full rounded-lg border p-2 sm:w-64" />
+C:\tmg-saas\frontend\src\app\dashboard\dashboard-inner.tsx:6 => import { useSearchParams } from "next/navigation";
+C:\tmg-saas\frontend\src\app\dashboard\dashboard-inner.tsx:29 => const searchParams = useSearchParams();
+C:\tmg-saas\frontend\src\app\dashboard\dashboard-inner.tsx:49 => const newProject = searchParams.get("newProject");
+C:\tmg-saas\frontend\src\app\dashboard\dashboard-inner.tsx:50 => const sTitle = searchParams.get("serviceTitle");
+C:\tmg-saas\frontend\src\app\dashboard\dashboard-inner.tsx:51 => const sType = searchParams.get("serviceType");
+C:\tmg-saas\frontend\src\app\dashboard\dashboard-inner.tsx:52 => const sDesc = searchParams.get("serviceDescription");
+C:\tmg-saas\frontend\src\app\dashboard\dashboard-inner.tsx:69 => }, [searchParams]);
+C:\tmg-saas\frontend\src\app\privacy\page.tsx:53 => <p className="mt-3 leading-7 text-zinc-600">AI conversations and search queries are deleted after 90 days. Payment records are retained for financial and legal records. We use hashed passwords and restricted admin access. No internet system can be guaranteed 100% secure.</p>
+C:\tmg-saas\frontend\src\app\search\page.tsx:3 => import SearchCenter from "./search-center";
+C:\tmg-saas\frontend\src\app\search\page.tsx:7 => title: "Search | TMG Business Consulting",
+C:\tmg-saas\frontend\src\app\search\page.tsx:8 => description: "Search TMG Business Consulting services, training, and published business insights.",
+C:\tmg-saas\frontend\src\app\search\page.tsx:9 => alternates: { canonical: "https://tmgbusinessconsulting.com/search" },
+C:\tmg-saas\frontend\src\app\search\page.tsx:11 => index: false, // search result pages = noindex
+C:\tmg-saas\frontend\src\app\search\page.tsx:16 => title: "Search TMG Services and Business Insights",
+C:\tmg-saas\frontend\src\app\search\page.tsx:18 => url: "https://tmgbusinessconsulting.com/search",
+C:\tmg-saas\frontend\src\app\search\page.tsx:24 => title: "Search | TMG Business Consulting",
+C:\tmg-saas\frontend\src\app\search\page.tsx:29 => export default function SearchPage() {
+C:\tmg-saas\frontend\src\app\search\page.tsx:30 => const searchActionSchema = {
+C:\tmg-saas\frontend\src\app\search\page.tsx:36 => "@type": "SearchAction",
+C:\tmg-saas\frontend\src\app\search\page.tsx:39 => urlTemplate: "https://tmgbusinessconsulting.com/search?q={search_term_string}",
+C:\tmg-saas\frontend\src\app\search\page.tsx:41 => "query-input": "required name=search_term_string",
+C:\tmg-saas\frontend\src\app\search\page.tsx:49 => dangerouslySetInnerHTML={{ __html: serializeJsonLd(searchActionSchema) }}
+C:\tmg-saas\frontend\src\app\search\page.tsx:61 => <SearchCenter />
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:4 => import { useRouter, useSearchParams } from "next/navigation";
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:7 => type SearchResult = {
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:15 => export default function SearchCenter() {
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:17 => const searchParams = useSearchParams();
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:18 => const initialQuery = (searchParams.get("q") ?? "").slice(0, 120);
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:22 => const [results, setResults] = useState<SearchResult[]>([]);
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:25 => const [recentSearches, setRecentSearches] = useState<string[]>([]);
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:26 => const [popularSearches, setPopularSearches] = useState<string[]>([]);
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:32 => const saved = JSON.parse(localStorage.getItem("tmg-recent-searches") ?? "[]");
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:36 => void Promise.resolve().then(() => setRecentSearches(clean));
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:38 => } catch { localStorage.removeItem("tmg-recent-searches"); }
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:41 => fetch("/api/search-suggestions", { cache: "no-store" })
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:43 => .then((b: { suggestions: string[] }) => setPopularSearches(b.suggestions.slice(0, 5)))
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:47 => // Search effect
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:57 => const res = await fetch(`/api/search?q=${encodeURIComponent(submittedQuery)}`, { signal: ctrl.signal, cache: "no-store" });
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:58 => if (!res.ok) throw new Error("Search unavailable.");
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:59 => const body = (await res.json()) as { results: SearchResult[] };
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:64 => setRecentSearches(history);
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:65 => localStorage.setItem("tmg-recent-searches", JSON.stringify(history));
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:68 => setError(e instanceof Error ? e.message : "Search failed.");
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:82 => router.replace(trimmed ? `/search?q=${encodeURIComponent(trimmed)}` : "/search", { scroll: false });
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:89 => router.replace(`/search?q=${encodeURIComponent(s)}`, { scroll: false });
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:95 => <p className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: "var(--gold)" }}>TMG Search Center</p>
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:97 => <p className="mt-4 text-slate-600" style={{ lineHeight: "var(--line-height)" }}>Search our services, training and published articles, or ask TMG AI for guidance.</p>
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:101 => <label htmlFor="site-search" className="sr-only">Search TMG content</label>
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:103 => id="site-search"
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:104 => type="search"
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:119 => {loading ? "Searching..." : "Search"}
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:129 => {(popularSearches.length > 0 || recentSearches.length > 0) && (
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:131 => {popularSearches.length > 0 && (
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:133 => <h2 className="text-sm font-semibold text-slate-600">Popular searches</h2>
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:135 => {popularSearches.map(s => <button key={s} type="button" onClick={() => pickSuggestion(s)} className="rounded-full bg-slate-100 px-3 py-1.5 text-sm hover:bg-slate-200 transition">{s}</button>)}
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:139 => {recentSearches.length > 0 && (
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:142 => <h2 className="text-sm font-semibold text-slate-600">Your recent searches</h2>
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:143 => <button onClick={() => { localStorage.removeItem("tmg-recent-searches"); setRecentSearches([]); recentRef.current = []; }} className="text-xs underline text-slate-500">Clear</button>
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:146 => {recentSearches.map(s => <button key={s} type="button" onClick={() => pickSuggestion(s)} className="rounded-full border px-3 py-1.5 text-sm hover:bg-slate-50" style={{ borderColor: "var(--border-color)" }}>{s}</button>)}
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:153 => {loading && <p className="mx-auto mt-8 max-w-3xl text-slate-600" role="status">Searching published content…</p>}
+C:\tmg-saas\frontend\src\app\search\search-center.tsx:178 => {submittedQuery.length < 2 && <p className="mx-auto mt-8 max-w-3xl text-sm text-slate-500">Enter at least 2 characters to search.</p>}
+C:\tmg-saas\frontend\src\app\securefind\start\page.tsx:7 => useEffect(() => { const t = setTimeout(() => { if (window.location.search.includes('cancelled=true')) setCancelled(true); }, 0); return () => clearTimeout(t); }, []);
+C:\tmg-saas\frontend\src\app\securefind\success\page.tsx:3 => import { useSearchParams } from "next/navigation";
+C:\tmg-saas\frontend\src\app\securefind\success\page.tsx:5 => const params = useSearchParams();
+C:\tmg-saas\frontend\src\app\shop\success\page.tsx:4 => import { useSearchParams } from "next/navigation";
+C:\tmg-saas\frontend\src\app\shop\success\page.tsx:8 => const params = useSearchParams();
+C:\tmg-saas\frontend\src\app\shop\success\page.tsx:27 => const effToken = downloadToken || token; const primaryUrl = effToken ? `${base}/content/media/download?${new URLSearchParams({ token: effToken, productId })}` : null;
+C:\tmg-saas\frontend\src\app\shop\shop-client.tsx:18 => const [search, setSearch] = useState("");
+C:\tmg-saas\frontend\src\app\shop\shop-client.tsx:25 => if (search) list = list.filter(p => (p.title + p.description).toLowerCase().includes(search.toLowerCase()));
+C:\tmg-saas\frontend\src\app\shop\shop-client.tsx:28 => }, [products, filter, search]);
+C:\tmg-saas\frontend\src\app\shop\shop-client.tsx:54 => fetch(`${base}/ai/search-analytics`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: `shop_buy_${product.id}`, resultCount: 1 }) }).catch(() => { });
+C:\tmg-saas\frontend\src\app\shop\shop-client.tsx:81 => <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search templates, business plans..." className="bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-sm w-full max-w-md placeholder:text-slate-400 focus:outline-none focus:border-blue-500" />
+C:\tmg-saas\frontend\src\app\shop\shop-client.tsx:95 => <div className="text-center py-20 bg-white rounded-2xl border border-dashed max-w-md mx-auto"><span className="text-3xl">📦</span><p className="text-slate-500 mt-2">No products for &quot;{search || filter}&quot;</p></div>
+C:\tmg-saas\frontend\src\app\success\page.tsx:3 => import { useSearchParams } from "next/navigation";
+C:\tmg-saas\frontend\src\app\success\page.tsx:6 => const searchParams = useSearchParams();
+C:\tmg-saas\frontend\src\app\success\page.tsx:7 => const subscriptionId = searchParams.get("subscription_id") || searchParams.get("subscriptionId");
+C:\tmg-saas\frontend\src\app\auth-form.tsx:4 => import { useRouter, useSearchParams } from "next/navigation";
+C:\tmg-saas\frontend\src\app\auth-form.tsx:15 => const searchParams = useSearchParams();
+C:\tmg-saas\frontend\src\app\auth-form.tsx:16 => const redirectCandidate = searchParams.get("next") || searchParams.get("redirect");
+C:\tmg-saas\frontend\src\app\auth-form.tsx:121 => {searchParams.get("registered") === "1" && mode === "login" && (
+C:\tmg-saas\frontend\src\app\sitemap.ts:36 => "/search",
+C:\tmg-saas\frontend\src\components\quote-request-form.tsx:4 => import { useSearchParams } from "next/navigation";
+C:\tmg-saas\frontend\src\components\quote-request-form.tsx:7 => const searchParams = useSearchParams();
+C:\tmg-saas\frontend\src\components\quote-request-form.tsx:12 => useEffect(() => { const pre = searchParams.get("service"); if (pre) setForm(f => ({ ...f, service: pre })); }, [searchParams]);

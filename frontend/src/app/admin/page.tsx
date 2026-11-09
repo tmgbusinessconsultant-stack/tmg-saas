@@ -84,30 +84,35 @@ export default function AdminDashboardPage() {
 
     try {
       const headers = { Authorization: `Bearer ${accessToken}` };
-      const [quotesResponse, paymentsResponse, secureFindResponse, statsResponse] = await Promise.all([
-        fetch(`${apiUrl}/quote-requests`, { headers, cache: "no-store" }),
-        fetch(`${apiUrl}/payments`, { headers, cache: "no-store" }),
-        fetch(`${apiUrl}/payments/admin/securefind`, { headers, cache: "no-store" }),
-        fetch(`${apiUrl}/payments/stats`, { headers, cache: "no-store" }),
-      ]);
 
-      if ([quotesResponse, paymentsResponse, secureFindResponse, statsResponse].some((r) => r.status === 401 || r.status === 403)) {
-        sessionStorage.removeItem("accessToken");
-        localStorage.removeItem("token");
-        localStorage.removeItem("accessToken");
-        setToken("");
-        throw new Error("Admin access required. Sign in again.");
-      }
-      if (!quotesResponse.ok || !paymentsResponse.ok || !secureFindResponse.ok || !statsResponse.ok) {
-        throw new Error(`Load failed (quotes ${quotesResponse.status}, payments ${paymentsResponse.status}, stats ${statsResponse.status})`);
-      }
+      // FIX: Each endpoint loads independently - Quotes show even if Payments fails
+      const loadSafe = async (url: string, fallback: any): Promise<any> => {
+        try {
+          const r = await fetch(url, { headers, cache: "no-store" });
+          if (r.status === 401 || r.status === 403) {
+            if (url.endsWith("/quote-requests")) {
+              sessionStorage.removeItem("accessToken");
+              localStorage.removeItem("token");
+              localStorage.removeItem("accessToken");
+              setToken("");
+              throw new Error("Admin access required. Sign in again.");
+            }
+            return fallback;
+          }
+          if (!r.ok) return fallback;
+          const data = await r.json().catch(() => fallback);
+          return data ?? fallback;
+        } catch (e) {
+          if (e instanceof Error && e.message === "Admin access required. Sign in again.") throw e;
+          return fallback;
+        }
+      };
 
-      const [quoteData, paymentData, secureFindData, statsData] = await Promise.all([
-        quotesResponse.json() as Promise<QuoteRequest[]>,
-        paymentsResponse.json() as Promise<Payment[]>,
-        secureFindResponse.json() as Promise<SecureFindRequest[]>,
-        statsResponse.json() as Promise<PaymentStats>,
-      ]);
+      const quoteData: any = await loadSafe(`${apiUrl}/quote-requests`, []);
+      const paymentData: any = await loadSafe(`${apiUrl}/payments`, []);
+      const secureFindData: any = await loadSafe(`${apiUrl}/payments/admin/securefind`, []);
+      const statsData: any = await loadSafe(`${apiUrl}/payments/stats`, { currency: "USD", total: 0, completedPayments: 0 });
+
       setQuotes(quoteData);
       setSecureFinds(secureFindData);
       setPayments(paymentData);

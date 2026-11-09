@@ -58,6 +58,12 @@ export default function SearchCenter() {
         if (!res.ok) throw new Error("Search unavailable.");
         const body = (await res.json()) as { results: SearchResult[] };
         setResults(body.results);
+        // LOG: Fire-and-forget to backend analytics - never blocks search
+        fetch("/api/search-log", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: submittedQuery, resultCount: body.results.length }),
+        }).catch(() => {});
         // Save recent
         const history = [submittedQuery, ...recentRef.current.filter(i => i.toLowerCase() !== submittedQuery.toLowerCase())].slice(0, 5);
         recentRef.current = history;

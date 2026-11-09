@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -83,5 +84,6 @@ export default function QuotePage() {
     </div>
   );
 }
+
 
 

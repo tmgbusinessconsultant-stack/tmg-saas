@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import QuoteRequestForm from "@/components/quote-request-form";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "Get Quote | TMG Business Consulting",
   description: "Tell us your business needs — strategy, AI setup, SOPs, or growth support. Get a tailored proposal within 24 hours.",
@@ -61,5 +63,6 @@ export default function BookingPage() {
     </div>
   );
 }
+
 
 

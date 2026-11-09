@@ -1,3 +1,4 @@
+"use client";
 /* eslint-disable */
 import { Turnstile } from "@marsidev/react-turnstile";
 import { useEffect, useState } from "react";
@@ -28,3 +29,4 @@ export default function TurnstileChallenge({ onVerify }: { onVerify: (token: str
     />
   );
 }
+

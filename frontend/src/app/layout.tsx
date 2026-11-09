@@ -5,6 +5,8 @@ import SiteHeader from "@/components/site-header";
 import { GlobalStyles } from "@/components/GlobalStyles";
 import { contactEmail, phoneNumber, whatsappNumber } from "@/lib/contact-details";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://tmgbusinessconsulting.com"),
   title: {
@@ -68,9 +70,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <div className="font-black text-white text-sm uppercase tracking-wider opacity-100">Quick Links</div>
               <ul className="space-y-2 font-medium">
                 <li><Link href="/about" className="hover:text-white transition-colors">About TMG</Link></li>
-                <li><Link href="/services" className="hover:text-white transition-colors">Services</Link></li>
+                <li><Link href="/services" className="hover:text-white transition-colors">Services</Link></li><li><Link href="/ai-tools" className="hover:text-white transition-colors">AI Tools</Link></li><li><Link href="/training" className="hover:text-white transition-colors">Academy</Link></li><li><Link href="/securefind" className="hover:text-white transition-colors">SecureFind - Find Suppliers</Link></li><li><Link href="/shop" className="hover:text-white transition-colors">Digital Store</Link></li>
                 <li><Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
-                <li><Link href="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
+                <li><Link href="/contact" className="hover:text-white transition-colors">Contact Us</Link></li><li><Link href="/login" className="hover:text-white transition-colors">Client Login</Link></li>
                 <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
                 <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
                 <li><Link href="/terms" className="hover:text-white transition-colors">Refund Policy</Link></li>
@@ -106,6 +108,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+
 
 
 
