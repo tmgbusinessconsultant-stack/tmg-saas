@@ -14,6 +14,18 @@ export class TurnstileService {
     if (!secret) {
       throw new ServiceUnavailableException('Bot protection is not fully configured: TURNSTILE_SECRET_KEY missing.');
     }
+
+    // ===== DEV BYPASS - LOCAL ONLY =====
+    // If .env has dev-bypass-local, skip Cloudflare call
+    // In production secret is real, so this NEVER triggers there
+    if (secret === 'dev-bypass-local' || secret === 'dev-bypass' || secret === 'test') {
+      if (!token?.trim()) {
+        throw new ForbiddenException('Missing Turnstile token. Please complete the challenge.');
+      }
+      return; // Allow local test
+    }
+    // ===== END DEV BYPASS =====
+
     if (!token?.trim()) {
       throw new ForbiddenException('Missing Turnstile token. Please complete the challenge.');
     }

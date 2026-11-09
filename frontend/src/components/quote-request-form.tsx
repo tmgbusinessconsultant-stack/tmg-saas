@@ -3,19 +3,67 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import TurnstileChallenge from "./TurnstileChallenge";
+
 export default function QuoteRequestForm({ source = "contact" }: { source?: string }) {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
   const [captchaToken, setCaptchaToken] = useState("");
   const [form, setForm] = useState({ name: "", email: "", phone: "", company: "", service: "", message: "" });
-  useEffect(() => { const pre = searchParams.get("service"); if (pre) setForm(f => ({ ...f, service: pre })); }, [searchParams]);
+
+  useEffect(() => {
+    const pre = searchParams.get("service");
+    if (pre) setForm(f => ({ ...f, service: pre }));
+  }, [searchParams]);
+
   const update = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
+
   const submit = async (e: React.FormEvent) => {
-    e.preventDefault(); setLoading(true);
-    try { let api = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").trim().replace(/\/+$/, ""); api = api.replace(/\/api$/i, "") + "/api"; await fetch(`${api}/quote-requests`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, source, captchaToken }) }); setSuccess(true); } catch { setSuccess(true); } finally { setLoading(false); }
+    e.preventDefault();
+    setError("");
+    if (!captchaToken) {
+      setError("Please complete the verification (Turnstile) before sending.");
+      return;
+    }
+    setLoading(true);
+    try {
+      let api = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").trim().replace(/\/+$/, "");
+      api = api.replace(/\/api$/i, "") + "/api";
+
+      // DTO: name, email, phone, company, serviceType, details, turnstileToken ONLY
+      const payload = {
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        company: form.company,
+        serviceType: form.service,
+        details: form.message,
+        turnstileToken: captchaToken,
+      };
+
+      const res = await fetch(`${api}/quote-requests`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Server rejected (${res.status}): ${text.slice(0, 400)}`);
+      }
+
+      setSuccess(true);
+    } catch (err) {
+      setSuccess(false);
+      setError(err instanceof Error ? err.message : "Failed to send. Please WhatsApp us on +974 7045 4450");
+    } finally {
+      setLoading(false);
+    }
   };
-  if (success) return <div className="text-center py-12"><div className="mx-auto h-14 w-14 rounded-full grid place-items-center font-bold" style={{ background: "#D4AF37" }}>✓</div><h3 className="mt-4 text-xl font-bold">Request Received</h3><p className="mt-2 text-sm text-zinc-500">We will respond within 2 hours - Global delivery from Doha.</p><button onClick={() => setSuccess(false)} className="mt-6 px-5 py-2.5 text-white text-sm font-bold rounded-full" style={{ background: "#0F172A" }}>Send Another</button></div>;
+
+  if (success) return <div className="text-center py-12"><div className="mx-auto h-14 w-14 rounded-full grid place-items-center font-bold" style={{ background: "#D4AF37" }}>✓</div><h3 className="mt-4 text-xl font-bold">Request Received</h3><p className="mt-2 text-sm text-zinc-500">We will respond within 2 hours - Global delivery from Doha.</p><button onClick={() => { setSuccess(false); setCaptchaToken(""); }} className="mt-6 px-5 py-2.5 text-white text-sm font-bold rounded-full" style={{ background: "#0F172A" }}>Send Another</button></div>;
+
   return (
     <form onSubmit={submit} className="space-y-4">
       <div className="grid md:grid-cols-2 gap-4">
@@ -38,6 +86,7 @@ export default function QuoteRequestForm({ source = "contact" }: { source?: stri
       </select>
       <textarea required value={form.message} onChange={e => update("message", e.target.value)} placeholder="Tell us timeline, goals, Power BI / Excel needs..." rows={4} className="w-full px-3 py-3 text-sm border rounded-[12px]" />
       <div className="py-1"><TurnstileChallenge onVerify={setCaptchaToken} /></div>
+      {error && <div className="rounded-[12px] border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
       <button disabled={loading || !captchaToken} type="submit" className="w-full text-white text-sm font-black uppercase tracking-wider h-[48px] rounded-full disabled:opacity-40" style={{ background: "#0F172A" }}>{loading ? "Sending..." : "Request Proposal"}</button>
       <p className="text-[10px] text-center text-zinc-400 font-bold uppercase">Global Delivery - Operated from Doha, Qatar</p>
     </form>
