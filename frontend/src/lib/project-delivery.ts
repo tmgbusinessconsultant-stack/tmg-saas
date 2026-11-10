@@ -1,13 +1,23 @@
-export type ProjectFile = {
+﻿export type ProjectFile = {
   id: string;
   originalName: string;
   name: string;
   kind: "CLIENT_UPLOAD" | "DELIVERABLE";
   size: string;
-  status: "UPLOADING" | "SCANNING" | "AVAILABLE" | "REJECTED" | "FAILED";
+  status: "PENDING" | "CLEAN" | "INFECTED";
+  inboxStatus?: "NEW" | "SEEN" | "DELIVERED";
   version: number;
   createdAt: string;
   uploadedById?: string;
+};
+
+export type ProjectVideoLink = {
+  id: string;
+  url: string;
+  type: "YOUTUBE" | "TIKTOK";
+  title?: string | null;
+  inboxStatus?: "NEW" | "SEEN" | "DELIVERED";
+  createdAt: string;
 };
 
 export type ProjectMessage = {
@@ -28,6 +38,7 @@ export type Project = {
   owner: { id: string; name: string; email: string };
   assignee: { id: string; name: string; email: string } | null;
   files: ProjectFile[];
+  videoLinks?: ProjectVideoLink[];
   messages: ProjectMessage[];
 };
 
@@ -180,3 +191,4 @@ export async function deleteProjectMessage(
     method: "DELETE",
   });
 }
+

@@ -1,3 +1,4 @@
+﻿export const dynamic = 'force-dynamic';
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -16,7 +17,7 @@ export default function TermsPage() {
 
         <div className="mt-8 rounded-xl border p-5 text-sm leading-6" style={{ borderColor: "var(--border-color)", background: "var(--card-bg)" }}>
           <p className="font-semibold">TMG Business Consulting</p>
-          <p className="mt-1 text-slate-600">Doha, Qatar • Email: <a href="mailto:hello.tmgbusinessconsulting@gmail.com" className="font-semibold underline">hello.tmgbusinessconsulting@gmail.com</a> • Phone / WhatsApp: <a href="https://wa.me/97470454450" className="font-semibold underline">+974 7045 4450</a></p>
+          <p className="mt-1 text-slate-600">Doha, Qatar â€¢ Email: <a href="mailto:info@tmgbusinessconsulting.com" className="font-semibold underline">info@tmgbusinessconsulting.com</a> â€¢ Phone / WhatsApp: <a href="https://wa.me/97470454450" className="font-semibold underline">+974 7045 4450</a></p>
           <p className="mt-1 text-slate-600">By using this website, you agree to these terms. If you do not agree, do not use the site.</p>
         </div>
 
@@ -41,9 +42,9 @@ export default function TermsPage() {
         <h2 className="mt-10 text-xl font-bold">Refund policy</h2>
         <ul className="mt-3 list-disc space-y-2 pl-6 leading-7 text-slate-700">
           <li><strong>Digital templates and downloads:</strong> No refund after download, because the file cannot be returned.</li>
-          <li><strong>Defective file:</strong> If the file is defective, corrupted, or not as described, contact us within 7 days of purchase at hello.tmgbusinessconsulting@gmail.com. We will replace the file or refund you.</li>
+          <li><strong>Defective file:</strong> If the file is defective, corrupted, or not as described, contact us within 7 days of purchase at info@tmgbusinessconsulting.com. We will replace the file or refund you.</li>
           <li><strong>Consulting / services:</strong> Refunds are handled per the written agreement for that service. If work has not started, contact us to discuss cancellation.</li>
-          <li><strong>How to request:</strong> Email hello.tmgbusinessconsulting@gmail.com with your order ID, date, and reason. We respond within 3 business days.</li>
+          <li><strong>How to request:</strong> Email info@tmgbusinessconsulting.com with your order ID, date, and reason. We respond within 3 business days.</li>
         </ul>
 
         <h2 className="mt-10 text-xl font-bold">Intellectual property</h2>
@@ -59,8 +60,10 @@ export default function TermsPage() {
         <p className="mt-3 leading-7 text-slate-700">These terms are governed by the laws of the State of Qatar, without limiting mandatory protections where you live.</p>
 
         <h2 className="mt-10 text-xl font-bold">Contact</h2>
-        <p className="mt-3 leading-7 text-slate-700">Questions about these terms? Email <a href="mailto:hello.tmgbusinessconsulting@gmail.com" className="font-semibold underline">hello.tmgbusinessconsulting@gmail.com</a> or <Link href="/contact" className="font-semibold underline">contact us</Link>.</p>
+        <p className="mt-3 leading-7 text-slate-700">Questions about these terms? Email <a href="mailto:info@tmgbusinessconsulting.com" className="font-semibold underline">info@tmgbusinessconsulting.com</a> or <Link href="/contact" className="font-semibold underline">contact us</Link>.</p>
       </div>
     </article>
   );
 }
+
+

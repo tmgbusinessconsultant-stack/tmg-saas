@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, UseInterceptors, UploadedFile, Res, Req } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, UseInterceptors, UploadedFile, Res } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ProjectsService } from './projects.service';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -8,8 +8,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { Response } from 'express';
-import * as fs from 'fs';
-import * as path from 'path';
+import { Readable } from 'stream';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('projects')
@@ -41,7 +40,6 @@ export class ProjectsController {
     return (this.projectsService as any).handleFileUpload(user, id, file, body.kind || 'CLIENT_UPLOAD');
   }
 
-  // --- NEW: Real download with streaming ---
   @Get(':id/files/:fileId/download')
   @Permissions('projects:read')
   async download(
@@ -51,17 +49,54 @@ export class ProjectsController {
     @Res() res: Response,
   ) {
     const result = await (this.projectsService as any).handleFileDownload(user, id, fileId);
-    // result contains { path, originalName, contentType }
-    res.setHeader('Content-Disposition', `attachment; filename="${result.originalName}"`);
-    res.setHeader('Content-Type', result.contentType || 'application/octet-stream');
-    const stream = fs.createReadStream(result.path);
-    stream.pipe(res);
+    if (result.mode === 'redirect' && result.url) {
+      return res.redirect(result.url);
+    }
+    if (result.mode === 'buffer' && result.buffer) {
+      res.setHeader('Content-Disposition', `attachment; filename="${result.originalName}"`);
+      res.setHeader('Content-Type', result.contentType || 'application/octet-stream');
+      Readable.from(result.buffer).pipe(res);
+      return;
+    }
+    return res.status(404).json({ message: 'File not available' });
   }
 
   @Delete(':id/files/:fileId')
   @Permissions('projects:write')
   async deleteFile(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string, @Param('fileId') fileId: string) {
     return this.projectsService.deleteFile(user, id, fileId);
+  }
+
+  @Post(':id/video-links')
+  @Permissions('projects:write')
+  async addVideoLink(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { url?: string; type?: string; title?: string }) {
+    return (this.projectsService as any).addVideoLink(user, id, body);
+  }
+
+  @Get('admin/inbox')
+  @Roles('ADMIN', 'SUPER_ADMIN', 'ADMIN_MANAGER', 'PROJECT_MANAGER', 'STAFF', 'CONTENT_MANAGER', 'FINANCE_MANAGER')
+  @Permissions('projects:read')
+  async inbox(@CurrentUser() user: AuthenticatedUser) {
+    return (this.projectsService as any).listInbox(user);
+  }
+
+  @Post('admin/inbox/mark-seen')
+  @Roles('ADMIN', 'SUPER_ADMIN', 'ADMIN_MANAGER', 'PROJECT_MANAGER', 'STAFF', 'CONTENT_MANAGER', 'FINANCE_MANAGER')
+  @Permissions('projects:read')
+  async markInboxSeen(@CurrentUser() user: AuthenticatedUser) {
+    return (this.projectsService as any).markInboxSeen(user);
+  }
+
+  @Patch('admin/inbox/:itemType/:id/status')
+  @Roles('ADMIN', 'SUPER_ADMIN', 'ADMIN_MANAGER', 'PROJECT_MANAGER', 'STAFF', 'CONTENT_MANAGER', 'FINANCE_MANAGER')
+  @Permissions('projects:update')
+  async updateInboxStatus(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('itemType') itemType: string,
+    @Param('id') id: string,
+    @Body() body: { status: string },
+  ) {
+    return (this.projectsService as any).updateInboxStatus(user, itemType, id, body?.status);
   }
 
   // --- Legacy multipart kept ---

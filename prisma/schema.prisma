@@ -41,6 +41,7 @@ model User {
   ProjectActivity                  ProjectActivity[]
   ProjectFile                      ProjectFile[]
   ProjectMessage                   ProjectMessage[]
+  videoLinks                       VideoLink[]
   QuoteRequest                     QuoteRequest[]
   userPlan                         UserPlan[]
   productivity_plans               productivity_plans[]
@@ -388,10 +389,27 @@ model Project {
   ProjectActivity               ProjectActivity[]
   ProjectFile                   ProjectFile[]
   ProjectMessage                ProjectMessage[]
+  videoLinks                    VideoLink[]
 
   @@index([assigneeId, status])
   @@index([ownerId, updatedAt])
   @@index([status, updatedAt])
+}
+
+model VideoLink {
+  id          String        @id @default(uuid())
+  projectId   String
+  addedById   String
+  url         String
+  type        VideoLinkType
+  title       String?
+  inboxStatus InboxStatus   @default(NEW)
+  createdAt   DateTime      @default(now())
+  project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  addedBy     User          @relation(fields: [addedById], references: [id])
+
+  @@index([projectId, createdAt])
+  @@index([inboxStatus, createdAt])
 }
 
 model ProjectActivity {
@@ -418,7 +436,8 @@ model ProjectFile {
   storageKey     String            @unique
   multipartId    String?
   kind           ProjectFileKind
-  status         ProjectFileStatus @default(AVAILABLE)
+  status         ProjectFileStatus @default(PENDING)
+  inboxStatus    InboxStatus       @default(NEW)
   familyKey      String
   version        Int               @default(1)
   createdAt      DateTime          @default(now())
@@ -431,6 +450,7 @@ model ProjectFile {
   @@unique([projectId, familyKey, version])
   @@index([projectId, kind, status])
   @@index([uploadedById, createdAt])
+  @@index([inboxStatus, createdAt])
 }
 
 model ProjectMessage {
@@ -551,11 +571,20 @@ enum ProjectFileKind {
 }
 
 enum ProjectFileStatus {
-  UPLOADING
-  SCANNING
-  AVAILABLE
-  REJECTED
-  FAILED
+  PENDING
+  CLEAN
+  INFECTED
+}
+
+enum VideoLinkType {
+  YOUTUBE
+  TIKTOK
+}
+
+enum InboxStatus {
+  NEW
+  SEEN
+  DELIVERED
 }
 
 enum ProjectStatus {

@@ -40,8 +40,8 @@ export class FileAnalysisService {
     });
 
     if (!file) throw new NotFoundException('Project file not found.');
-    if (file.status !== 'AVAILABLE') {
-      throw new BadRequestException('Only files that have passed malware scanning can be analyzed.');
+    if (file.status !== 'CLEAN') {
+      throw new BadRequestException('Only files that have passed malware scanning (CLEAN) can be analyzed.');
     }
     if (file.size > BigInt(MAX_ANALYSIS_BYTES)) {
       throw new BadRequestException('AI analysis is limited to files of 10 MB or less.');

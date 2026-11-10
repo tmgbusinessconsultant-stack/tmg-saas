@@ -1,6 +1,12 @@
 ﻿import { Injectable, Logger } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 
+export type MailAttachment = {
+  filename: string;
+  content: Buffer;
+  contentType?: string;
+};
+
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
@@ -20,13 +26,24 @@ export class MailService {
     }
   }
 
-  async send(to: string, subject: string, text: string, html?: string): Promise<void> {
-    const from = process.env.MAIL_FROM || process.env.SMTP_USER || 'no-reply@tmgbusinessconsulting.com';
+  async send(to: string, subject: string, text: string, html?: string, attachments?: MailAttachment[]): Promise<void> {
+    const from = process.env.MAIL_FROM || process.env.SMTP_USER || 'TMG Business Consulting <info@tmgbusinessconsulting.com>';
     if (!this.transporter) {
-      this.logger.warn(`Mail transport not configured. To=${to} Subject=${subject}`);
+      this.logger.warn(`Mail transport not configured. To=${to} Subject=${subject}${attachments?.length ? ` Attachments=${attachments.length}` : ''}`);
       this.logger.debug(text);
       return;
     }
-    await this.transporter.sendMail({ from, to, subject, text, html: html ?? `<pre>${text}</pre>` });
+    await this.transporter.sendMail({
+      from,
+      to,
+      subject,
+      text,
+      html: html ?? `<pre>${text}</pre>`,
+      attachments: attachments?.map((a) => ({ filename: a.filename, content: a.content, contentType: a.contentType })),
+    });
+  }
+
+  getAdminNotificationEmail(): string {
+    return (process.env.ADMIN_NOTIFICATION_EMAIL || 'info@tmgbusinessconsulting.com').trim();
   }
 }

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 export const dynamic = 'force-dynamic';
 
@@ -60,7 +60,7 @@ export default function ClientDashboardPage() {
         else if (matched) setServiceType(matched);
       }
       if (sDesc) setDescription(sDesc + "\n\n[Requested from TMG Shop]");
-      setNotice("Service from Shop pre-filled — click Submit to create project in Project Center.");
+      setNotice("Service from Shop pre-filled â€” click Submit to create project in Project Center.");
       // scroll to form
       scrollTimer = setTimeout(()=>{ if (active) document.getElementById("new-project-form")?.scrollIntoView({ behavior: "smooth" }); }, 300);
     }
@@ -161,10 +161,10 @@ export default function ClientDashboardPage() {
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#D4AF37]">Client portal</p>
             <h1 className="mt-3 text-4xl font-bold tracking-tight text-zinc-900">My projects</h1>
-          <div className="mt-4 flex flex-wrap gap-2"><Link href="/dashboard" className="rounded-full bg-zinc-900 px-4 py-2 text-sm font-semibold text-white">My Projects</Link><Link href="/dashboard/orders" className="rounded-full border bg-white px-4 py-2 text-sm font-semibold">My Orders</Link><Link href="/dashboard/subscription" className="rounded-full border bg-white px-4 py-2 text-sm font-semibold">My Subscription</Link><Link href="/dashboard/cvs" className="rounded-full border bg-white px-4 py-2 text-sm font-semibold">CV Library</Link><Link href="/dashboard/sites" className="rounded-full border bg-white px-4 py-2 text-sm font-semibold">My Websites</Link><Link href="/dashboard/security" className="rounded-full border bg-white px-4 py-2 text-sm font-semibold">Security</Link></div>
+          <div className="mt-4 flex flex-wrap gap-2"><Link href="/dashboard" className="rounded-full bg-zinc-900 px-4 py-2 text-sm font-semibold text-white">My Projects</Link><Link href="/dashboard/upload" className="rounded-full border bg-white px-4 py-2 text-sm font-semibold">Upload Hub</Link><Link href="/dashboard/orders" className="rounded-full border bg-white px-4 py-2 text-sm font-semibold">My Orders</Link><Link href="/dashboard/subscription" className="rounded-full border bg-white px-4 py-2 text-sm font-semibold">My Subscription</Link><Link href="/dashboard/cvs" className="rounded-full border bg-white px-4 py-2 text-sm font-semibold">CV Library</Link><Link href="/dashboard/sites" className="rounded-full border bg-white px-4 py-2 text-sm font-semibold">My Websites</Link><Link href="/dashboard/security" className="rounded-full border bg-white px-4 py-2 text-sm font-semibold">Security</Link></div>
             <p className="mt-3 max-w-2xl text-zinc-500">Submit a service request, securely exchange files, and receive deliverables.</p>
           </div>
-          <Link href="/dashboard/cvs" className="rounded-full border border-zinc-200 bg-white px-5 py-2.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-50">Open CV library →</Link>
+          <Link href="/dashboard/cvs" className="rounded-full border border-zinc-200 bg-white px-5 py-2.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-50">Open CV library â†’</Link>
         </header>
 
         {(error || notice) && (
@@ -190,7 +190,7 @@ export default function ClientDashboardPage() {
             </label>
             <div className="md:col-span-2">
               <button type="submit" disabled={submitting} className="rounded-full bg-zinc-900 px-6 py-3 text-sm font-semibold text-white hover:bg-black disabled:opacity-60">
-                {submitting ? "Submitting…" : "Submit request"}
+                {submitting ? "Submittingâ€¦" : "Submit request"}
               </button>
             </div>
           </form>
@@ -211,7 +211,7 @@ export default function ClientDashboardPage() {
                 </div>
                 <span className="rounded-full bg-zinc-900 px-3 py-1 text-xs font-semibold text-white capitalize">{project.status.replaceAll("_", " ").toLowerCase()}</span>
               </div>
-              <p className="mt-3 text-xs text-zinc-500">Consultant: {project.assignee?.name ?? "Not yet assigned"} • {new Date(project.updatedAt).toLocaleString()}</p>
+              <p className="mt-3 text-xs text-zinc-500">Consultant: {project.assignee?.name ?? "Not yet assigned"} â€¢ {new Date(project.updatedAt).toLocaleString()}</p>
 
               <div className="mt-7 grid gap-7 lg:grid-cols-2">
                 <div>
@@ -219,14 +219,36 @@ export default function ClientDashboardPage() {
                   <ul className="mt-3 space-y-2">
                     {project.files.map((file) => (
                       <li key={file.id} className="flex flex-wrap items-center justify-between gap-2 rounded-[12px] bg-zinc-50 border border-zinc-100 p-3 text-sm">
-                        <span className="text-zinc-700 truncate">{file.originalName} <span className="text-zinc-400">v{file.version} • {fileSize(file.size)} • {file.status.toLowerCase()}</span></span>
-                        {file.status === "AVAILABLE" && file.kind === "DELIVERABLE" && (
+                        <span className="text-zinc-700 truncate">{file.originalName} <span className="text-zinc-400">v{file.version} â€¢ {fileSize(file.size)} â€¢ {file.status.toLowerCase()}</span></span>
+                        {file.status === "CLEAN" && file.kind === "DELIVERABLE" && (
                           <button onClick={() => void downloadProjectFile(project.id, file.id, token).catch((e: unknown) => setError(e instanceof Error ? e.message : "Download failed"))} className="text-xs font-semibold text-zinc-900 underline decoration-[#D4AF37] underline-offset-4">Download</button>
                         )}
                       </li>
                     ))}
                     {project.files.length === 0 && <li className="text-sm text-zinc-400 py-2">No files yet.</li>}
                   </ul>
+                  {(project.videoLinks || []).length > 0 && (
+                    <div className="mt-4 border-t border-zinc-100 pt-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Video links</p>
+                      <ul className="mt-2 space-y-2">
+                        {(project.videoLinks || []).map((v) => (
+                          <li key={v.id} className="rounded-[12px] border border-zinc-100 bg-zinc-50 p-3 text-sm">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <span className="text-zinc-700"><strong>{v.type}</strong>{v.title ? ` · ${v.title}` : ""}</span>
+                              <a href={v.url} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold underline">Open</a>
+                            </div>
+                            {v.type === "YOUTUBE" && /(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/.test(v.url) && (
+                              <div className="mt-2 aspect-video overflow-hidden rounded">
+                                <iframe className="h-full w-full" src={`https://www.youtube.com/embed/${(v.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/) || ["", ""])[1]}`} title={v.title || "YouTube video"} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+                              </div>
+                            )}
+                            {v.type === "TIKTOK" && <p className="mt-1 text-xs text-zinc-500 break-all">{v.url}</p>}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  <p className="mt-3 text-xs text-zinc-500"><Link href="/dashboard/upload" className="underline font-medium">Open Upload Hub</Link> to upload files (Option A) or add YouTube/TikTok links (Option C).</p>
                   <label className="mt-4 block">
                     <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Upload (up to {maximumUploadMegabytes} MB)</span>
                     <input type="file" accept={uploadAccept} className="mt-2 block w-full rounded-[12px] border border-zinc-200 bg-white p-2.5 text-sm file:mr-3 file:rounded-full file:border-0 file:bg-zinc-900 file:px-4 file:py-1.5 file:text-sm file:font-semibold file:text-white" onChange={(e) => { const f = e.currentTarget.files?.[0]; e.currentTarget.value = ""; if (f) void uploadFile(project.id, f); }} />
@@ -240,12 +262,12 @@ export default function ClientDashboardPage() {
                   <h4 className="text-sm font-semibold text-zinc-900">Messages</h4>
                   <div className="mt-3 max-h-56 space-y-3 overflow-y-auto rounded-[12px] bg-zinc-50 border border-zinc-100 p-3">
                     {project.messages.map((m) => (
-                      <div key={m.id} className="text-sm"><p className="font-semibold text-zinc-900">{m.author.name} <span className="font-normal text-zinc-400">• {new Date(m.createdAt).toLocaleString()}</span></p><p className="whitespace-pre-wrap text-zinc-600 mt-1">{m.body}</p></div>
+                      <div key={m.id} className="text-sm"><p className="font-semibold text-zinc-900">{m.author.name} <span className="font-normal text-zinc-400">â€¢ {new Date(m.createdAt).toLocaleString()}</span></p><p className="whitespace-pre-wrap text-zinc-600 mt-1">{m.body}</p></div>
                     ))}
                     {project.messages.length === 0 && <p className="text-sm text-zinc-400">No messages yet.</p>}
                   </div>
                   <form onSubmit={() => void (async () => { const b = messages[project.id]?.trim(); if (!b) return; setError(""); try { await apiRequest(`/projects/${encodeURIComponent(project.id)}/messages`, token, { method: "POST", body: JSON.stringify({ body: b }) }); setMessages((c) => ({ ...c, [project.id]: "" })); await loadProjects(token); } catch (err) { setError(err instanceof Error ? err.message : "Send failed"); } })()} className="mt-3 flex gap-2">
-                    <input required maxLength={5000} value={messages[project.id] ?? ""} onChange={(e) => setMessages((c) => ({ ...c, [project.id]: e.target.value }))} className="min-w-0 flex-1 rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-sm focus:border-zinc-900 focus:outline-none" placeholder="Write a message…" />
+                    <input required maxLength={5000} value={messages[project.id] ?? ""} onChange={(e) => setMessages((c) => ({ ...c, [project.id]: e.target.value }))} className="min-w-0 flex-1 rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-sm focus:border-zinc-900 focus:outline-none" placeholder="Write a messageâ€¦" />
                     <button type="submit" className="rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-black">Send</button>
                   </form>
                 </div>
@@ -257,3 +279,7 @@ export default function ClientDashboardPage() {
     </div>
   );
 }
+
+
+
+

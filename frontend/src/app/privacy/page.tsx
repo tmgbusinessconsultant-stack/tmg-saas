@@ -1,3 +1,4 @@
+﻿export const dynamic = 'force-dynamic';
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -17,7 +18,7 @@ export default function PrivacyPage() {
         <div className="mt-8 rounded-[20px] border border-zinc-200 bg-white p-5 md:p-6 text-sm leading-6">
           <p className="font-bold text-zinc-900">TMG Business Consulting</p>
           <p className="mt-2 text-zinc-600">Operated by TMG Business Consulting, Doha, Qatar.</p>
-          <p className="mt-1 text-zinc-600">Email: <a href="mailto:hello.tmgbusinessconsulting@gmail.com" className="font-semibold underline">hello.tmgbusinessconsulting@gmail.com</a></p>
+          <p className="mt-1 text-zinc-600">Email: <a href="mailto:info@tmgbusinessconsulting.com" className="font-semibold underline">info@tmgbusinessconsulting.com</a></p>
           <p className="mt-1 text-zinc-600">Phone / WhatsApp: <a href="https://wa.me/97470454450" className="font-semibold underline">+974 7045 4450</a></p>
           <p className="mt-1 text-zinc-600">For privacy requests, contact us by email with subject: Privacy Request.</p>
         </div>
@@ -53,7 +54,7 @@ export default function PrivacyPage() {
         <p className="mt-3 leading-7 text-zinc-600">AI conversations and search queries are deleted after 90 days. Payment records are retained for financial and legal records. We use hashed passwords and restricted admin access. No internet system can be guaranteed 100% secure.</p>
 
         <h2 className="mt-10 text-[18px] font-semibold text-zinc-900">Your rights</h2>
-        <p className="mt-3 leading-7 text-zinc-600">You may request access, correction, or deletion of your personal information. Email <a href="mailto:hello.tmgbusinessconsulting@gmail.com" className="font-medium underline">hello.tmgbusinessconsulting@gmail.com</a> with subject &quot;Privacy Request&quot;. We may need to verify your identity and may retain some records where the law requires it.</p>
+        <p className="mt-3 leading-7 text-zinc-600">You may request access, correction, or deletion of your personal information. Email <a href="mailto:info@tmgbusinessconsulting.com" className="font-medium underline">info@tmgbusinessconsulting.com</a> with subject &quot;Privacy Request&quot;. We may need to verify your identity and may retain some records where the law requires it.</p>
 
         <h2 className="mt-10 text-[18px] font-semibold text-zinc-900">Children</h2>
         <p className="mt-3 leading-7 text-zinc-600">Our services are for businesses and adults. We do not knowingly collect children&apos;s personal information.</p>
@@ -61,8 +62,10 @@ export default function PrivacyPage() {
         <h2 className="mt-10 text-[18px] font-semibold text-zinc-900">Changes</h2>
         <p className="mt-3 leading-7 text-zinc-600">We may update this policy as services change. The latest version will be published on this page with its update date. Questions? <Link href="/contact" className="font-medium underline">Contact us</Link>.</p>
 
-        <div className="mt-16 flex justify-center"><div className="rounded-full border px-4 py-2 text-xs text-zinc-500">Doha, Qatar • TMG Business Consulting • hello.tmgbusinessconsulting@gmail.com</div></div>
+        <div className="mt-16 flex justify-center"><div className="rounded-full border px-4 py-2 text-xs text-zinc-500">Doha, Qatar â€¢ TMG Business Consulting â€¢ info@tmgbusinessconsulting.com</div></div>
       </article>
     </div>
   );
 }
+
+

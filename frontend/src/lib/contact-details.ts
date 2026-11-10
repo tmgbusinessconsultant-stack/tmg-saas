@@ -1,7 +1,7 @@
 // src/lib/contact-details.ts - TMG Central Contact Source
 
 export const contactEmail =
-    process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() || "hello@tmgbusinessconsulting.com";
+    process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() || "info@tmgbusinessconsulting.com";
 
 export const whatsappNumber =
     (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "97470454450").replace(/\D/g, "").trim() ||
