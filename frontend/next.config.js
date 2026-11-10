@@ -1,4 +1,7 @@
 /** @type {import('next').NextConfig} */
+/* eslint-disable @typescript-eslint/no-require-imports */
+const { withSentryConfig } = require("@sentry/nextjs");
+
 const apiUrl = new URL(process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000");
 const nextConfig = {
   outputFileTracingRoot: __dirname,
@@ -32,5 +35,9 @@ const nextConfig = {
     ];
   },
 };
-module.exports = nextConfig;
+
+module.exports = withSentryConfig(nextConfig, {
+  silent: true,
+  disableLogger: true,
+});
 

@@ -1,6 +1,8 @@
 "use client";
 
-export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+import Link from "next/link";
+
+export default function GlobalError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
     <html>
       <body style={{ fontFamily: "system-ui, sans-serif", padding: "40px", textAlign: "center" }}>
@@ -12,7 +14,9 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
         >
           Try again
         </button>
-        <a href="/" style={{ color: "#000", textDecoration: "underline" }}>Go home</a>
+        <Link href="/" style={{ color: "#000", textDecoration: "underline" }}>
+          Go home
+        </Link>
       </body>
     </html>
   );

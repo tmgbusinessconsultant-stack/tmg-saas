@@ -23,7 +23,6 @@ export class TurnstileService {
     }
 
     const secret = process.env.TURNSTILE_SECRET_KEY?.trim();
-    const isDevelopment = process.env.NODE_ENV === 'development';
 
     const hostnames = (process.env.TURNSTILE_ALLOWED_HOSTNAMES ?? '')
       .split(',')
@@ -31,10 +30,6 @@ export class TurnstileService {
       .filter(Boolean);
 
     if (!secret) {
-      if (isDevelopment) {
-        this.logger.warn('🛡️ Turnstile verification disengaged: Running in localized engineering sandbox context.');
-        return;
-      }
       throw new ServiceUnavailableException('Bot protection layer is unconfigured: TURNSTILE_SECRET_KEY parameter missing.');
     }
 

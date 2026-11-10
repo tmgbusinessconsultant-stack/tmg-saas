@@ -16,6 +16,11 @@ model User {
   isActive                         Boolean               @default(true)
   tokenVersion                     Int                   @default(0)
   passwordChangedAt                DateTime              @default(now())
+  emailVerified                    Boolean               @default(false)
+  emailVerifiedAt                  DateTime?
+  mfaEnabled                       Boolean               @default(false)
+  mfaSecret                        String?
+  mfaPendingSecret                 String?
   createdAt                        DateTime              @default(now())
   updatedAt                        DateTime              @updatedAt
   permissions                      String[]              @default([])
@@ -24,6 +29,7 @@ model User {
   AiFileAnalysis                   AiFileAnalysis[]
   AiKnowledgeDocument              AiKnowledgeDocument[]
   AiUsage                          AiUsage[]
+  authTokens                       AuthToken[]
   BusinessPlan                     BusinessPlan[]
   ContentAuditLog                  ContentAuditLog[]
   ContentMedia                     ContentMedia[]
@@ -43,6 +49,23 @@ model User {
   @@index([createdAt])
   @@index([role, isActive])
   @@map("User")
+}
+
+model AuthToken {
+  id        String        @id @default(uuid())
+  userId    String
+  type      AuthTokenType
+  tokenHash String
+  expiresAt DateTime
+  usedAt    DateTime?
+  metadata  Json?
+  createdAt DateTime      @default(now())
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type, createdAt])
+  @@index([expiresAt])
+  @@index([type, tokenHash])
+  @@map("AuthToken")
 }
 
 model UserPlan {
@@ -565,6 +588,12 @@ enum UserRole {
   PROJECT_MANAGER
   STAFF
   CLIENT
+}
+
+enum AuthTokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+  MFA_LOGIN
 }
 
 // === WIX BUILDER - UPDATED SAFE TABLES ===

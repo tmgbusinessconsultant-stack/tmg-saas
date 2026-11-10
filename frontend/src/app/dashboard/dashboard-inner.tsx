@@ -161,6 +161,7 @@ export default function ClientDashboardPage() {
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#D4AF37]">Client portal</p>
             <h1 className="mt-3 text-4xl font-bold tracking-tight text-zinc-900">My projects</h1>
+          <div className="mt-4 flex flex-wrap gap-2"><Link href="/dashboard" className="rounded-full bg-zinc-900 px-4 py-2 text-sm font-semibold text-white">My Projects</Link><Link href="/dashboard/orders" className="rounded-full border bg-white px-4 py-2 text-sm font-semibold">My Orders</Link><Link href="/dashboard/subscription" className="rounded-full border bg-white px-4 py-2 text-sm font-semibold">My Subscription</Link><Link href="/dashboard/cvs" className="rounded-full border bg-white px-4 py-2 text-sm font-semibold">CV Library</Link><Link href="/dashboard/sites" className="rounded-full border bg-white px-4 py-2 text-sm font-semibold">My Websites</Link><Link href="/dashboard/security" className="rounded-full border bg-white px-4 py-2 text-sm font-semibold">Security</Link></div>
             <p className="mt-3 max-w-2xl text-zinc-500">Submit a service request, securely exchange files, and receive deliverables.</p>
           </div>
           <Link href="/dashboard/cvs" className="rounded-full border border-zinc-200 bg-white px-5 py-2.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-50">Open CV library →</Link>

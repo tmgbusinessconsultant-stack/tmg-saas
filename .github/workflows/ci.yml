@@ -45,6 +45,8 @@ jobs:
         working-directory: frontend
       - name: Prepare isolated test database
         run: npx prisma db push
+      - name: Backend typecheck
+        run: npx tsc --noEmit -p tsconfig.json
       - name: Unit tests
         run: npm test
       - name: Backend build and HTTP E2E
