@@ -1,4 +1,4 @@
-﻿-- CreateEnum
+-- CreateEnum
 CREATE TYPE "ProjectFileStatus_new" AS ENUM ('PENDING', 'CLEAN', 'INFECTED');
 
 -- AlterTable
@@ -20,3 +20,4 @@ DROP TYPE "ProjectFileStatus";
 ALTER TYPE "ProjectFileStatus_new" RENAME TO "ProjectFileStatus";
 
 ALTER TABLE "ProjectFile" ALTER COLUMN "status" SET DEFAULT 'PENDING';
+

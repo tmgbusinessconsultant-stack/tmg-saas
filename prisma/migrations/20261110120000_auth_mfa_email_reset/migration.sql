@@ -1,4 +1,4 @@
-﻿-- AlterTable
+-- AlterTable
 ALTER TABLE "User"
 ADD COLUMN "emailVerified" BOOLEAN NOT NULL DEFAULT false,
 ADD COLUMN "emailVerifiedAt" TIMESTAMP(3),
@@ -37,3 +37,4 @@ CREATE INDEX "AuthToken_type_tokenHash_idx" ON "AuthToken"("type", "tokenHash");
 
 -- AddForeignKey
 ALTER TABLE "AuthToken" ADD CONSTRAINT "AuthToken_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+

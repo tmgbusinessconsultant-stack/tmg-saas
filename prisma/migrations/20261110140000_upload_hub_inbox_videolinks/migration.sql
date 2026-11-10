@@ -1,4 +1,4 @@
-﻿-- CreateEnum
+-- CreateEnum
 CREATE TYPE "VideoLinkType" AS ENUM ('YOUTUBE', 'TIKTOK');
 
 -- CreateEnum
@@ -35,3 +35,4 @@ ALTER TABLE "VideoLink" ADD CONSTRAINT "VideoLink_projectId_fkey" FOREIGN KEY ("
 
 -- AddForeignKey
 ALTER TABLE "VideoLink" ADD CONSTRAINT "VideoLink_addedById_fkey" FOREIGN KEY ("addedById") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
