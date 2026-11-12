@@ -8,7 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Prisma, type User, AuthTokenType, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { createHash, randomBytes } from 'crypto';
-import { generateSecret, generateURI, verifySync } from 'otplib';
+import { authenticator } from 'otplib';
 import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
 import type { LoginDto } from './dto/login.dto';
@@ -85,7 +85,7 @@ export class AuthService {
     if (!user || !user.isActive || !user.mfaEnabled || !user.mfaSecret) {
       throw new UnauthorizedException('Invalid or expired MFA challenge.');
     }
-    const ok = verifySync({ token: code, secret: user.mfaSecret }).valid;
+    const ok = authenticator.check(code, user.mfaSecret);
     if (!ok) throw new UnauthorizedException('Invalid authentication code.');
     return this.createAuthResponse(user);
   }
@@ -134,16 +134,16 @@ export class AuthService {
   async startMfaSetup(userId: string): Promise<{ secret: string; otpauthUrl: string }> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new UnauthorizedException();
-    const secret = generateSecret();
+    const secret = authenticator.generateSecret();
     await this.prisma.user.update({ where: { id: userId }, data: { mfaPendingSecret: secret } });
-    const otpauthUrl = generateURI({ issuer: 'TMG Business Consulting', label: user.email, secret });
+    const otpauthUrl = authenticator.keyuri(user.email, 'TMG Business Consulting', secret);
     return { secret, otpauthUrl };
   }
 
   async confirmMfaSetup(userId: string, code: string): Promise<{ message: string; mfaEnabled: boolean }> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user?.mfaPendingSecret) throw new BadRequestException('No MFA setup in progress.');
-    const ok = verifySync({ token: code, secret: user.mfaPendingSecret }).valid;
+    const ok = authenticator.check(code, user.mfaPendingSecret);
     if (!ok) throw new BadRequestException('Invalid authentication code.');
     await this.prisma.user.update({
       where: { id: userId },
@@ -329,4 +329,5 @@ export class AuthService {
     return this.createAuthResponse(user);
   }
 }
+
 
