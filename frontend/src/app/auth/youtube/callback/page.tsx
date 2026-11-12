@@ -1,15 +1,21 @@
 "use client";
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-export default function YoutubeCallback() {
+
+function YoutubeCallbackContent() {
   const params = useSearchParams();
   const [msg, setMsg] = useState('Connecting...');
+
   useEffect(() => {
     const code = params.get('code');
-    if (!code) { setMsg('No code returned from Google.'); return; }
+    if (!code) { queueMicrotask(() => setMsg('No code returned from Google.')); return; }
     const isLocal = window.location.hostname === 'localhost';
     const api = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
-    fetch(`${api}/auth/youtube/exchange`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, local: isLocal }) })
+    fetch(`${api}/auth/youtube/exchange`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, local: isLocal })
+    })
       .then(r => r.json())
       .then(d => {
         if (d.error) { setMsg('Error: ' + (d.error_description || d.error)); return; }
@@ -19,5 +25,20 @@ export default function YoutubeCallback() {
       })
       .catch(() => setMsg('Failed to exchange code.'));
   }, [params]);
-  return (<div style={{ maxWidth: 600, margin: '60px auto', padding: 24, fontFamily: 'sans-serif' }}><h1>YouTube Callback</h1><p>{msg}</p><a href="/auth/youtube">Back</a></div>);
+
+  return (
+    <div style={{ maxWidth: 600, margin: '60px auto', padding: 24, fontFamily: 'sans-serif' }}>
+      <h1>YouTube Callback</h1>
+      <p>{msg}</p>
+      <a href="/auth/youtube">Back</a>
+    </div>
+  );
+}
+
+export default function YoutubeCallback() {
+  return (
+    <Suspense fallback={<div style={{ maxWidth: 600, margin: '60px auto', padding: 24, fontFamily: 'sans-serif' }}>Loading...</div>}>
+      <YoutubeCallbackContent />
+    </Suspense>
+  );
 }
