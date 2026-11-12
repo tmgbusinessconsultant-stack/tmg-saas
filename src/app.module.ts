@@ -30,6 +30,11 @@ import { RiskAssessmentsModule } from './risk-assessments/risk-assessments.modul
 import { ProductivityPlansModule } from './productivity-plans/productivity-plans.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PaypalModule } from './paypal/paypal.module';
+import { FacebookModule } from './auth/facebook/facebook.module';
+import { WhatsappModule } from './auth/whatsapp/whatsapp.module';
+import { InstagramModule } from './auth/instagram/instagram.module';
+import { LinkedinModule } from './auth/linkedin/linkedin.module';
+import { PrivacyController } from './privacy/privacy.controller';
 
 @Module({
   imports: [SuperAppModule,
@@ -58,8 +63,12 @@ import { PaypalModule } from './paypal/paypal.module';
     ProductivityPlansModule,
     PaypalModule,
     NotificationsModule,
+    FacebookModule,
+    WhatsappModule,
+    InstagramModule,
+    LinkedinModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, PrivacyController],
   providers: [
     AppService,
     { provide: APP_GUARD, useClass: JwtAuthGuard },
@@ -67,3 +76,6 @@ import { PaypalModule } from './paypal/paypal.module';
   ],
 })
 export class AppModule {}
+
+
+

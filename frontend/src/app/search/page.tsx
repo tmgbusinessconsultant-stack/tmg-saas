@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import SearchCenter from "./search-center";
@@ -63,3 +64,4 @@ export default function SearchPage() {
     </>
   );
 }
+

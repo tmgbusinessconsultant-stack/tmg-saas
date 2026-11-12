@@ -1,4 +1,4 @@
-﻿import {
+import {
   BadRequestException,
   ForbiddenException,
   Injectable,
@@ -298,4 +298,35 @@ export class AuthService {
       `<p>Reset your password using the link below:</p><p><a href="${url}">Reset password</a></p><p>This link expires in 1 hour. If you did not request this, you can ignore this email.</p>`,
     );
   }
+  // === FACEBOOK / SOCIAL LOGIN - PROPER WAY ===
+  async loginWithSocial(input: { email: string; name: string; provider: string; providerId: string }): Promise<AuthResponse> {
+    const email = input.email.trim().toLowerCase();
+    const name = input.name.trim() || email.split('@')[0];
+    let user = await this.findUserByEmail(email);
+    if (!user) {
+      const randomHash = await bcrypt.hash(randomBytes(32).toString('hex'), BCRYPT_ROUNDS);
+      user = await this.prisma.user.create({
+        data: {
+          email,
+          name,
+          passwordHash: randomHash,
+          role: UserRole.CLIENT,
+          permissions: ['projects:create', 'projects:read', 'projects:update'],
+          emailVerified: true,
+          emailVerifiedAt: new Date(),
+          isActive: true,
+        },
+      });
+    } else {
+      if (!user.emailVerified || !user.isActive) {
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: { emailVerified: true, emailVerifiedAt: new Date(), isActive: true },
+        });
+      }
+      if (!user.isActive) throw new ForbiddenException('Account is deactivated.');
+    }
+    return this.createAuthResponse(user);
+  }
 }
+

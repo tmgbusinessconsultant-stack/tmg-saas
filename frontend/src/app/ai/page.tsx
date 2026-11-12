@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import type { Metadata } from "next";
 import BusinessAssistant from "../ai-tools/business-assistant/page";
 import { serializeJsonLd } from "@/lib/json-ld";
@@ -38,3 +39,4 @@ export default function AiPage() {
     </>
   );
 }
+

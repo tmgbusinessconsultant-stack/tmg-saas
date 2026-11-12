@@ -1,6 +1,9 @@
+export const dynamic = 'force-dynamic';
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import AuthForm from "../auth-form";
+import FacebookLoginButton from "@/components/facebook-login-button";
+import InstagramLoginButton from "@/components/instagram-login-button";
 
 export const metadata: Metadata = {
   title: "Sign in | TMG Business Consulting",
@@ -33,7 +36,10 @@ export default function LoginPage() {
   return (
     <Suspense fallback={<LoginFallback />}>
       <AuthForm mode="login" />
+      <div className="flex flex-col gap-3 max-w-md mx-auto -mt-4 px-4 pb-8">
+        <FacebookLoginButton />
+        <InstagramLoginButton />
+      </div>
     </Suspense>
   );
 }
-

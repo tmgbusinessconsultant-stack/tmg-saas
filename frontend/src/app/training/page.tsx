@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import Link from "next/link";
 import type { Metadata } from "next";
 import { serializeJsonLd } from "@/lib/json-ld";
@@ -82,3 +83,4 @@ export default function TrainingPage() {
     </>
   );
 }
+

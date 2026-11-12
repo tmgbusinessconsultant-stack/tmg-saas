@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import AuthButtonsMobile from "./auth-buttons-mobile";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 const mobileLinks = [["Home","/"],["Services","/services"],["AI Tools","/ai-tools"],["Pricing","/pricing"],["Contact Us","/contact"],["Get Quote","/quote"]] as const;
@@ -32,7 +33,8 @@ export default function MobileNavigation() {
             <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Navigation</span>
             <button type="button" className="h-11 w-11 rounded-xl text-2xl text-white hover:bg-white/10" aria-label="Close navigation" onClick={() => setOpen(false)}>×</button>
           </div>
-          <nav aria-label="Mobile navigation" className="mt-5 flex flex-col gap-2">
+          <div className="mb-4 flex flex-col gap-2 border-b border-white/15 pb-5"><AuthButtonsMobile onNavigate={() => setOpen(false)} /></div>
+      <nav aria-label="Mobile navigation" className="mt-5 flex flex-col gap-2">
             {mobileLinks.map(([label, href]) => {
               const isQuote = href === "/quote";
               const active = isActive(href);

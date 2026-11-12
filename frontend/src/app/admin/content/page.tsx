@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import Link from "next/link";
 
 type ContentModule = {
@@ -52,3 +53,4 @@ export default function ContentManagementPage() {
     </main>
   );
 }
+

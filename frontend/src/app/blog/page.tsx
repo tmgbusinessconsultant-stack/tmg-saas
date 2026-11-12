@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -114,4 +115,5 @@ async function BlogPosts() {
     </div>
   );
 }
+
 

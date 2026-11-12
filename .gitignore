@@ -22,3 +22,10 @@ who-has-plan.js
 uploads/
 
 .env.local
+.env
+.env.*
+!.env.example
+*.bak
+*.bak2
+*.DISABLED
+archive-fix-scripts/

@@ -31,6 +31,7 @@ type SecureFindRequest = { id: string; name: string; contact: string; brand: str
 type PaymentStats = {
   currency: string;
   total: number;
+  revenue: number;
   completedPayments: number;
 };
 
@@ -55,7 +56,7 @@ export default function AdminDashboardPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [secureFinds, setSecureFinds] = useState<SecureFindRequest[]>([]);
   const [secureFindSearch, setSecureFindSearch] = useState("");
-  const [paymentStats, setPaymentStats] = useState<PaymentStats>({ currency: "USD", total: 0, completedPayments: 0 });
+  const [paymentStats, setPaymentStats] = useState<PaymentStats>({ currency: "USD", total: 0, revenue: 0, completedPayments: 0 });
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState("");
   const [error, setError] = useState("");
@@ -111,7 +112,7 @@ export default function AdminDashboardPage() {
       const quoteData = await loadSafe<QuoteRequest[]>(`${apiUrl}/quote-requests`, []);
       const paymentData = await loadSafe<Payment[]>(`${apiUrl}/payments`, []);
       const secureFindData = await loadSafe<SecureFindRequest[]>(`${apiUrl}/payments/admin/securefind`, []);
-      const statsData = await loadSafe<PaymentStats>(`${apiUrl}/payments/stats`, { currency: "USD", total: 0, completedPayments: 0 });
+      const statsData = await loadSafe<PaymentStats>(`${apiUrl}/payments/stats`, { currency: "USD", total: 0, revenue: 0, completedPayments: 0 });
 
       setQuotes(quoteData);
       setSecureFinds(secureFindData);
@@ -196,7 +197,7 @@ export default function AdminDashboardPage() {
     localStorage.removeItem("token");
     localStorage.removeItem("accessToken");
     setToken(""); setQuotes([]); setPayments([]);
-    setPaymentStats({ currency: "USD", total: 0, completedPayments: 0 });
+    setPaymentStats({ currency: "USD", total: 0, revenue: 0, completedPayments: 0 });
   }
 
   const exportQuotesCsv = () => {
@@ -257,7 +258,7 @@ export default function AdminDashboardPage() {
           { label: "Pending enquiries", value: pendingQuotes.toString() },
           { label: "Total enquiries", value: quotes.length.toString() },
           { label: "Completed payments", value: (paymentStats?.completedPayments ?? 0).toString() },
-          { label: "Revenue", value: new Intl.NumberFormat("en-US", { style: "currency", currency: (paymentStats?.currency ?? 'USD') }).format(paymentStats.total) },
+          { label: "Revenue", value: new Intl.NumberFormat("en-US", { style: "currency", currency: (paymentStats?.currency ?? 'USD') }).format(paymentStats.revenue) },
         ].map((stat) => (
           <div key={stat.label} className="rounded-2xl border bg-white p-6 shadow-sm">
             <p className="text-sm text-slate-500">{stat.label}</p>
