@@ -326,6 +326,13 @@ export class AuthService {
       }
       if (!user.isActive) throw new ForbiddenException('Account is deactivated.');
     }
+    // SAVE social link so Facebook deauthorize can find this user later
+    await this.prisma.socialAccount.upsert({
+      where: { provider_providerId: { provider: input.provider, providerId: input.providerId } },
+      update: { userId: user.id, email },
+      create: { userId: user.id, provider: input.provider, providerId: input.providerId, email },
+    });
+
     return this.createAuthResponse(user);
   }
 }

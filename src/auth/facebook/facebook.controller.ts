@@ -35,3 +35,4 @@ export class FacebookController {
     return { url: `${this.fbService.frontendBase()}/privacy`, confirmation_code: 'tmg-deauthorize-received' };
   }
 }
+

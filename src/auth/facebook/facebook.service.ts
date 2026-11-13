@@ -1,9 +1,14 @@
 import { Injectable, BadRequestException, Inject, forwardRef } from '@nestjs/common';
+import * as crypto from 'crypto';
 import { AuthService } from '../auth.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class FacebookService {
-  constructor(@Inject(forwardRef(() => AuthService)) private readonly authService: AuthService) {}
+  constructor(
+    @Inject(forwardRef(() => AuthService)) private readonly authService: AuthService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   getLoginUrl(): string {
     const appId = process.env.FACEBOOK_APP_ID;
@@ -57,6 +62,28 @@ export class FacebookService {
   frontendBase(): string {
     return (process.env.FRONTEND_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/+$/, '');
   }
+
+  async deauthorize(signedRequest?: string) {
+    const base = { url: `${this.frontendBase()}/data-deletion`, confirmation_code: 'tmg-deauthorize-received' };
+    try {
+      if (!signedRequest) return base;
+      const [encodedSig, encodedPayload] = signedRequest.split('.');
+      if (!encodedSig || !encodedPayload) return base;
+      const expected = crypto.createHmac('sha256', process.env.FACEBOOK_APP_SECRET!).update(encodedPayload).digest('base64url');
+      if (expected !== encodedSig) return base;
+      const payload = JSON.parse(Buffer.from(encodedPayload, 'base64url').toString('utf8'));
+      const fbId = String(payload.user_id);
+      if (!fbId) return base;
+      const link = await this.prisma.socialAccount.findUnique({
+        where: { provider_providerId: { provider: 'facebook', providerId: fbId } },
+      });
+      if (!link) return { ...base, confirmation_code: `tmg-no-user-${fbId}` };
+      await this.prisma.user.delete({ where: { id: link.userId } });
+      console.log(`[Facebook Deauthorize] Deleted user ${link.userId} fbId=${fbId}`);
+      return { url: `${this.frontendBase()}/data-deletion`, confirmation_code: `tmg-deleted-${fbId}-${Date.now()}` };
+    } catch (e: any) {
+      console.error('[Facebook Deauthorize] Error:', e.message);
+      return base;
+    }
+  }
 }
-
-
