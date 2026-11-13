@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import AuthForm from "../auth-form";
 import FacebookLoginButton from "@/components/facebook-login-button";
+import GoogleLoginButton from "@/components/google-login-button";
 import InstagramLoginButton from "@/components/instagram-login-button";
 
 export const metadata: Metadata = {
@@ -38,6 +39,7 @@ export default function LoginPage() {
       <AuthForm mode="login" />
       <div className="flex flex-col gap-3 max-w-md mx-auto -mt-4 px-4 pb-8">
         <FacebookLoginButton />
+        <GoogleLoginButton />
         <InstagramLoginButton />
       </div>
     </Suspense>
