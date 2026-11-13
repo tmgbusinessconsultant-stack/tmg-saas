@@ -1,4 +1,4 @@
-﻿export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic';
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -13,7 +13,7 @@ export default function PrivacyPage() {
       <article className="mx-auto max-w-4xl px-6 py-16 md:py-24">
         <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#D4AF37]">Legal</p>
         <h1 className="mt-4 text-4xl md:text-5xl font-bold tracking-tight text-zinc-900">Privacy Policy</h1>
-        <p className="mt-3 text-sm text-zinc-500">Last updated: 7 November 2026</p>
+        <p className="mt-3 text-sm text-zinc-500">Last updated: 13 November 2026</p>
 
         <div className="mt-8 rounded-[20px] border border-zinc-200 bg-white p-5 md:p-6 text-sm leading-6">
           <p className="font-bold text-zinc-900">TMG Business Consulting</p>
@@ -44,8 +44,12 @@ export default function PrivacyPage() {
           <li>Maintain security, diagnose failures, and meet legal, accounting, and record-keeping obligations.</li>
         </ul>
 
+                <h2 className="mt-10 text-[18px] font-semibold text-zinc-900">Social login - Facebook, Google, Instagram, TikTok</h2>
+        <p className="mt-3 leading-7 text-zinc-600">If you choose Continue with Facebook, Google, Instagram, or TikTok, we receive from that provider only what you approve: your name, email address, profile picture URL, and your provider account ID. We use this to create / sign you into your TMG account. We do NOT receive your password, friends list, posts, or private messages. You can disconnect social login anytime by contacting us. Each provider has its own privacy policy: Meta (Facebook / Instagram) - https://www.facebook.com/privacy/policy, Google - https://policies.google.com/privacy, TikTok - https://www.tiktok.com/legal/page/global/privacy-policy/en.</p>
+        <h2 className="mt-10 text-[18px] font-semibold text-zinc-900">Facebook data deletion</h2>
+        <p className="mt-3 leading-7 text-zinc-600">If you signed up with Facebook and want your TMG data deleted, email info@tmgbusinessconsulting.com with subject "Facebook Data Deletion" from the email on your account, or visit our Data Deletion page. We will delete your TMG account, profile data, and Facebook-linked identifier within 30 days and confirm by email. You can also remove TMG from your Facebook account at Settings &gt; Apps and Websites &gt; Remove.</p>
         <h2 className="mt-10 text-[18px] font-semibold text-zinc-900">Service providers</h2>
-        <p className="mt-3 leading-7 text-zinc-600">We use providers to operate this site: Groq for AI generation, Cloudflare Turnstile for bot verification, PayPal for checkout, AWS S3 for private file storage, and hosting/database providers. Providers may process information outside Qatar under their own terms. We do not sell your personal information.</p>
+        <p className="mt-3 leading-7 text-zinc-600">We use providers to operate this site: Meta Platforms (Facebook / Instagram login), Google (Google login), TikTok (TikTok login), Groq for AI generation, Cloudflare Turnstile for bot verification, PayPal for checkout, AWS S3 for private file storage, and hosting/database providers. Providers may process information outside Qatar under their own terms. We do not sell your personal information.</p>
 
         <h2 className="mt-10 text-[18px] font-semibold text-zinc-900">Cookies and browser storage</h2>
         <p className="mt-3 leading-7 text-zinc-600">Sign-in token is stored in session storage and removed on sign-out. A signed, HTTP-only cookie is used for AI rate limiting. PayPal may use cookies on checkout pages under PayPal&apos;s own privacy policy. Project downloads use short-lived signed URLs - do not share them.</p>

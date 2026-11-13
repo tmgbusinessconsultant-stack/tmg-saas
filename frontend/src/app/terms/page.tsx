@@ -1,4 +1,4 @@
-﻿export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic';
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -13,7 +13,7 @@ export default function TermsPage() {
       <div className="max-w-4xl">
         <p className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: "var(--gold)" }}>Legal</p>
         <h1 className="mt-3 font-bold tracking-tight" style={{ fontSize: "var(--h1-size)" }}>Terms of Service</h1>
-        <p className="mt-3 text-sm text-slate-500">Last updated: 7 November 2026</p>
+        <p className="mt-3 text-sm text-slate-500">Last updated: 13 November 2026</p>
 
         <div className="mt-8 rounded-xl border p-5 text-sm leading-6" style={{ borderColor: "var(--border-color)", background: "var(--card-bg)" }}>
           <p className="font-semibold">TMG Business Consulting</p>
@@ -50,8 +50,10 @@ export default function TermsPage() {
         <h2 className="mt-10 text-xl font-bold">Intellectual property</h2>
         <p className="mt-3 leading-7 text-slate-700">Website content and software are owned by or licensed to TMG. You retain rights in material you submit. You give us permission to process that material to operate the service, per our <Link href="/privacy" className="font-semibold underline">Privacy Policy</Link>. Purchased templates are licensed to you for your own business use. You may not resell or redistribute them.</p>
 
+                <h2 className="mt-10 text-xl font-bold">Social login</h2>
+        <p className="mt-3 leading-7 text-slate-700">You may sign in with Facebook, Google, Instagram, or TikTok. By using social login, you agree to that provider&apos;s terms. You are responsible for keeping your provider account secure. If you delete your TMG account, your provider account is not deleted - only your TMG data.</p>
         <h2 className="mt-10 text-xl font-bold">Third-party services</h2>
-        <p className="mt-3 leading-7 text-slate-700">This site uses PayPal for payments and Groq for AI. Those services are governed by their own terms and privacy policies.</p>
+        <p className="mt-3 leading-7 text-slate-700">This site uses PayPal for payments, Groq for AI, Meta Platforms (Facebook / Instagram) for social login, Google for social login, and TikTok for social login. Those services are governed by their own terms and privacy policies.</p>
 
         <h2 className="mt-10 text-xl font-bold">Liability</h2>
         <p className="mt-3 leading-7 text-slate-700">To the extent permitted by law, the website is provided without guarantee of being uninterrupted or error-free. Nothing in these terms excludes liability that cannot legally be excluded.</p>

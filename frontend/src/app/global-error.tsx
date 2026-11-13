@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function GlobalError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
-    <html>
+    <html lang="en">
       <body style={{ fontFamily: "system-ui, sans-serif", padding: "40px", textAlign: "center" }}>
         <h2 style={{ fontSize: "24px", marginBottom: "12px" }}>Something went wrong!</h2>
         <p style={{ color: "#666", marginBottom: "20px" }}>Please try again, or go back to the homepage.</p>
