@@ -34,6 +34,7 @@ import { FacebookModule } from './auth/facebook/facebook.module';
 import { WhatsappModule } from './auth/whatsapp/whatsapp.module';
 import { InstagramModule } from './auth/instagram/instagram.module';
 import { LinkedinModule } from './auth/linkedin/linkedin.module';
+import { GoogleModule } from './auth/google/google.module';
 import { PrivacyController } from './privacy/privacy.controller';
 
 @Module({
@@ -67,6 +68,7 @@ import { PrivacyController } from './privacy/privacy.controller';
     WhatsappModule,
     InstagramModule,
     LinkedinModule,
+    GoogleModule,
   ],
   controllers: [AppController, PrivacyController],
   providers: [
